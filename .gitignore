@@ -2,3 +2,5 @@
 .env
 .idea
 __pycache__
+firebase_config.json
+test_service_account_keys.json
