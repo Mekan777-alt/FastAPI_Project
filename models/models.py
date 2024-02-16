@@ -1,195 +1,269 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, ForeignKey, UniqueConstraint, \
-    UUID, DECIMAL
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 from datetime import datetime
+from enum import Enum as BaseEnum
+
+from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
 
-class ProfileManagementCompany(Base):
-    __tablename__ = 'profile_management_company'
+class UK(Base):
+    __tablename__ = 'uk_profiles'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    company_name = Column(String(250), nullable=False)
-    photo = Column(String(250))
-    login = Column(String(50))
-    password_hash = Column(String(150))
-    staff = relationship('StaffManagementCompany', back_populates='profile')
-    requisites = relationship('RequisitesManagementCompany', back_populates='profile')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    login = Column(String, nullable=False)
+    password = Column(String, nullable=False)
 
+    # Один ко многим: УК может иметь много сотрудников
+    employees = relationship('Employee', back_populates='uk')
 
-class StaffManagementCompany(Base):
-    __tablename__ = 'staff_management_company'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    firstname = Column(String(100))
-    lastname = Column(String(100))
-    phone_number = Column(String(20))
-    email = Column(String(30))
-    company_uuid = Column(String, ForeignKey('profile_management_company.uuid'))
-    object_uuid = Column(String, ForeignKey('object_management_company.uuid'))
-    profile = relationship('ProfileManagementCompany', back_populates='staff')
-    object_staff = relationship('ObjectManagementCompany', back_populates='staff')
+    # Один ко многим: УК может иметь много платежных реквизитов
+    payment_details = relationship('PaymentDetails', back_populates='uk')
 
 
-class RequisitesManagementCompany(Base):
-    __tablename__ = 'requisites_management_company'
+class Employee(Base):
+    __tablename__ = 'employees'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    recipient = Column(String(200))
-    inn = Column(String(100))
-    kpp = Column(String(100))
-    bank_account = Column(String(100))
-    bic = Column(String(50))
-    correspondent_account = Column(String(100))
-    okpo = Column(String(100))
-    bank_name = Column(String(100))
-    profile_id = Column(String, ForeignKey('profile_management_company.uuid'))
-    profile = relationship('ProfileManagementCompany', back_populates='requisites')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    lastname = Column(String)
+    phone = Column(String)
+    email = Column(String)
+
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    uk = relationship('UK', back_populates='employees')
 
 
-class ObjectManagementCompany(Base):
-    __tablename__ = 'object_management_company'
+class PaymentDetails(Base):
+    __tablename__ = 'payment_details'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    address = Column(String(250))
-    staff = relationship('StaffManagementCompany', back_populates='object_staff')
-    profile_of_apartments = relationship('ProfileOfApartments', back_populates='object')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    bank_name = Column(String)
+    account_number = Column(String)
 
-
-class ObjectServiceStaff(Base):
-    __tablename__ = 'object_service_staff'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    firstname = Column(String(100))
-    lastname = Column(String(100))
-    object_uuid = Column(UUID(as_uuid=True), ForeignKey('object_management_company.uuid', ondelete='CASCADE'))
-
-    object = relationship('ObjectManagementCompany', back_populates='staff')
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    uk = relationship('UK', back_populates='payment_details')
 
 
-class ProfileOfApartments(Base):
-    __tablename__ = 'profile_of_apartments'
+class Object(Base):
+    __tablename__ = 'object_profiles'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    number_apartment = Column(Integer)
-    area = Column(Float(precision=4))
-    bathroom_count = Column(Integer)
-    is_garden = Column(Boolean)
-    is_pool = Column(Boolean)
-    internet_operator = Column(String(100))
-    internet_speed = Column(String(25))
-    internet_price = Column(Float)
-    key_holder = Column(String(100))
-    object_uuid = Column(String, ForeignKey('object_management_company.uuid'))
-    object = relationship('ObjectManagementCompany', back_populates='profile_of_apartments')
-    tenants = relationship('ProfileTenant', back_populates='apartment')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    address = Column(String, nullable=False)
+
+    employees = relationship('Employee', back_populates='object')
+
+    service_personnel = relationship('ServicePersonnel', back_populates='object')
+
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    uk = relationship('UK', back_populates='objects')
 
 
-class ProfileTenant(Base):
-    __tablename__ = 'profile_tenant'
+class ServicePersonnel(Base):
+    __tablename__ = 'service_personnel'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    master_tenant = Column(Boolean, nullable=False)
-    firstname = Column(String(100))
-    lastname = Column(String(100))
-    patronymic = Column(String(100))
-    phone_number = Column(String(20))
-    email = Column(String(20))
-    login = Column(String(50))
-    password_hash = Column(String(100))
-    apartment_id = Column(String, ForeignKey('profile_of_apartments.uuid'))
-    apartment = relationship('ProfileOfApartments', back_populates='tenants')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    phone = Column(String)
+    email = Column(String)
 
-class ProfilePerformer(Base):
-    __tablename__ = 'profile_performer'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    fullname = Column(String(100), nullable=False)
-    photo = Column(String(100))
-    phone_number = Column(String(20), nullable=False)
-    email = Column(String(20), nullable=False)
-    is_legal = Column(Boolean, nullable=False)
-    specializations = relationship('PerformerSpecializations', back_populates='performer')
-    requisites = relationship('RequisitesPerformer', back_populates='performer')
+    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    object = relationship('Object', back_populates='service_personnel')
 
 
-class PerformerSpecializations(Base):
-    __tablename__ = 'performer_specializations'
+class ApartmentProfile(Base):
+    __tablename__ = 'apartment_profiles'
 
-    performer_uuid = Column(UUID, ForeignKey('profile_performer.uuid'), primary_key=True)
-    specialization = Column(String(50), primary_key=True)
-    performer = relationship('ProfilePerformer', back_populates='specializations')
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    apartment_number = Column(String, nullable=False)
+    area = Column(Float, nullable=False)
+    bathrooms = Column(Integer)
+    garden = Column(Boolean)
+    pool = Column(Boolean)
+    internet_operator = Column(String)
+    internet_speed = Column(Integer)
+    internet_fee = Column(Float)
+    key_holder = Column(String)
 
-
-class RequisitesPerformer(Base):
-    __tablename__ = 'requisites_performer'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    recipient = Column(String(200))
-    inn = Column(String(100))
-    kpp = Column(String(100))
-    bank_account = Column(String(100))
-    bic = Column(String(50))
-    correspondent_account = Column(String(100))
-    okpo = Column(String(100))
-    bank_name = Column(String(100))
-    performer_id = Column(String, ForeignKey('profile_performer.uuid'))
-    performer = relationship('ProfilePerformer', back_populates='requisites')
+    # Многие к одному: Профиль апартаментов принадлежит к одному объекту
+    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    object = relationship('Object', back_populates='apartment_profiles')
 
 
-class PaymentHistory(Base):
-    __tablename__ = 'payment_history'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    creation_date = Column(DateTime)
-    amount = Column(Float)
-    bill_type = Column(String(50))
-    is_paid = Column(Boolean)
-    tenant_id = Column(String, ForeignKey('profile_tenant.uuid'))
-    staff_id = Column(String, ForeignKey('staff_management_company.uuid'))
+# Добавим отношение к модели "Объект" для хранения профилей апартаментов и жильцов
+Object.apartment_profiles = relationship('ApartmentProfile', back_populates='object')
+Object.tenants = relationship('TenantProfile', back_populates='object')
 
 
-class MeterReadings(Base):
+class InvoiceHistory(Base):
+    __tablename__ = 'invoice_history'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    amount = Column(Float, nullable=False)
+    status = Column(String, default='не оплачен')  # Статус: "оплачен" или "не оплачен"
+    issue_date = Column(DateTime, default=datetime.utcnow)
+    payment_date = Column(DateTime)
+    notification_sent = Column(Boolean, default=False)  # Флаг для уведомления жильцов
+
+    # Многие к одному: История счетов принадлежит к одному профилю исполнителя
+    performer_id = Column(Integer, ForeignKey('performer_profiles.id'))
+    performer = relationship('PerformerProfile', back_populates='invoices')
+
+    # Многие к одному: История счетов принадлежит к одному объекту
+    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    object = relationship('Object', back_populates='invoices')
+
+
+class MeterReading(Base):
     __tablename__ = 'meter_readings'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    type_meters = Column(String(50))
-    reading_date = Column(DateTime, nullable=False)
-    electricity_reading = Column(Float)
-    water_reading = Column(Float)
-    staff_id = Column(String, ForeignKey('staff_management_company.uuid'))
-    tenant_id = Column(String, ForeignKey('profile_tenant.uuid'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Float, nullable=False)
+    reading_date = Column(DateTime, default=datetime.utcnow)
+
+    # Многие к одному: Показания счетчиков принадлежат к одному объекту
+    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    object = relationship('Object', back_populates='meter_readings')
 
 
-class ServiceOrder(Base):
-    __tablename__ = 'service_order'
+class Payment(Base):
+    __tablename__ = 'payments'
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    service_type = Column(String(50), nullable=False)
-    order_date = Column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    amount = Column(Float, nullable=False)
+    payment_date = Column(DateTime, default=datetime.utcnow)
+    commission_fee = Column(Float, nullable=False, default=0.0)
+    service_fee = Column(Float, nullable=False, default=0.0)
+    payment_method = Column(String)  # Метод оплаты, например, "Stripe"
+    payment_status = Column(String, default='оплачен')  # Статус: "оплачен" или "не оплачен"
+
+    # Многие к одному: Оплата принадлежит к одному профилю жильца
+    tenant_id = Column(Integer, ForeignKey('tenant_profiles.id'))
+    tenant = relationship('TenantProfile', back_populates='payments')
+
+    # Многие к одному: Оплата принадлежит к одному счету
+    invoice_id = Column(Integer, ForeignKey('invoice_history.id'))
+    invoice = relationship('InvoiceHistory', back_populates='payments')
+
+
+class ChatMessage(Base):
+    __tablename__ = 'chat_messages'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sender_id = Column(Integer, ForeignKey('user_profiles.id'))
+    receiver_id = Column(Integer, ForeignKey('user_profiles.id'))
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+
+    # Многие к одному: Сообщение принадлежит к одному отправителю
+    sender = relationship('UserProfile', foreign_keys=[sender_id], back_populates='sent_messages')
+
+    # Многие к одному: Сообщение принадлежит к одному получателю
+    receiver = relationship('UserProfile', foreign_keys=[receiver_id], back_populates='received_messages')
+
+
+class TenantProfile(Base):
+    __tablename__ = 'tenant_profiles'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    phone = Column(String)
+    email = Column(String)
+    login = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+
+    apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
+    apartment = relationship('ApartmentProfile', back_populates='tenants')
+    orders = relationship('Order', back_populates='tenant')
+
+
+class UserProfile(Base):
+    __tablename__ = 'user_profiles'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_type = Column(String, nullable=False)  # 'УК' или 'Жилец'
+    name = Column(String, nullable=False)
+    phone = Column(String)
+    email = Column(String)
+
+    # Один к многим: УК может отправлять много сообщений
+    sent_messages = relationship('ChatMessage', foreign_keys=[ChatMessage.sender_id], back_populates='sender')
+
+    # Один к многим: УК может принимать много сообщений
+    received_messages = relationship('ChatMessage', foreign_keys=[ChatMessage.receiver_id], back_populates='receiver')
+    # Один ко многим: Диспетчер отправил много заказов
+    dispatched_orders = relationship('Order', back_populates='dispatcher')
+
+
+class PerformerProfile(Base):
+    __tablename__ = 'performer_profiles'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contact_name = Column(String, nullable=False)
+    specialization = Column(String, nullable=False)
+    bank_details = Column(String, nullable=False)
+    # Один ко многим: Исполнитель выполнил много заказов
+    orders = relationship('Order', back_populates='performer')
+
+
+class Service(Base):
+    __tablename__ = 'services'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    price = Column(Float, nullable=False)
+
+    # Один ко многим: Услуга может быть частью множества заказов
+    orders = relationship('Order', back_populates='service')
+
+
+class OrderStatus(BaseEnum):
+    a = 'получен'
+    b = 'обработан УК'
+    c = 'передан исполнителю'
+    d = 'исполнен'
+    e = 'исполнен и оплачен'
+
+    @classmethod
+    def get_by_value(cls, value):
+        for enum_item in cls:
+            if enum_item.value == value:
+                return enum_item
+        raise ValueError(f"'{value}' is not among the defined enum values.")
+
+
+class Order(Base):
+    __tablename__ = 'orders'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    service_id = Column(Integer, ForeignKey('services.id'))
+    tenant_id = Column(Integer, ForeignKey('tenant_profiles.id'))
+    dispatcher_id = Column(Integer, ForeignKey('user_profiles.id'))
+    performer_id = Column(Integer, ForeignKey('performer_profiles.id'))
+    status = Column(Enum(OrderStatus), name="order_status", nullable=False, default=OrderStatus.a)
+    request_date = Column(DateTime, default=datetime.utcnow)
     execution_date = Column(DateTime)
-    status = Column(String(50), default='Получен')
-    total_cost = Column(DECIMAL(10, 2))
-    commission_rate = Column(DECIMAL(4, 2), default=0.15)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey('profile_tenant.uuid', ondelete='CASCADE'))
-    performer_id = Column(UUID(as_uuid=True), ForeignKey('profile_performer.uuid', ondelete='CASCADE'))
 
-    tenant = relationship('ProfileTenant', back_populates='service_orders')
-    performer = relationship('ProfilePerformer', back_populates='service_orders')
+    # Многие к одному: Заказ принадлежит к одной услуге
+    service = relationship('Service', back_populates='orders')
+
+    # Многие к одному: Заказ принадлежит к одному жильцу
+    tenant = relationship('TenantProfile', back_populates='orders')
+
+    # Многие к одному: Заказ принадлежит к одному диспетчеру
+    dispatcher = relationship('UserProfile', foreign_keys=[dispatcher_id], back_populates='dispatched_orders')
+
+    # Многие к одному: Заказ принадлежит к одному исполнителю
+    performer = relationship('PerformerProfile', back_populates='orders')
 
 
-class ServicePricelist(Base):
-    __tablename__ = 'service_pricelist'
+# Добавим отношение к модели "Объект" для хранения показаний счетчиков
+Object.meter_readings = relationship('MeterReading', back_populates='object')
 
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    service_type = Column(String(50), nullable=False)
-    object_uuid = Column(UUID(as_uuid=True), ForeignKey('object_management_company.uuid', ondelete='CASCADE'))
-    price = Column(DECIMAL(10, 2))
-
-    __table_args__ = (
-        UniqueConstraint('service_type', 'object_uuid'),
-    )
-
-    object = relationship('ObjectManagementCompany', back_populates='service_pricelist')
+# Добавим отношение к модели "Профиль жильца" для хранения оплат
+TenantProfile.payments = relationship('Payment', back_populates='tenant')
+# Добавим отношение к модели "Профиль исполнителя" для хранения истории счетов
+PerformerProfile.invoices = relationship('InvoiceHistory', back_populates='performer')
