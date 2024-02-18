@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  db:
+    image: bitnami/postgresql
+    ports:
+      - "${DBPORT}:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DBUSER}
+      - POSTGRES_PASSWORD=${DBPASSWORD}
+      - POSTGRES_DB=${DBNAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/FastAPI_Project
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+volumes:
+  postgres_data:
