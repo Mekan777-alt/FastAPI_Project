@@ -12,6 +12,9 @@ services:
       - POSTGRES_DB=${DBNAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
 
   app:
     build:
@@ -23,5 +26,12 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
 volumes:
   postgres_data:

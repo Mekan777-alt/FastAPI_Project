@@ -1,5 +1,8 @@
+
 # Используем официальный образ Python в качестве родительского
 FROM python:3.10-slim-buster AS builder
+
+RUN apt-get update && apt-get install -y postgresql-client
 
 # Копируем только файл requirements.txt
 COPY requirements.txt .
@@ -14,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # Запускаем приложение при запуске контейнера
-CMD ["uvicorn", "app:app", "--host", "31.172.75.71", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
