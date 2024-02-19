@@ -22,6 +22,3 @@ class UserCreate(schemas.BaseUserCreate):
     email: str
     password: str
     role_id: int
-    is_active: Optional[bool] = True
-    is_superuser: Optional[bool] = False
-    is_verified: Optional[bool] = False
