@@ -1,19 +1,19 @@
+import json
 import os
-import pathlib
 from functools import lru_cache
 from typing import Annotated, Optional, AsyncGenerator
-
+import pyrebase
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from firebase_admin import credentials
 from firebase_admin.auth import verify_id_token
 from pydantic_settings import BaseSettings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from firebase_admin import firestore
 
 load_dotenv()
-bearer_scheme = HTTPBearer(auto_error=False)
-
 
 class Settings(BaseSettings):
     """Main settings"""
@@ -31,6 +31,9 @@ def get_settings() -> Settings:
     return Settings()
 
 
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
 def get_firebase_user_from_token(
     token: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)],
 ) -> Optional[dict]:
@@ -40,7 +43,7 @@ def get_firebase_user_from_token(
         user = verify_id_token(token.credentials)
         return user
 
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not logged in or Invalid credentials",
@@ -61,3 +64,11 @@ DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
+cred = credentials.Certificate("app-house-d0ac1-firebase-adminsdk-g0nda-1e43074d18.json")
+pb = pyrebase.initialize_app(json.load(open("test_config.json")))
+
+
+def read(user):
+    db = firestore.client()
+    doc = db.collection("users").document(f"{user['uid']}").get()
+    return doc.to_dict()

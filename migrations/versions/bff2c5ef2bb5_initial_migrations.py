@@ -1,8 +1,8 @@
-"""Add Enum type
+"""initial migrations
 
-Revision ID: ffe2c9562b26
+Revision ID: bff2c5ef2bb5
 Revises: 
-Create Date: 2024-02-20 15:15:50.288027
+Create Date: 2024-02-20 15:50:20.025606
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ffe2c9562b26'
+revision: str = 'bff2c5ef2bb5'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,18 +27,14 @@ def upgrade() -> None:
     sa.UniqueConstraint('name')
     )
     op.create_table('user',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uuid', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('lastname', sa.String(), nullable=False),
     sa.Column('phone_number', sa.String(), nullable=True),
     sa.Column('email', sa.String(length=320), nullable=False),
-    sa.Column('hashed_password', sa.String(length=1024), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('is_superuser', sa.Boolean(), nullable=False),
-    sa.Column('is_verified', sa.Boolean(), nullable=False),
     sa.Column('role_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['role_id'], ['role.id'], ),
-    sa.PrimaryKeyConstraint('id'),
+    sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('lastname'),
     sa.UniqueConstraint('name'),
     sa.UniqueConstraint('phone_number')
