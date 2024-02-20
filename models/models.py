@@ -272,11 +272,17 @@ Base: DeclarativeMeta = declarative_base()
 # PerformerProfile.invoices = relationship('InvoiceHistory', back_populates='performer')
 
 
+class UserRole(str, BaseEnum):
+    TENANT = "Tenant"
+    STAFF = "StaffUC"
+    PERFORMER = "PerformerUC"
+
+
 class Role(Base):
     __tablename__ = 'role'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=True)
+    name = Column(String, unique=True, nullable=False)
 
 
 class User(SQLAlchemyBaseUserTable[int], Base):

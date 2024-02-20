@@ -1,21 +1,17 @@
 import os
 import pathlib
 from functools import lru_cache
-from typing import Annotated, Optional
+from typing import Annotated, Optional, AsyncGenerator
 
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from firebase_admin.auth import verify_id_token
 from pydantic_settings import BaseSettings
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 
-
-basedir = pathlib.Path(__file__).parents[1]
-load_dotenv(basedir / ".env")
-
-# use of a simple bearer scheme as auth is handled by firebase and not fastapi
-# we set auto_error to False because fastapi incorrectly returns a 403 intead of a 401
-# see: https://github.com/tiangolo/fastapi/pull/2120
+load_dotenv()
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
@@ -52,11 +48,16 @@ def get_firebase_user_from_token(
         )
 
 
-load_dotenv()
-
 DB_NAME = os.getenv("DBNAME")
 DB_USER = os.getenv("DBUSER")
 DB_PASSWORD = os.getenv("DBPASSWORD")
 DB_HOST = os.getenv("DBHOST")
 DB_PORT = os.getenv("DBPORT")
+
+
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+
+engine = create_async_engine(DATABASE_URL)
+async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
