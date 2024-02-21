@@ -1,5 +1,6 @@
 import json
 import os
+
 from functools import lru_cache
 from typing import Annotated, Optional, AsyncGenerator
 import pyrebase
@@ -7,7 +8,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from firebase_admin import credentials
-from firebase_admin.auth import verify_id_token
+from firebase_admin.auth import verify_id_token, get_user
 from pydantic_settings import BaseSettings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -72,3 +73,4 @@ def get_user(user):
     db = firestore.client()
     doc = db.collection("users").document(f"{user['uid']}").get()
     return doc.to_dict()
+

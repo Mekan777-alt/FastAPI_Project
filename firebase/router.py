@@ -30,8 +30,10 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
 
 @router.post("/register")
-async def register_user(user: Annotated[dict, Depends(get_firebase_user_from_token)]):
-    user = get_user(user)
-
+async def register_user(request: Request):
+    req_json = await request.json()
+    user = get_user(req_json['uuid'])
     print(user)
     return user
+
+
