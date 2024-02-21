@@ -23,18 +23,4 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
-@app.on_event("startup")
-async def startup() -> None:
-    firebase_admin.initialize_app(cred)
-    async with async_session_maker() as session:
-        try:
-            if not UserRole:
-                for role in UserRole:
-                    db_role = Role(name=role.value)
-                    session.add(db_role)
-                await session.commit()
-            else:
-                pass
-        finally:
-            await session.close()
+firebase_admin.initialize_app(cred)

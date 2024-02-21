@@ -68,7 +68,7 @@ cred = credentials.Certificate("app-house-d0ac1-firebase-adminsdk-g0nda-1e43074d
 pb = pyrebase.initialize_app(json.load(open("test_config.json")))
 
 
-def read(user):
+def get_user(user):
     db = firestore.client()
     doc = db.collection("users").document(f"{user['uid']}").get()
     return doc.to_dict()

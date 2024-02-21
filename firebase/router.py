@@ -1,7 +1,8 @@
 from typing import Annotated
 from fastapi import FastAPI, APIRouter, Depends, Request, HTTPException
 from starlette.responses import JSONResponse
-from config import get_firebase_user_from_token, pb, read
+from config import get_firebase_user_from_token, pb, get_user
+
 router = APIRouter(
     prefix="/api/v1"
 )
@@ -23,6 +24,14 @@ async def login_user(request: Request):
 
 @router.get("/userid")
 async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)]):
-    user_role = read(user)
+    user_role = get_user(user)
 
     return {"role": user_role["role"]}
+
+
+@router.post("/register")
+async def register_user(user: Annotated[dict, Depends(get_firebase_user_from_token)]):
+    user = get_user(user)
+
+    print(user)
+    return user
