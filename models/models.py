@@ -1,14 +1,16 @@
 from datetime import datetime
 from enum import Enum as BaseEnum
-from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, TIMESTAMP, UUID
-from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
+from typing import List
+
+from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, VARCHAR
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 
 Base: DeclarativeMeta = declarative_base()
 
+
 class UK(Base):
     __tablename__ = 'uk_profiles'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     login = Column(String, nullable=False)
@@ -16,44 +18,39 @@ class UK(Base):
 
     employees = relationship('Employee', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
+    objects = relationship('Object', back_populates='uk')
 
 
 class Employee(Base):
     __tablename__ = 'employees'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-
+    uuid = Column(VARCHAR(100), primary_key=True)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='employees')
 
 
 class PaymentDetails(Base):
     __tablename__ = 'payment_details'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     bank_name = Column(String)
     account_number = Column(String)
-
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='payment_details')
 
 
 class Object(Base):
     __tablename__ = 'object_profiles'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     address = Column(String, nullable=False)
-
-    employees = relationship('Employee', back_populates='object')
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='objects')
+
+    apartments = relationship('ApartmentProfile', back_populates='object')
 
 
 class ApartmentProfile(Base):
     __tablename__ = 'apartment_profiles'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
-    apartment_number = Column(String, nullable=False)
+    apartment_name = Column(String, nullable=False)
     area = Column(Float, nullable=False)
     bathrooms = Column(Integer)
     garden = Column(Boolean)
@@ -62,97 +59,85 @@ class ApartmentProfile(Base):
     internet_speed = Column(Integer)
     internet_fee = Column(Float)
     key_holder = Column(String)
-
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
-    object = relationship('Object', back_populates='apartment_profiles')
+    object = relationship('Object', back_populates='apartments')
+
+    tenants = relationship('TenantProfile', back_populates='apartment')
+
+
+class PerformerProfile(Base):
+    __tablename__ = 'performer_profiles'
+    uuid = Column(VARCHAR(100), primary_key=True)
+    contact_name = Column(String, nullable=False)
+    specialization = Column(String, nullable=False)
+    bank_details = Column(String, nullable=False)
+    invoices = relationship('InvoiceHistory', back_populates='performer')
 
 
 class InvoiceHistory(Base):
     __tablename__ = 'invoice_history'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     amount = Column(Float, nullable=False)
     status = Column(String, default='не оплачен')
     issue_date = Column(DateTime, default=datetime.utcnow)
     payment_date = Column(DateTime)
     notification_sent = Column(Boolean, default=False)
-
-    performer_id = Column(UUID(as_uuid=True), ForeignKey('performer_profiles.uuid'))
+    performer_id = Column(VARCHAR(100), ForeignKey('performer_profiles.uuid'))
     performer = relationship('PerformerProfile', back_populates='invoices')
-
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
-    object = relationship('Object', back_populates='invoices')
 
 
 class TenantProfile(Base):
     __tablename__ = 'tenant_profiles'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-
+    uuid = Column(VARCHAR(100), primary_key=True)
     apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
     apartment = relationship('ApartmentProfile', back_populates='tenants')
-    orders = relationship('Order', back_populates='tenant')
 
 
-class PerformerProfile(Base):
-    __tablename__ = 'performer_profiles'
-
-    uuid = Column(UUID(as_uuid=True), primary_key=True)
-    contact_name = Column(String, nullable=False)
-    specialization = Column(String, nullable=False)
-    bank_details = Column(String, nullable=False)
-    orders = relationship('Order', back_populates='performer')
-
-
-class ServiceType(Base):
-    __tablename__ = 'service_type'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
+class Service(Base):
+    __tablename__ = 'services'
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
-    orders = relationship('Order', back_populates='service_type')
+    orders = relationship("Order", back_populates="selected_service")
 
 
-class ServiceDescription(Base):
-    __tablename__ = 'service_descriptions'
+class AdditionalService(Base):
+    __tablename__ = 'additional_services'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False)
-    count = Column(Integer)
-    price = Column(Integer, nullable=False)
-
-    service_id = Column(Integer, ForeignKey("service_type.id"))
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
+    quantity = Column(Integer, nullable=True)
 
 
-class OrderStatus(BaseEnum):
-    a = 'получен'
-    b = 'обработан УК'
-    c = 'передан исполнителю'
-    d = 'исполнен'
-    e = 'исполнен и оплачен'
+class Document(Base):
+    __tablename__ = 'documents'
+    id = Column(Integer, primary_key=True)
+    file_name = Column(String, nullable=False)
+    mime_type = Column(String, nullable=False)
 
-    @classmethod
-    def get_by_value(cls, value):
-        for enum_item in cls:
-            if enum_item.value == value:
-                return enum_item
-        raise ValueError(f"'{value}' is not among the defined enum values.")
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)  # Добавленный внешний ключ
 
 
 class Order(Base):
     __tablename__ = 'orders'
+    id = Column(Integer, primary_key=True)
+    tenant_id = Column(String, ForeignKey('tenant_profiles.uuid'))
+    address = Column(String, nullable=False)
+    completion_date = Column(VARCHAR(20), nullable=False)
+    completion_time = Column(VARCHAR(20), nullable=False)
+    notes = Column(String, nullable=True)
+    status = Column(String, nullable=False)
+    selected_service_id = Column(Integer, ForeignKey('services.id'))  # Added foreign key constraint
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    service_id = Column(Integer, ForeignKey('service_type.id'))
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey('tenant_profiles.uuid'))
-    performer_id = Column(UUID(as_uuid=True), ForeignKey('performer_profiles.uuid'))
-    status = Column(Enum(OrderStatus), name="order_status", nullable=False, default=OrderStatus.a)
-    request_date = Column(DateTime, default=datetime.utcnow)
-    execution_date = Column(DateTime)
+    selected_service = relationship("Service", foreign_keys=[selected_service_id], back_populates="orders")
+    additional_services = relationship("AdditionalService", back_populates="order")
+    documents = relationship("Document", back_populates="order")
 
-    service = relationship('ServiceType', back_populates='orders')
-    tenant = relationship('TenantProfile', back_populates='orders')
-    performer = relationship('PerformerProfile', back_populates='orders')
+
+AdditionalService.order = relationship("Order", back_populates="additional_services")
+Document.order = relationship("Order", back_populates="documents")
 
 
 class UserRole(str, BaseEnum):
@@ -163,6 +148,5 @@ class UserRole(str, BaseEnum):
 
 class Role(Base):
     __tablename__ = 'role'
-
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)

@@ -1,17 +1,14 @@
 import firebase_admin
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from firebase_admin import firestore
-
 from firebase.router import router
 from config import get_settings, cred
-from config import async_session_maker
-from models.models import UserRole, Role
-
+from api.routers.users.order_request import router as order_request
 
 app = FastAPI()
 
 app.include_router(router)
+app.include_router(order_request)
 
 settings = get_settings()
 
