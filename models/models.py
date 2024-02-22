@@ -108,6 +108,8 @@ class AdditionalService(Base):
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
     service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
+    name = Column(VARCHAR(100), nullable=False)
+    price = Column(Float, nullable=False)
     quantity = Column(Integer, nullable=True)
 
 

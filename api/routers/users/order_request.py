@@ -59,8 +59,10 @@ async def create_order(order_data: OrderCreateSchema, session: AsyncSession = De
         for additional_service_data in order_data.additional_services:
             additional_service = AdditionalService(
                 order_id=order.id,
-                service_id=await get_model_id(session, "Service", additional_service_data.service),
+                service_id=await get_model_id(session, "Service", order_data.selected_services),
                 quantity=additional_service_data.quantity,
+                name=additional_service_data.service,
+                price=additional_service_data.price
             )
             session.add(additional_service)
 
