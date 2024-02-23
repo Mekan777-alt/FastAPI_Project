@@ -90,6 +90,7 @@ class InvoiceHistory(Base):
 class TenantProfile(Base):
     __tablename__ = 'tenant_profiles'
     uuid = Column(VARCHAR(100), primary_key=True)
+    active_request = Column(Integer, default=0)
     apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
     apartment = relationship('ApartmentProfile', back_populates='tenants')
 
@@ -131,7 +132,7 @@ class Order(Base):
     completion_time = Column(VARCHAR(20), nullable=False)
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
-    selected_service_id = Column(Integer, ForeignKey('services.id'))  # Added foreign key constraint
+    selected_service_id = Column(Integer, ForeignKey('services.id'))
 
     selected_service = relationship("Service", foreign_keys=[selected_service_id], back_populates="orders")
     additional_services = relationship("AdditionalService", back_populates="order")

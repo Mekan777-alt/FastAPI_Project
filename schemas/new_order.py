@@ -2,12 +2,6 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
-# class Address(BaseModel):
-#     address: str = Field(..., example="122-Floor-2nd floor, Smart, 17")
-#     completion_date: str = Field(..., example="2023-07-25")
-#     completion_time: str = Field(..., example="12:05")
-
-
 class AdditionalServiceSchema(BaseModel):
     service: str = Field(..., example="Ironing")
     price: float = Field(..., example=5.0)
@@ -21,7 +15,6 @@ class DocumentSchema(BaseModel):
 
 
 class OrderCreateSchema(BaseModel):
-    customer_id: str = None
     address: str = Field(..., example="122-Floor-2nd floor, Smart, 17")
     completion_date: str = Field(..., example="2023-07-25")
     completion_time: str = Field(..., example="12:05")

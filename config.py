@@ -1,54 +1,14 @@
 import json
 import os
-from functools import lru_cache
-from typing import Annotated, Optional, AsyncGenerator, List
 import pyrebase
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from firebase_admin import credentials
-from firebase_admin.auth import verify_id_token, get_user
-from pydantic_settings import BaseSettings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
 from firebase_admin import firestore
+from sqlalchemy.future import select
+from models.models import TenantProfile
 
 load_dotenv()
-
-class Settings(BaseSettings):
-    """Main settings"""
-
-    app_name: str = "firebase"
-    env: str = os.getenv("ENV", "development")
-
-    # Needed for CORS
-    frontend_url: str = os.getenv("FRONTEND_URL", "NA")
-
-
-@lru_cache
-def get_settings() -> Settings:
-    """Retrieves the fastapi settings"""
-    return Settings()
-
-
-bearer_scheme = HTTPBearer(auto_error=False)
-
-
-def get_firebase_user_from_token(
-    token: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)],
-) -> dict:
-    try:
-        if not token:
-            raise ValueError("No token")
-        user = verify_id_token(token.credentials)
-        return user
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not logged in or Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
 
 DB_NAME = os.getenv("DBNAME")
@@ -57,9 +17,7 @@ DB_PASSWORD = os.getenv("DBPASSWORD")
 DB_HOST = os.getenv("DBHOST")
 DB_PORT = os.getenv("DBPORT")
 
-
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@db:{DB_PORT}/{DB_NAME}"
-
 
 engine = create_async_engine(DATABASE_URL)
 
@@ -73,7 +31,13 @@ async def get_session() -> AsyncSession:
         yield session
 
 
-def get_user(user):
-    db = firestore.client()
-    doc = db.collection("users").document(f"{user['uid']}").get()
-    return doc.to_dict()
+async def check_user(tenant_id, session):
+    try:
+        query = select(TenantProfile).where(TenantProfile.uuid == tenant_id)
+        result = await session.execute(query)
+        db_model = result.scalar()
+        if db_model:
+            return db_model.uuid
+        return False
+    except Exception as e:
+        return e

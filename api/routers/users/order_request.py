@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status
+from typing import Annotated
+from sqlalchemy import update
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from config import get_session
-from schemas.new_order import OrderCreateSchema, AdditionalServiceSchema, DocumentSchema
-from models.models import Order, AdditionalService, Document, Service
+from starlette.responses import JSONResponse
+from firebase.config import get_firebase_user_from_token, get_user_profile
+from config import get_session, check_user
+from schemas.new_order import OrderCreateSchema
+from models.models import Order, AdditionalService, Document, Service, TenantProfile
 
 router = APIRouter(
     prefix="/api/v1",
@@ -41,10 +45,13 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
 
 
 @router.post("/new_order")
-async def create_order(order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
+async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                       order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
+    tenant_id = await check_user(user["uid"], session)
+
     try:
         order = Order(
-            tenant_id=order_data.customer_id,
+            tenant_id=tenant_id,
             address=order_data.address,
             completion_date=order_data.completion_date,
             completion_time=order_data.completion_time,
@@ -78,7 +85,19 @@ async def create_order(order_data: OrderCreateSchema, session: AsyncSession = De
 
         await session.commit()
 
-        return order
+        query = (
+            update(TenantProfile)
+            .where(
+                (TenantProfile.uuid == tenant_id)
+            )
+            .values({"active_request": TenantProfile.active_request + 1})
+            .returning(TenantProfile.active_request)
+        )
+        await session.execute(query)
+        await session.commit()
+
+        data = await get_user_profile(session, tenant_id)
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 
     except Exception as e:
-        print(e)
+        return JSONResponse(content=f"Error create order {e}", status_code=status.HTTP_400_BAD_REQUEST)
