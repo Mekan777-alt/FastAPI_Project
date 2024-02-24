@@ -1,5 +1,6 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from api.routers.users.order_request import router
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette import status
@@ -9,10 +10,6 @@ from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
 from models.models import Order, AdditionalService, Service, Document
-
-router = APIRouter(
-    prefix="/api/v1"
-)
 
 
 @router.get("/get_order")

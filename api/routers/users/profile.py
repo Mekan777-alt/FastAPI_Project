@@ -7,7 +7,8 @@ from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
-    prefix="/api/v1"
+    prefix="/api/v1",
+    tags=['Profile']
 )
 
 

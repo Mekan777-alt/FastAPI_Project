@@ -153,3 +153,15 @@ class Role(Base):
     __tablename__ = 'role'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
+
+
+class Contacts(Base):
+    __tablename__ = 'contacts'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(VARCHAR(100), nullable=False)
+    description = Column(VARCHAR(100), nullable=False)
+    phone = Column(VARCHAR(100), nullable=True)
+    email = Column(VARCHAR(100), nullable=True)
+
+

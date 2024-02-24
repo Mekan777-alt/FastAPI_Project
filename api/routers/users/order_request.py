@@ -11,7 +11,7 @@ from models.models import Order, AdditionalService, Document, Service, TenantPro
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=["Create request"]
+    tags=["Order"]
 )
 
 models_map = {
