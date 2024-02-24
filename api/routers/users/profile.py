@@ -4,12 +4,8 @@ from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token, get_user
 from typing import Annotated
 from config import get_session
+from api.routers.users.add_photo import router
 from sqlalchemy.ext.asyncio import AsyncSession
-
-router = APIRouter(
-    prefix="/api/v1",
-    tags=['Profile']
-)
 
 
 @router.get("/profile")

@@ -90,6 +90,7 @@ class InvoiceHistory(Base):
 class TenantProfile(Base):
     __tablename__ = 'tenant_profiles'
     uuid = Column(VARCHAR(100), primary_key=True)
+    photo_path = Column(String, nullable=True)
     active_request = Column(Integer, default=0)
     apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
     apartment = relationship('ApartmentProfile', back_populates='tenants')
