@@ -4,11 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase.router import router
 from config import cred
 from api.routers.users.order_request import router as order_request
+from api.routers.users.get_order import router as get_order
 
 app = FastAPI()
 
 app.include_router(router)
 app.include_router(order_request)
+app.include_router(get_order)
 
 
 app.add_middleware(
