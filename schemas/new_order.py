@@ -5,7 +5,6 @@ from typing import List
 class AdditionalServiceSchema(BaseModel):
     service: str = Field(..., example="Ironing")
     price: float = Field(..., example=5.0)
-    countable: bool = Field(..., example=True)
     quantity: int = Field(..., example=2)
 
 
@@ -22,5 +21,5 @@ class OrderCreateSchema(BaseModel):
     notes: str = None
     status: str = "pending"
     additional_services: List[AdditionalServiceSchema] = Field(..., example=[
-        {"service": "Ironing", "price": 5, "countable": True, "quantity": 2}])
+        {"service": "Ironing", "price": 5, "quantity": 2}])
     documents: List[DocumentSchema] = Field(..., example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])
