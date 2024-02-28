@@ -96,6 +96,14 @@ class TenantProfile(Base):
     apartment = relationship('ApartmentProfile', back_populates='tenants')
 
 
+class ServiceEnum(str, BaseEnum):
+    CLEANING = "Сleaning"
+    GARDENER = "Gardener"
+    POOL = "Pool"
+    TRASH_REMOVAL = "Trash removal"
+    OTHER = "Other"
+
+
 class Service(Base):
     __tablename__ = 'services'
     id = Column(Integer, primary_key=True)

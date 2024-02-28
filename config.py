@@ -4,9 +4,9 @@ import pyrebase
 from dotenv import load_dotenv
 from firebase_admin import credentials
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from firebase_admin import firestore
 from sqlalchemy.future import select
 from models.models import TenantProfile
+
 
 load_dotenv()
 

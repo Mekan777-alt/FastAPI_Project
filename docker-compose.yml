@@ -29,6 +29,20 @@ services:
     networks:
       - mynetwork
 
+
+  alemic:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    command: ["alembic", "upgrade", "head"]
+    volumes:
+      - .:/FastAPI_Project
+    networks:
+      - mynetwork
+
+
 networks:
   mynetwork:
     driver: bridge

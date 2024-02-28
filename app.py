@@ -1,11 +1,14 @@
 import firebase_admin
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from firebase.router import router as firebase_router
-from config import cred
+from config import cred, get_session
 from api.routers.users.contact import router as contact_router
 from api.routers.users.order_request import router as order_router
 from api.routers.users.profile import router as profile_router
+from models.models import Service, ServiceEnum
 
 app = FastAPI()
 
@@ -24,3 +27,4 @@ app.add_middleware(
 )
 
 firebase_admin.initialize_app(cred)
+

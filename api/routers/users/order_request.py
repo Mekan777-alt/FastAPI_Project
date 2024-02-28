@@ -1,6 +1,7 @@
 from typing import Annotated
 from sqlalchemy import update
-from fastapi import APIRouter, Depends, status
+from api.routers.users.get_order import router
+from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
@@ -9,17 +10,13 @@ from config import get_session, check_user
 from schemas.new_order import OrderCreateSchema
 from models.models import Order, AdditionalService, Document, Service, TenantProfile
 
-router = APIRouter(
-    prefix="/api/v1",
-    tags=["Order"]
-)
-
 models_map = {
     "Order": Order,
     "Service": Service,
     "AdditionalService": AdditionalService,
     "Document": Document,
 }
+
 
 # schemas_map = {
 #     "Address": Address,
@@ -101,3 +98,8 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
     except Exception as e:
         return JSONResponse(content=f"Error create order {e}", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/get_order_list")
+async def get_order_list():
+    pass

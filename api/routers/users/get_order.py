@@ -1,19 +1,25 @@
 from typing import Annotated
-from api.routers.users.order_request import router
-from fastapi import Depends
+from fastapi import Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette import status
 from starlette.responses import JSONResponse
+
+from schemas.get_orders import OrderGetSchema
 from schemas.new_order import AdditionalServiceSchema, DocumentSchema
 from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
 from models.models import Order, AdditionalService, Service, Document
 
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["Order"]
+)
+
 
 @router.get("/get_order")
-async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+async def get_orders(order_data: OrderGetSchema, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      session: AsyncSession = Depends(get_session)):
 
     try:
