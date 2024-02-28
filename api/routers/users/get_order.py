@@ -19,7 +19,7 @@ router = APIRouter(
 
 
 @router.get("/get_order")
-async def get_orders(order_data: OrderGetSchema, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      session: AsyncSession = Depends(get_session)):
 
     try:

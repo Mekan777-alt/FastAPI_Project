@@ -128,6 +128,7 @@ class Document(Base):
     id = Column(Integer, primary_key=True)
     file_name = Column(String, nullable=False)
     mime_type = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
 
     order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)  # Добавленный внешний ключ
 

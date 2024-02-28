@@ -1,7 +1,7 @@
 from typing import Annotated
 from sqlalchemy import update
 from api.routers.users.get_order import router
-from fastapi import Depends, status
+from fastapi import Depends, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
@@ -43,7 +43,8 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
 
 @router.post("/new_order")
 async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                       order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
+                       order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session),
+                       file: UploadFile = File(...)):
     tenant_id = await check_user(user["uid"], session)
 
     try:
@@ -72,11 +73,14 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
         await session.commit()
 
+        file_path = "uploads/document/" + file.filename
+
         for document_data in order_data.documents:
             document = Document(
                 order_id=order.id,
                 file_name=document_data.file_name,
                 mime_type=document_data.mime_type,
+                file_path=file_path
             )
             session.add(document)
 
