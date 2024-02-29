@@ -1,6 +1,5 @@
 import os
 import shutil
-
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_user, get_firebase_user_from_token
@@ -18,23 +17,22 @@ router = APIRouter(
 
 
 @router.post("/add_photo")
-async def add_photo(file: UploadFile, user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                    session: AsyncSession = Depends(get_session)):
-
-    file_path = os.path.join("/uploads/photo/", file.filename)
-    if not os.path.exists(os.path.dirname(file_path)):
-        os.makedirs(os.path.dirname(file_path))
+async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                    session: AsyncSession = Depends(get_session), photo: UploadFile = File(...)):
 
     try:
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(file.file, f)
+        photo.filename = photo.filename.lower()
+        path = f'media/{photo.filename}'
+
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
 
         tenant_id = user["uid"]
 
         tenant = await session.execute(select(TenantProfile).where(TenantProfile.uuid == tenant_id))
         tenant_profile = tenant.scalar()
 
-        tenant_profile.photo_path = file_path
+        tenant_profile.photo_path = path
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content="OK")
