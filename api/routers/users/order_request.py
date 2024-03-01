@@ -41,11 +41,10 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
         return db_model.id
 
 
-@router.post("/new_order")
+@router.post("/create_order")
 async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                       order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session),
-                       file: UploadFile = File(...)):
-    tenant_id = await check_user(user["uid"], session)
+                       order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
+    tenant_id = await check_user(user["uid"], session, order_data.address)
 
     try:
         order = Order(
@@ -73,14 +72,14 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
         await session.commit()
 
-        file_path = "uploads/document/" + file.filename
+        # file_path = "uploads/document/" + file.filename
 
         for document_data in order_data.documents:
             document = Document(
                 order_id=order.id,
                 file_name=document_data.file_name,
                 mime_type=document_data.mime_type,
-                file_path=file_path
+                file_path='yes'
             )
             session.add(document)
 
@@ -89,7 +88,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         query = (
             update(TenantProfile)
             .where(
-                (TenantProfile.uuid == tenant_id)
+                (TenantProfile.id == tenant_id)
             )
             .values({"active_request": TenantProfile.active_request + 1})
             .returning(TenantProfile.active_request)
@@ -102,8 +101,3 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
     except Exception as e:
         return JSONResponse(content=f"Error create order {e}", status_code=status.HTTP_400_BAD_REQUEST)
-
-
-@router.get("/get_order_list")
-async def get_order_list():
-    pass

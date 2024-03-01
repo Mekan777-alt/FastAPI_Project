@@ -4,13 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette import status
 from starlette.responses import JSONResponse
-
-from schemas.get_orders import OrderGetSchema
+from api.routers.users.config import get_user_id
+from schemas.get_orders import OrderListResponse
 from schemas.new_order import AdditionalServiceSchema, DocumentSchema
 from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
-from models.models import Order, AdditionalService, Service, Document
+from models.models import Order, AdditionalService, Service, Document, TenantProfile, ApartmentProfile
 
 router = APIRouter(
     prefix="/api/v1",
@@ -18,28 +18,18 @@ router = APIRouter(
 )
 
 
-@router.get("/get_order")
+@router.get("/get_orders", response_model=OrderListResponse)
 async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      session: AsyncSession = Depends(get_session)):
 
     try:
-        query = await session.execute(
-            select(Order, Service)
-            .where(Order.tenant_id == user['uid'])
-            .join(Service, Order.selected_service_id == Service.id)
-            .options(
-                selectinload(Order.selected_service)
-            )
-            .distinct()
-        )
-
-        order_result = query.fetchall()
+        order_result = await get_user_id(session, user['uid'])
 
         orders = []
         for row in order_result:
             order = row[0]
             order_data = {
-                "order_id": order.id,
+                "order_id": str(order.id),
                 "status": order.status,
                 "address": order.address,
                 "completion_date": order.completion_date,
@@ -71,7 +61,45 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
             }
             orders.append(order_data)
 
-        return orders
+        return {"orders": orders}
     except Exception as e:
         return JSONResponse(content=f"{e}", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/get_order_list")
+async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                         session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        tenant_id = user['uid']
+
+        query = await session.execute(select(TenantProfile)
+                                      .where(TenantProfile.uuid == tenant_id))
+
+        tenant_profile = query.scalars()
+
+        apartment_name = []
+
+        for i in tenant_profile:
+
+            query = await session.execute(select(ApartmentProfile).where(ApartmentProfile.id == i.apartment_id))
+
+            apartment_profile = query.scalars()
+
+            for j in apartment_profile:
+
+                apartment_name.append(j.apartment_name)
+
+        data = {
+            "apartment_name": apartment_name,
+            "service": "yes"
+        }
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+    except Exception as e:
+        return JSONResponse(content=f"{e}", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+
 

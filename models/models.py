@@ -89,7 +89,8 @@ class InvoiceHistory(Base):
 
 class TenantProfile(Base):
     __tablename__ = 'tenant_profiles'
-    uuid = Column(VARCHAR(100), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(VARCHAR(100))
     photo_path = Column(String, nullable=True)
     active_request = Column(Integer, default=0)
     apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
@@ -136,7 +137,7 @@ class Document(Base):
 class Order(Base):
     __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
-    tenant_id = Column(String, ForeignKey('tenant_profiles.uuid'))
+    tenant_id = Column(Integer, ForeignKey('tenant_profiles.id'))
     address = Column(String, nullable=False)
     completion_date = Column(VARCHAR(20), nullable=False)
     completion_time = Column(VARCHAR(20), nullable=False)

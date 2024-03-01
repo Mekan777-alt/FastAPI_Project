@@ -33,12 +33,12 @@ def get_user(user):
     return doc.to_dict()
 
 
-async def get_user_profile(session, user_uid, new_value=None):
+async def get_user_profile(session, user_id, new_value=None):
     apartment_id = await session.execute(select(TenantProfile, ApartmentProfile, Object).
                                          join(ApartmentProfile).join(Object).select_from(TenantProfile)
-                                         .where(TenantProfile.uuid == user_uid))
+                                         .where(TenantProfile.id == user_id))
     active_request = await session.execute(select(TenantProfile.active_request).where
-                                           (TenantProfile.uuid == user_uid))
+                                           (TenantProfile.id == user_id))
 
     result = apartment_id.fetchall()
     active_request_result = active_request.fetchone()

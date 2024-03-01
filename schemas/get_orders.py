@@ -14,3 +14,7 @@ class OrderGetSchema(BaseModel):
     additional_services: List[AdditionalServiceSchema] = Field(..., example=[
         {"service": "Ironing", "price": 5, "quantity": 2}])
     documents: List[DocumentSchema] = Field(..., example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])
+
+
+class OrderListResponse(BaseModel):
+    orders: List[OrderGetSchema]
