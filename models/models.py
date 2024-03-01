@@ -110,6 +110,7 @@ class Service(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
+    additional_services_list = relationship("AdditionalServiceList", back_populates="service")
     orders = relationship("Order", back_populates="selected_service")
 
 
@@ -154,16 +155,16 @@ AdditionalService.order = relationship("Order", back_populates="additional_servi
 Document.order = relationship("Order", back_populates="documents")
 
 
-class UserRole(str, BaseEnum):
-    TENANT = "Tenant"
-    STAFF = "StaffUC"
-    PERFORMER = "PerformerUC"
+class AdditionalServiceList(Base):
+    __tablename__ = 'additional_services_list'
 
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+    price = Column(Integer)
+    service_id = Column(Integer, ForeignKey(Service.id))
 
-class Role(Base):
-    __tablename__ = 'role'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, nullable=False)
+    service = relationship("Service", back_populates="additional_services_list")
+
 
 
 class Contacts(Base):

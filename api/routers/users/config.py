@@ -1,6 +1,5 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-
 from models.models import TenantProfile, Order, Service
 
 
@@ -12,9 +11,10 @@ async def get_user_id(session, user_uuid):
 
     models = result.scalars()
 
-    if models:
-        for i in models:
-            query = await session.execute(
+    orders_data = []
+
+    for i in models:
+        query = await session.execute(
                 select(Order, Service)
                 .where(Order.tenant_id == i.id)
                 .join(Service, Order.selected_service_id == Service.id)
@@ -22,11 +22,10 @@ async def get_user_id(session, user_uuid):
                     selectinload(Order.selected_service)
                 )
                 .distinct()
-            )
+        )
 
-            order_result = query.fetchall()
+        order_result = query.fetchall()
 
-            if len(order_result) > 0:
-                return order_result
-            else:
-                pass
+        orders_data.append(order_result)
+
+    return orders_data
