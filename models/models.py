@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum as BaseEnum
+from datetime import date
 from typing import List
-
-from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, VARCHAR
+from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, VARCHAR, DATE
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 
@@ -45,6 +45,7 @@ class Object(Base):
     uk = relationship('UK', back_populates='objects')
 
     apartments = relationship('ApartmentProfile', back_populates='object')
+    news = relationship('News', back_populates='object')
 
 
 class ApartmentProfile(Base):
@@ -166,7 +167,6 @@ class AdditionalServiceList(Base):
     service = relationship("Service", back_populates="additional_services_list")
 
 
-
 class Contacts(Base):
     __tablename__ = 'contacts'
 
@@ -177,3 +177,13 @@ class Contacts(Base):
     email = Column(VARCHAR(100), nullable=True)
 
 
+class News(Base):
+    __tablename__ = 'news'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+    description = Column(String)
+    created_at = Column(DATE, default=date.today())
+    object_id = Column(Integer, ForeignKey(Object.id))
+
+    object = relationship('Object', back_populates="news")

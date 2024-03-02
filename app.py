@@ -8,6 +8,7 @@ from config import cred
 from api.routers.users.contact import router as contact_router
 from api.routers.users.order_request import router as order_router
 from api.routers.users.profile import router as profile_router
+from api.routers.users.news import router as news_router
 
 app = FastAPI()
 
@@ -15,6 +16,7 @@ app.include_router(firebase_router)
 app.include_router(order_router)
 app.include_router(profile_router)
 app.include_router(contact_router)
+app.include_router(news_router)
 
 
 app.add_middleware(

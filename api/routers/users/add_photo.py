@@ -35,7 +35,8 @@ async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)]
         tenant_profile.photo_path = path
         await session.commit()
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content="OK")
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
+
 
 
     except (FileNotFoundError) as e:
