@@ -7,7 +7,7 @@ from firebase_admin import credentials
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
-from models.models import TenantProfile, ApartmentProfile
+from models.models import TenantProfile, ApartmentProfile, TenantApartments
 
 
 load_dotenv()
@@ -42,9 +42,8 @@ async def check_user(tenant_id: str, session, order_data: str):
         if not apartment_model:
             raise HTTPException(status_code=404, detail="Apartment not found")
 
-        tenant_query = select(TenantProfile).where(
-            (TenantProfile.uuid == tenant_id) & (TenantProfile.apartment_id == apartment_model.id)
-        )
+        tenant_query = select(TenantApartments).where(
+            (TenantApartments.id == apartment_model.id))
         tenant_result = await session.execute(tenant_query)
         tenant_model = tenant_result.scalar()
 

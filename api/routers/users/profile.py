@@ -13,7 +13,7 @@ async def get_profile(user: Annotated[dict, Depends(get_firebase_user_from_token
                       session: AsyncSession = Depends(get_session)):
 
     try:
-        user_info = get_user(user)
+        user_info = await get_user(user, session)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=user_info)
 

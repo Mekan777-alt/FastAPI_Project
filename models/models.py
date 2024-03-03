@@ -1,7 +1,5 @@
 from datetime import datetime
-from enum import Enum as BaseEnum
 from datetime import date
-from typing import List
 from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, VARCHAR, DATE
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
@@ -63,7 +61,7 @@ class ApartmentProfile(Base):
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
     object = relationship('Object', back_populates='apartments')
 
-    tenants = relationship('TenantProfile', back_populates='apartment')
+    tenant_apartments = relationship('TenantApartments', back_populates='apartment')
 
 
 class PerformerProfile(Base):
@@ -94,16 +92,20 @@ class TenantProfile(Base):
     uuid = Column(VARCHAR(100))
     photo_path = Column(String, nullable=True)
     active_request = Column(Integer, default=0)
-    apartment_id = Column(Integer, ForeignKey('apartment_profiles.id'))
-    apartment = relationship('ApartmentProfile', back_populates='tenants')
+    balance = Column(Float, default=0.0)
+
+    tenant_apartment = relationship('TenantApartments', back_populates='tenant')
 
 
-class ServiceEnum(str, BaseEnum):
-    CLEANING = "Сleaning"
-    GARDENER = "Gardener"
-    POOL = "Pool"
-    TRASH_REMOVAL = "Trash removal"
-    OTHER = "Other"
+class TenantApartments(Base):
+    __tablename__ = 'tenant_apartments'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+
+    tenant = relationship('TenantProfile', back_populates='tenant_apartment')
+    apartment = relationship('ApartmentProfile', back_populates='tenant_apartments')
 
 
 class Service(Base):
@@ -133,7 +135,7 @@ class Document(Base):
     mime_type = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
 
-    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)  # Добавленный внешний ключ
+    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
 
 
 class Order(Base):

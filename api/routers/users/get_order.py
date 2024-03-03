@@ -10,7 +10,8 @@ from schemas.new_order import AdditionalServiceSchema, DocumentSchema
 from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
-from models.models import Order, AdditionalService, Service, Document, TenantProfile, ApartmentProfile, AdditionalServiceList
+from models.models import (Order, AdditionalService, Service, Document, TenantProfile, ApartmentProfile,
+                           AdditionalServiceList, TenantApartments)
 
 router = APIRouter(
     prefix="/api/v1",
@@ -26,8 +27,8 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
         order_result = await get_user_id(session, user['uid'])
 
         orders = []
-        for orders in order_result:
-            for row in orders:
+        for order in order_result:
+            for row in order:
                 order = row[0]
                 order_data = {
                     "order_id": str(order.id),
@@ -78,11 +79,16 @@ async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_to
         query = await session.execute(select(TenantProfile)
                                       .where(TenantProfile.uuid == tenant_id))
 
-        tenant_profile = query.scalars()
+        tenant_profile = query.scalar()
+
+        apartment_id = await session.execute(select(TenantApartments)
+                                             .where(TenantApartments.tenant_id == tenant_profile.id))
+
+        apartments_model = apartment_id.scalars()
 
         apartment_name = []
 
-        for i in tenant_profile:
+        for i in apartments_model:
 
             query = await session.execute(select(ApartmentProfile).where(ApartmentProfile.id == i.apartment_id))
 
