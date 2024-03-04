@@ -6,8 +6,7 @@ from firebase_admin.auth import verify_id_token
 from starlette import status
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
-
-from models.models import TenantProfile, Object, ApartmentProfile, TenantApartments
+from models.models import TenantProfile, Object, ApartmentProfile, TenantApartments, EmployeeUK, UK
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -36,15 +35,37 @@ async def get_user(user, session):
         data = docs.to_dict()
 
         if data['role'] == 'Tenant':
-            query = await session.execute(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
-            tenant = query.scalar()
+            query = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
 
-            balance = tenant.balance
+            if not query:
+                user = TenantProfile(
+                    uuid=user['uid'],
+                    photo_path='null',
+                    active_request=0,
+                    balance=0
+                )
 
-            data["balance"] = balance
+                session.add(user)
+                await session.commit()
+
+                return data
 
             return data
-        elif data['role'] == 'UK staff':
+
+        elif data['role'] == 'uk_staff':
+
+            query = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+
+            if not query:
+                employee = EmployeeUK(
+                    uuid=user['uid'],
+                    uk_id=1
+                )
+
+                session.add(employee)
+                await session.commit()
+
+                return data
 
             return data
 
@@ -54,6 +75,15 @@ async def get_user(user, session):
 
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=str(e))
+
+
+async def get_staff_profile(session, uk_id):
+    uk = await session.scalar(select(UK).where(UK.id == uk_id))
+
+    data = {
+        "UK name": uk.name
+    }
+    return data
 
 
 async def get_user_profile(session, user_id, new_value=None):

@@ -14,15 +14,18 @@ class UK(Base):
     login = Column(String, nullable=False)
     password = Column(String, nullable=False)
 
-    employees = relationship('Employee', back_populates='uk')
+    employees = relationship('EmployeeUK', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
     objects = relationship('Object', back_populates='uk')
 
 
-class Employee(Base):
-    __tablename__ = 'employees'
-    uuid = Column(VARCHAR(100), primary_key=True)
+class EmployeeUK(Base):
+    __tablename__ = 'uk_employees'
+
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String, unique=True)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+
     uk = relationship('UK', back_populates='employees')
 
 
