@@ -3,8 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from sqlalchemy.future import select
 from config import get_session
-from schemas.contacts import Contact
-from typing import Annotated
 from starlette.responses import JSONResponse
 from models.models import Contacts
 

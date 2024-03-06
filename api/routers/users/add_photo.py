@@ -1,4 +1,3 @@
-import os
 import shutil
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -5,7 +5,9 @@ from starlette import status
 from sqlalchemy.future import select
 from models.models import TenantProfile, EmployeeUK
 from starlette.responses import JSONResponse
-from firebase.config import get_firebase_user_from_token, get_user, get_user_profile, get_staff_profile
+from firebase.config import get_firebase_user_from_token, get_user
+from api.routers.UK.config import get_staff_profile
+from api.routers.users.config import get_user_profile
 from config import pb, get_session
 
 router = APIRouter(

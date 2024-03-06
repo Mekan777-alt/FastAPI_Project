@@ -6,7 +6,7 @@ from firebase_admin.auth import verify_id_token
 from starlette import status
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
-from models.models import TenantProfile, Object, ApartmentProfile, TenantApartments, EmployeeUK, UK
+from models.models import TenantProfile, EmployeeUK
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -75,33 +75,3 @@ async def get_user(user, session):
 
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=str(e))
-
-
-async def get_staff_profile(session, uk_id):
-    uk = await session.scalar(select(UK).where(UK.id == uk_id))
-
-    data = {
-        "UK name": uk.name
-    }
-    return data
-
-
-async def get_user_profile(session, user_id, new_value=None):
-    apartment_id = await session.execute(select(TenantApartments, ApartmentProfile, Object).
-                                         join(ApartmentProfile).join(Object).select_from(TenantApartments)
-                                         .where(TenantProfile.id == user_id))
-    active_request = await session.execute(select(TenantProfile.active_request).where
-                                           (TenantProfile.id == user_id))
-
-    result = apartment_id.fetchall()
-    active_request_result = active_request.fetchone()
-    data_to_return = []
-    for tenant_profile, apartment_profile, object_profile in result:
-        data = {
-            "object_address": object_profile.address,
-            "active_request": active_request_result[0],
-            "apartment_name": []
-        }
-        data["apartment_name"].append(apartment_profile.apartment_name)
-        data_to_return.append(data)
-    return data_to_return

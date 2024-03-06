@@ -2,10 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
-
 from config import get_session
-from firebase.config import get_firebase_user_from_token
-from typing import Annotated
 from schemas.news import News as NewsSchemas
 from models.models import News
 

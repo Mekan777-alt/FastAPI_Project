@@ -5,7 +5,6 @@ from .profile import router as profile_router
 from .news import router as news_router
 
 user_router = APIRouter(
-    prefix="/api/v1"
 )
 
 user_router.include_router(order_router)
