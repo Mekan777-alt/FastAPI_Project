@@ -1,38 +1,68 @@
 version: "3.9"
+
 services:
   db:
-    image: bitnami/postgresql
+    image: postgres:15-alpine
     ports:
-      - "${DBPORT}:5432"
-    env_file:
-      - .env
+      - "5431:5432"
     environment:
       - POSTGRES_USER=${DBUSER}
       - POSTGRES_PASSWORD=${DBPASSWORD}
       - POSTGRES_DB=${DBNAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mynetwork
 
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6380:6379"
 
   app:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     volumes:
-      - .:/FastAPI_Project
-    ports:
-      - "8000:8000"
+      - .:/app
     depends_on:
       - db
-    networks:
-      - mynetwork
+      - redis
+      - celery_worker
+    command: python3 app.py
+    environment:
+      - DBUSER=${DBUSER}
+      - DBPASSWORD=${DBPASSWORD}
+      - DBNAME=${DBNAME}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
+  celery_worker:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    command: celery -A service.celery_app worker --loglevel=info --uid=1000
+    environment:
+      - DBUSER=${DBUSER}
+      - DBPASSWORD=${DBPASSWORD}
+      - DBNAME=${DBNAME}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
-networks:
-  mynetwork:
-    driver: bridge
+  celery_beat:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - celery_worker
+    command: celery -A service.celery_app beat --loglevel=info --uid=1000
+    environment:
+      - DBUSER=${DBUSER}
+      - DBPASSWORD=${DBPASSWORD}
+      - DBNAME=${DBNAME}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
 volumes:
   postgres_data:
