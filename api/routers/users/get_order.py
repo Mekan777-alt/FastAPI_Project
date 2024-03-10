@@ -4,18 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.responses import JSONResponse
 from api.routers.users.config import get_user_id
-from schemas.get_orders import OrderListResponse
-from schemas.get_order_list import Apartment
-from schemas.new_order import AdditionalServiceSchema, DocumentSchema
+from schemas.user.get_orders import OrderListResponse
+from schemas.user.get_order_list import Apartment
+from schemas.user.new_order import AdditionalServiceSchema, DocumentSchema
 from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
-from models.models import (Order, AdditionalService, Service, Document, TenantProfile, ApartmentProfile,
-                           AdditionalServiceList, TenantApartments)
+from models.base import (AdditionalService, Service, Document, TenantProfile, ApartmentProfile,
+                         AdditionalServiceList, TenantApartments)
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=["Order"]
 )
 
 

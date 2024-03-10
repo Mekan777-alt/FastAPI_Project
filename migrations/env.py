@@ -2,7 +2,7 @@ from logging.config import fileConfig
 from config import DB_HOST, DB_NAME, DB_PASSWORD, DB_USER, DB_PORT
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from models.models import Base
+from models.base import Base
 from alembic import context
 
 # this is the Alembic Config object, which provides

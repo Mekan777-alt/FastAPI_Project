@@ -6,7 +6,7 @@ from firebase_admin.auth import verify_id_token
 from starlette import status
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
-from models.models import TenantProfile, EmployeeUK
+from models.base import TenantProfile, EmployeeUK
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -28,7 +28,7 @@ def get_firebase_user_from_token(
         )
 
 
-async def get_user(user, session):
+async def register_user(user, session):
     try:
         db = firestore.client()
         docs = db.collection("users").document(f"{user['uid']}").get()
@@ -75,3 +75,28 @@ async def get_user(user, session):
 
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=str(e))
+
+
+async def get_staff_firebase(staff_id):
+    try:
+        db = firestore.client()
+        docs = db.collection("users").document(f"{staff_id}").get()
+        data = docs.to_dict()
+
+        return data
+
+    except Exception as e:
+
+        return e
+
+
+async def delete_staff_firebase(staff_uid):
+    try:
+        db = firestore.client()
+        db.collection("users").document(f"{staff_uid}").delete()
+
+        return True
+
+    except Exception as e:
+
+        return e

@@ -7,7 +7,7 @@ from firebase_admin import credentials
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
-from models.models import TenantProfile, ApartmentProfile, TenantApartments
+from models.base import ApartmentProfile, TenantApartments
 
 
 load_dotenv()

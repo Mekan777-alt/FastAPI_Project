@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from starlette import status
 from starlette.responses import JSONResponse
-from firebase.config import get_firebase_user_from_token, get_user
+from firebase.config import get_firebase_user_from_token, register_user
 from typing import Annotated
 from config import get_session
 from api.routers.users.add_photo import router
@@ -13,7 +13,7 @@ async def get_profile(user: Annotated[dict, Depends(get_firebase_user_from_token
                       session: AsyncSession = Depends(get_session)):
 
     try:
-        user_info = await get_user(user, session)
+        user_info = await register_user(user, session)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=user_info)
 

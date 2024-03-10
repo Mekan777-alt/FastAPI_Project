@@ -24,9 +24,12 @@ class EmployeeUK(Base):
 
     id = Column(Integer, primary_key=True)
     uuid = Column(String, unique=True)
+    photo_path = Column(String, nullable=True, default=None)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    object_id = Column(Integer, ForeignKey('object_profiles.id'))
 
     uk = relationship('UK', back_populates='employees')
+    object = relationship('Object', back_populates='employees')
 
 
 class PaymentDetails(Base):
@@ -41,12 +44,14 @@ class PaymentDetails(Base):
 class Object(Base):
     __tablename__ = 'object_profiles'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    object_name = Column(String, nullable=True)
     address = Column(String, nullable=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='objects')
 
     apartments = relationship('ApartmentProfile', back_populates='object')
     news = relationship('News', back_populates='object')
+    employees = relationship('EmployeeUK', back_populates='object')
 
 
 class ApartmentProfile(Base):

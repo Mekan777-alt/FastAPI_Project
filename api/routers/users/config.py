@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from models.models import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK
+from models.base import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK
 
 
 async def get_user_id(session, user_uuid):

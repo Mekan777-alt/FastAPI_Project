@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
-from schemas.new_order import AdditionalServiceSchema, DocumentSchema
+from schemas.user.new_order import AdditionalServiceSchema, DocumentSchema
 
 
 class OrderGetSchema(BaseModel):

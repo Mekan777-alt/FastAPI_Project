@@ -3,12 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
 from config import get_session
-from schemas.news import News as NewsSchemas
-from models.models import News
+from schemas.user.news import News as NewsSchemas
+from models.base import News
 
 router = APIRouter(
     prefix='/api/v1',
-    tags=['News']
 )
 
 

@@ -4,11 +4,10 @@ from starlette import status
 from sqlalchemy.future import select
 from config import get_session
 from starlette.responses import JSONResponse
-from models.models import Contacts
+from models.base import Contacts
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=["Contacts"]
 )
 
 

@@ -1,17 +1,16 @@
 import shutil
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
-from firebase.config import get_user, get_firebase_user_from_token
+from firebase.config import get_firebase_user_from_token
 from starlette.responses import JSONResponse
 from typing import Annotated
 from fastapi import Depends, UploadFile, File, APIRouter
 from sqlalchemy.future import select
-from models.models import TenantProfile
+from models.base import TenantProfile
 from config import get_session
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=['Profile']
 )
 
 
