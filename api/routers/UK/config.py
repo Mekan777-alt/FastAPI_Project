@@ -156,7 +156,7 @@ async def get_staff_delete(session, staff_id):
 
         if delete_from_firestore is True:
 
-            await session.execute(delete(EmployeeUK.id).where(EmployeeUK.id == staff_id))
+            await session.execute(delete(EmployeeUK).where(EmployeeUK.id == staff_id))
             await session.commit()
 
             return True
