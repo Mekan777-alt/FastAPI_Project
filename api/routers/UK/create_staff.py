@@ -9,7 +9,14 @@ router = APIRouter(
 )
 
 
-@router.post('/add_employee_uk')
+@router.get("/add_employee_uk")
+async def create_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                       session: AsyncSession = Depends(get_session)):
+    pass
+
+
+
+@router.post('/add_employee_uk/{obj_id}')
 async def create_employee_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                              session: AsyncSession = Depends(get_session)):
 

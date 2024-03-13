@@ -1,7 +1,8 @@
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object
+from models.base import UK, EmployeeUK, Object, Contacts
 from firebase.config import get_staff_firebase, delete_staff_firebase
+from api.routers.users.config import get_contacts_from_db
 
 
 async def get_staff_profile(session, uk_id):
@@ -168,3 +169,22 @@ async def get_staff_delete(session, staff_id):
     except Exception as e:
 
         return e
+
+
+async def get_profile_uk(session, user):
+
+    try:
+
+        staff_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+
+        profile = await get_staff_profile(session, staff_id.id)
+
+        contact = await get_contacts_from_db(session)
+
+        profile['contacts'] = contact
+
+        return profile
+
+    except Exception as e:
+
+        pass

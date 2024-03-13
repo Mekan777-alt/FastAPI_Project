@@ -59,7 +59,9 @@ async def register_user(user, session):
             if not query:
                 employee = EmployeeUK(
                     uuid=user['uid'],
-                    uk_id=1
+                    uk_id=1,
+                    photo_path='null',
+                    object_id=1
                 )
 
                 session.add(employee)

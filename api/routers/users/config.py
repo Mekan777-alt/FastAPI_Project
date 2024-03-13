@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from models.base import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK
+from models.base import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts
 
 
 async def get_user_id(session, user_uuid):
@@ -51,3 +51,24 @@ async def get_user_profile(session, user_id, new_value=None):
         data_to_return.append(data)
     return data_to_return
 
+
+async def get_contacts_from_db(session):
+
+    try:
+        contacts = await session.scalars(select(Contacts))
+
+        contacts_data = []
+        for contact in contacts:
+            contact_data = {
+                "name": contact.name,
+                "description": contact.description,
+                "email": contact.email if contact.email is not None else "null",
+                "phone": contact.phone if contact.phone is not None else "null"
+            }
+            contacts_data.append(contact_data)
+
+        return contacts_data
+
+    except Exception as e:
+
+        return None
