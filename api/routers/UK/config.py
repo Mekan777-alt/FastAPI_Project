@@ -52,7 +52,7 @@ async def create_object_to_db(session, user, data):
         create_obj = Object(
             object_name=data.object_name,
             address=data.object_address,
-            uk_id=uk_id.id
+            uk_id=uk_id.uk_id
         )
 
         session.add(create_obj)
@@ -62,7 +62,7 @@ async def create_object_to_db(session, user, data):
             "id": create_obj.id,
             "object_name": create_obj.object_name,
             "address": create_obj.address,
-            "ud_id": create_obj.uk_id
+            "uid_id": create_obj.uk_id
         }
 
         return new_data
