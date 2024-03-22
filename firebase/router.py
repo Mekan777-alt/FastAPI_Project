@@ -44,7 +44,7 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
             return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
-        elif user_role['role'] == "uk_staff":
+        elif user_role['role'] == "Company":
 
             staff_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 

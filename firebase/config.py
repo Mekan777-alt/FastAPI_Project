@@ -52,7 +52,7 @@ async def register_user(user, session):
 
             return data
 
-        elif data['role'] == 'uk_staff':
+        elif data['role'] == 'Company':
 
             query = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
