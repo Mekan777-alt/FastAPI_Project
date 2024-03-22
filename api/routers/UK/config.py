@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object, Contacts
+from models.base import UK, EmployeeUK, Object, Contacts, ApartmentProfile
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
 
@@ -58,7 +58,14 @@ async def create_object_to_db(session, user, data):
         session.add(create_obj)
         await session.commit()
 
-        return data
+        new_data = {
+            "id": create_obj.id,
+            "object_name": create_obj.object_name,
+            "address": create_obj.address,
+            "ud_id": create_obj.uk_id
+        }
+
+        return new_data
 
     except Exception as e:
 
@@ -188,3 +195,72 @@ async def get_profile_uk(session, user):
     except Exception as e:
 
         pass
+
+
+async def get_object_id(session, object_id):
+
+    try:
+
+        object = await session.scalar(select(Object).where(Object.id == object_id))
+
+        data = {
+            'id': object.id,
+            'object_name': object.object_name,
+            'object_address': object.address
+        }
+
+        return data
+
+    except Exception as e:
+
+        return e
+
+
+async def get_apartments_from_object(session, object_id):
+
+    try:
+
+        apartments = await session.scalars(select(ApartmentProfile).where(ApartmentProfile.object_id == object_id))
+
+        apartments_list = []
+        for apartment in apartments:
+            apartment_dict = {
+                "id": apartment.id,
+                "apartment_name": apartment.apartment_name,
+                "area": apartment.area
+
+            }
+            apartments_list.append(apartment_dict)
+
+        data = {
+            'apartments': apartments_list
+        }
+        return data
+    except Exception as e:
+
+        return e
+
+
+async def create_apartment_for_object(session, object_id, apartment_data):
+
+    try:
+
+        apartment = ApartmentProfile(
+            object_id=object_id,
+            apartment_name=apartment_data.apartment_name,
+            area=apartment_data.area
+        )
+        session.add(apartment)
+        await session.commit()
+
+        data = {
+            "id": apartment.id,
+            "apartment_name": apartment.apartment_name,
+            "area": apartment.area
+        }
+
+        return data
+
+    except Exception as e:
+
+        return e
