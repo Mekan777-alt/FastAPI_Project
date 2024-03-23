@@ -3,12 +3,13 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from sqlalchemy.future import select
-from models.base import TenantProfile, EmployeeUK
+from models.base import TenantProfile, EmployeeUK, UK
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token, register_user
-from api.routers.UK.config import get_staff_profile
+from api.routers.UK.config import get_uk_profile
 from api.routers.users.config import get_user_profile
 from config import pb, get_session
+from api.routers.Employee.config import get_employee_profile
 
 router = APIRouter(
     prefix="/api/v1",
@@ -46,9 +47,17 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
         elif user_role['role'] == "Company":
 
+            uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+
+            data = await get_uk_profile(session, uk_id.id)
+
+            return JSONResponse(content=data)
+
+        elif user_role["role"] == "Employee":
+
             staff_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
-            data = await get_staff_profile(session, staff_id.uk_id)
+            data = await get_employee_profile(session, user_role, staff_id.object_id)
 
             return JSONResponse(content=data)
 

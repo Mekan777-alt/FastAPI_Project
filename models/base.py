@@ -10,10 +10,9 @@ Base: DeclarativeMeta = declarative_base()
 class UK(Base):
     __tablename__ = 'uk_profiles'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False)
-    login = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-
+    uuid = Column(String, unique=True)
+    photo_path = Column(String, nullable=True, default=None)
+    name = Column(String)
     employees = relationship('EmployeeUK', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
     objects = relationship('Object', back_populates='uk')
@@ -25,6 +24,7 @@ class EmployeeUK(Base):
     id = Column(Integer, primary_key=True)
     uuid = Column(String, unique=True)
     photo_path = Column(String, nullable=True, default=None)
+    is_admin = Column(Boolean, default=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
 

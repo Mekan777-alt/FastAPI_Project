@@ -6,7 +6,7 @@ from firebase_admin.auth import verify_id_token
 from starlette import status
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
-from models.base import TenantProfile, EmployeeUK
+from models.base import TenantProfile, EmployeeUK, UK
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -52,7 +52,7 @@ async def register_user(user, session):
 
             return data
 
-        elif data['role'] == 'Company':
+        elif data['role'] == 'Employee':
 
             query = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
@@ -71,7 +71,20 @@ async def register_user(user, session):
 
             return data
 
-        elif data['role'] == 'Object staff':
+        elif data['role'] == 'Company':
+
+            query = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+
+            if not query:
+                uk = UK(
+                    uuid=user['uid'],
+                    photo_path='null',
+                    name=data['name']
+                )
+                session.add(uk)
+                await session.commit()
+
+                return data
 
             return data
 

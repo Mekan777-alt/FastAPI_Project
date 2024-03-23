@@ -5,7 +5,7 @@ from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
 
 
-async def get_staff_profile(session, uk_id):
+async def get_uk_profile(session, uk_id):
     uk = await session.scalar(select(UK).where(UK.id == uk_id))
 
     data = {
@@ -75,9 +75,9 @@ async def create_object_to_db(session, user, data):
 async def get_staff_uk(session, user):
     try:
 
-        staff_id = user['uid']
+        uk_id = user['uid']
 
-        uk_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_id))
+        uk_id = await session.scalar(select(UK).where(UK.uuid == uk_id))
 
         all_staff_uuid = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk_id.uk_id))
 
@@ -182,9 +182,9 @@ async def get_profile_uk(session, user):
 
     try:
 
-        staff_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+        uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
-        profile = await get_staff_profile(session, staff_id.id)
+        profile = await get_uk_profile(session, uk_id.id)
 
         contact = await get_contacts_from_db(session)
 
@@ -194,7 +194,7 @@ async def get_profile_uk(session, user):
 
     except Exception as e:
 
-        pass
+        return e
 
 
 async def get_object_id(session, object_id):
