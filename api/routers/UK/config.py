@@ -17,9 +17,9 @@ async def get_uk_profile(session, uk_id):
 async def get_objects_from_uk(session, staff):
     try:
 
-        staff_uid = staff['uid']
+        uk_uid = staff['uid']
 
-        uk_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_uid))
+        uk_id = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
         objects = await session.scalars(select(Object).where(Object.uk_id == int(uk_id.id)))
 
@@ -52,7 +52,7 @@ async def create_object_to_db(session, user, data):
         create_obj = Object(
             object_name=data.object_name,
             address=data.object_address,
-            uk_id=uk_id.uk_id
+            uk_id=uk_id.id
         )
 
         session.add(create_obj)
@@ -77,9 +77,9 @@ async def get_staff_uk(session, user):
 
         uk_id = user['uid']
 
-        uk_id = await session.scalar(select(UK).where(UK.uuid == uk_id))
+        uk_id_fromdb = await session.scalar(select(UK).where(UK.uuid == uk_id))
 
-        all_staff_uuid = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk_id.uk_id))
+        all_staff_uuid = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk_id_fromdb.id))
 
         staff_list = []
         for staff_uk in all_staff_uuid:
