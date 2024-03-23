@@ -48,7 +48,7 @@ async def create_object_to_db(session, user, data):
 
         staff_id = user['uid']
 
-        uk_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_id))
+        uk_id = await session.scalar(select(UK).where(UK.uuid == staff_id))
         create_obj = Object(
             object_name=data.object_name,
             address=data.object_address,
