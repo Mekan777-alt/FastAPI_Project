@@ -72,13 +72,32 @@ class ApartmentProfile(Base):
     tenant_apartments = relationship('TenantApartments', back_populates='apartment')
 
 
-class PerformerProfile(Base):
-    __tablename__ = 'performer_profiles'
-    uuid = Column(VARCHAR(100), primary_key=True)
-    contact_name = Column(String, nullable=False)
+class ExecutorsProfile(Base):
+    __tablename__ = 'executor_profiles'
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(100), unique=True)
     specialization = Column(String, nullable=False)
-    bank_details = Column(String, nullable=False)
+    photo_path = Column(String, nullable=True)
+    bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))
+
+    bank_details = relationship('BankDetailExecutors', back_populates='executors')
     invoices = relationship('InvoiceHistory', back_populates='performer')
+
+
+class BankDetailExecutors(Base):
+    __tablename__ = 'bank_detail_executors'
+    id = Column(Integer, primary_key=True)
+    recipient_name = Column(String, nullable=False)
+    account = Column(String, nullable=False)
+    contact_number = Column(String, nullable=False)
+    purpose_of_payment = Column(String, nullable=False)
+    bic = Column(String, nullable=False)
+    correspondent_account = Column(String, nullable=False)
+    bank_name = Column(String, nullable=False)
+    inn = Column(String, nullable=False)
+    kpp = Column(String, nullable=False)
+
+    executors = relationship('ExecutorsProfile', back_populates='bank_details')
 
 
 class InvoiceHistory(Base):
@@ -89,9 +108,10 @@ class InvoiceHistory(Base):
     issue_date = Column(DateTime, default=datetime.utcnow)
     payment_date = Column(DateTime)
     notification_sent = Column(Boolean, default=False)
-    performer_id = Column(VARCHAR(100), ForeignKey('performer_profiles.uuid'))
-    performer = relationship('PerformerProfile', back_populates='invoices')
+    performer_id = Column(Integer, ForeignKey('executor_profiles.id'))
+    performer = relationship('ExecutorsProfile', back_populates='invoices', foreign_keys=[performer_id])
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
 
 class TenantProfile(Base):

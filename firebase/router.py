@@ -61,6 +61,10 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
             return JSONResponse(content=data)
 
+        elif user_role["role"] == "staff":
+
+            return JSONResponse(status_code=status.HTTP_200_OK, content=user_role)
+
     except Exception as e:
         return HTTPException(detail={'message': f'{e}'}, status_code=400)
 
