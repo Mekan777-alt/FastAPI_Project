@@ -1,15 +1,29 @@
+import firebase_admin.auth
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object, Contacts, ApartmentProfile
+from models.base import UK, EmployeeUK, Object, Contacts, ApartmentProfile, PaymentDetails
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
+from firebase_admin import auth, firestore
 
 
 async def get_uk_profile(session, uk_id):
     uk = await session.scalar(select(UK).where(UK.id == uk_id))
+    payment_details = await session.scalar(select(PaymentDetails).where(PaymentDetails.uk_id == uk_id))
 
+    requisites = {
+        "recipient": payment_details.recipient_name,
+        "inn": payment_details.inn,
+        "kpp": payment_details.kpp,
+        "account": payment_details.account,
+        "bic": payment_details.bic,
+        "correspondent_account": payment_details.correspondent_account,
+        "okpo": payment_details.okpo,
+        "bank_name": payment_details.bank_name
+    }
     data = {
-        "UK name": uk.name
+        "UK name": uk.name,
+        "Requisites": requisites
     }
     return data
 
@@ -264,3 +278,45 @@ async def create_apartment_for_object(session, object_id, apartment_data):
     except Exception as e:
 
         return e
+
+
+async def create_employee(session, employee_data, user):
+    try:
+        new_user = auth.create_user(
+            email=employee_data.email,
+            password=employee_data.password
+        )
+        collections_path = "users"
+
+        db = firestore.client()
+        user_doc = db.collection(collections_path).document(new_user.uid)
+
+        first_last_name = employee_data.first_last_name.split()
+
+        user_data = {
+            "email": employee_data.email,
+            "phone_number": employee_data.phone_number,
+            "first_name": first_last_name[0],
+            "last_name": first_last_name[1],
+            "role": "Employee"
+        }
+        user_doc.set(user_data)
+
+        uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+
+        new_employee = EmployeeUK(
+            uuid=new_user.uid,
+            uk_id=uk_id.id,
+            photo_path='null',
+            object_id=employee_data.object_id,
+            is_admin=False
+        )
+
+        session.add(new_employee)
+        await session.commit()
+
+        return new_employee.to_dict()
+
+    except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
+
+        return str(e)

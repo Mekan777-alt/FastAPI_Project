@@ -31,13 +31,28 @@ class EmployeeUK(Base):
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'photo_path': self.photo_path,
+            'is_admin': self.is_admin,
+            'object_id': self.object_id
+        }
+
 
 class PaymentDetails(Base):
-    __tablename__ = 'payment_details'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    bank_name = Column(String)
-    account_number = Column(String)
-    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    __tablename__ = 'payment_details_uk'
+    id = Column(Integer, primary_key=True)
+    recipient_name = Column(String, nullable=False)
+    inn = Column(String, nullable=False)
+    kpp = Column(String, nullable=False)
+    account = Column(String, nullable=False)
+    bic = Column(String, nullable=False)
+    correspondent_account = Column(String, nullable=False)
+    okpo = Column(String, nullable=False)
+    bank_name = Column(String, nullable=False)
+
+    uk_id = Column(Integer, ForeignKey("uk_profiles.id", ondelete="CASCADE"))
     uk = relationship('UK', back_populates='payment_details')
 
 
