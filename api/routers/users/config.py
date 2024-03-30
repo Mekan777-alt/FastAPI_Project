@@ -39,7 +39,12 @@ async def get_user_profile(session, user_id, new_value=None):
                                            (TenantProfile.id == user_id))
 
     result = apartment_id.fetchall()
-    data_to_return = []
+    data_to_return = {
+        "object_address": "",
+        "apartment_name": [],
+        "active_request": 0,
+        "balance": 0
+    }
     for tenant_profile, apartment_profile, object_profile in result:
         data = {
             "object_address": object_profile.address,
@@ -47,9 +52,15 @@ async def get_user_profile(session, user_id, new_value=None):
             "active_request": tenant_profiles.active_request,
             "balance": tenant_profiles.balance
         }
-        data["apartment_name"].append(apartment_profile.apartment_name)
-        data_to_return.append(data)
-    return data_to_return
+        apartment_data = {
+            'id': apartment_profile.id,
+            'name': apartment_profile.apartment_name
+        }
+        data_to_return["apartment_name"].append(apartment_data)
+        data_to_return["object_address"] = object_profile.address
+        data_to_return["active_request"] = tenant_profiles.active_request
+        data_to_return["balance"] = tenant_profiles.balance
+    return [data_to_return]
 
 
 async def get_contacts_from_db(session):

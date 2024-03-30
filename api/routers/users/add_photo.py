@@ -10,7 +10,7 @@ from models.base import TenantProfile
 from config import get_session
 
 router = APIRouter(
-    prefix="/api/v1",
+    prefix="/api/v1/client",
 )
 
 

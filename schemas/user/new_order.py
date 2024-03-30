@@ -3,8 +3,7 @@ from typing import List
 
 
 class AdditionalServiceSchema(BaseModel):
-    service: str = Field(..., example="Ironing")
-    price: float = Field(..., example=5.0)
+    additional_service_id: int = Field(..., example=1)
     quantity: int = Field(..., example=2)
 
 
@@ -14,12 +13,12 @@ class DocumentSchema(BaseModel):
 
 
 class OrderCreateSchema(BaseModel):
-    address: str = Field(..., example="122-Floor-2nd floor, Smart, 17")
+    apartment_id: int = Field(..., example=1)
     completion_date: str = Field(..., example="2023-07-25")
     completion_time: str = Field(..., example="12:05")
     selected_services: str = Field(..., example="Cleaning")
     notes: str = None
     status: str = "pending"
     additional_services: List[AdditionalServiceSchema] = Field(..., example=[
-        {"service": "Ironing", "price": 5, "quantity": 2}])
+        {"service_id": 1, "quantity": 2}])
     documents: List[DocumentSchema] = Field(..., example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])

@@ -7,7 +7,7 @@ from schemas.user.news import News as NewsSchemas
 from models.base import News
 
 router = APIRouter(
-    prefix='/api/v1',
+    prefix='/api/v1/client',
 )
 
 

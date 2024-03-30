@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 from api.routers.users.config import get_contacts_from_db
 
 router = APIRouter(
-    prefix="/api/v1",
+    prefix="/api/v1/client",
 )
 
 

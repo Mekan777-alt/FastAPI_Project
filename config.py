@@ -33,26 +33,22 @@ async def get_session() -> AsyncSession:
         yield session
 
 
-async def check_user(tenant_id: str, session, order_data: str):
+async def check_user(tenant_id: str, session, apartment_id: int):
     try:
-        apartment_query = select(ApartmentProfile).where(ApartmentProfile.apartment_name == order_data)
-        apartment_result = await session.execute(apartment_query)
-        apartment_model = apartment_result.scalar()
+        apartment_model = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         if not apartment_model:
             raise HTTPException(status_code=404, detail="Apartment not found")
 
-        tenant_query = select(TenantApartments).where(
-            (TenantApartments.id == apartment_model.id))
-        tenant_result = await session.execute(tenant_query)
-        tenant_model = tenant_result.scalar()
+        tenant_model = await session.scalar(select(TenantApartments).where(
+            (TenantApartments.id == apartment_model.id)))
 
         if tenant_model:
-            return tenant_model.id
+            return tenant_model.tenant_id
 
         return False
 
     except SQLAlchemyError as e:
-        return e
+        raise e
     except HTTPException as e:
         raise e

@@ -45,12 +45,12 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
 @router.post("/create_order")
 async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
-    tenant_id = await check_user(user["uid"], session, order_data.address)
+    tenant_id = await check_user(user["uid"], session, order_data.apartment_id)
 
     try:
         order = Order(
             tenant_id=tenant_id,
-            address=order_data.address,
+            apartment_id=order_data.apartment_id,
             completion_date=order_data.completion_date,
             completion_time=order_data.completion_time,
             notes=order_data.notes,
@@ -65,8 +65,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
                 order_id=order.id,
                 service_id=await get_model_id(session, "Service", order_data.selected_services),
                 quantity=additional_service_data.quantity,
-                name=additional_service_data.service,
-                price=additional_service_data.price
+                additional_service_id=additional_service_data.additional_service_id,
             )
             session.add(additional_service)
 

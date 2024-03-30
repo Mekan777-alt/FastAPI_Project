@@ -14,7 +14,7 @@ from models.base import (AdditionalService, Service, Document, TenantProfile, Ap
                          AdditionalServiceList, TenantApartments)
 
 router = APIRouter(
-    prefix="/api/v1",
+    prefix="/api/v1/client",
 )
 
 
@@ -75,27 +75,24 @@ async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_to
 
         tenant_id = user['uid']
 
-        query = await session.execute(select(TenantProfile)
-                                      .where(TenantProfile.uuid == tenant_id))
+        query = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == tenant_id))
 
-        tenant_profile = query.scalar()
-
-        apartment_id = await session.execute(select(TenantApartments)
-                                             .where(TenantApartments.tenant_id == tenant_profile.id))
-
-        apartments_model = apartment_id.scalars()
+        apartment_id = await session.scalars(select(TenantApartments)
+                                             .where(TenantApartments.tenant_id == query.id))
 
         apartment_name = []
 
-        for i in apartments_model:
+        for i in apartment_id:
 
-            query = await session.execute(select(ApartmentProfile).where(ApartmentProfile.id == i.apartment_id))
+            query = await session.scalars(select(ApartmentProfile).where(ApartmentProfile.id == i.apartment_id))
 
-            apartment_profile = query.scalars()
+            for j in query:
 
-            for j in apartment_profile:
-
-                apartment_name.append(j.apartment_name)
+                data = {
+                    "id": j.id,
+                    "apartment_name": j.apartment_name
+                }
+                apartment_name.append(data)
 
         service_query = await session.execute(select(Service))
 
@@ -105,7 +102,11 @@ async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_to
 
         for service in services:
 
-            service_list.append(service.name)
+            data = {
+                "id": service.id,
+                'name': service.name
+            }
+            service_list.append(data)
 
         additional_query = await session.execute(
             select(AdditionalServiceList).join(Service, AdditionalServiceList.service_id == Service.id))
@@ -117,6 +118,7 @@ async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_to
             if additional_service.service.name not in additional_services_dict:
                 additional_services_dict[additional_service.service.name] = []
             additional_services_dict[additional_service.service.name].append({
+                "id": additional_service.id,
                 "name": additional_service.name,
                 "price": additional_service.price
             })

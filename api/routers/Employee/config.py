@@ -1,7 +1,8 @@
-from models.base import EmployeeUK
+from models.base import EmployeeUK, TenantApartments, TenantProfile
 from sqlalchemy.future import select
 from models.base import Object, ApartmentProfile, ExecutorsProfile
 from firebase.config import get_staff_firebase
+from firebase_admin import auth, firestore
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -189,6 +190,53 @@ async def get_executors_detail(session, staff_id):
         data['photo_path'] = executor.photo_path
 
         return data
+
+    except Exception as e:
+
+        return e
+
+
+async def add_tenant_db(session, apartment_id, tenant_info, employee):
+
+    try:
+
+        new_tenant = auth.create_user(
+            email=tenant_info.email,
+            password=tenant_info.password
+        )
+
+        collection_path = "users"
+
+        db = firestore.client()
+        user_doc = db.collection(collection_path).document(new_tenant.uid)
+
+        first_last_name = tenant_info.first_last_name.split()
+
+        user_data = {
+            "email": tenant_info.email,
+            "phone_number": tenant_info.phone_number,
+            "first_name": first_last_name[0],
+            "last_name": first_last_name[1],
+            "role": "client"
+        }
+        user_doc.set(user_data)
+
+        new_tenant_for_db = TenantProfile(
+            uuid=new_tenant.uid,
+            photo_path='null',
+            active_request=0,
+            balance=0
+        )
+
+        tenant_profile = TenantApartments(
+            tenant_id=new_tenant_for_db.id,
+            apartment_id=apartment_id
+        )
+
+        session.add(new_tenant_for_db, tenant_profile)
+        await session.commit()
+
+        return new_tenant_for_db.to_dict()
 
     except Exception as e:
 

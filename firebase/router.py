@@ -37,7 +37,7 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
     user_role = await register_user(user, session)
 
     try:
-        if user_role["role"] == "Tenant":
+        if user_role["role"] == "client":
 
             tenant_id = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
 

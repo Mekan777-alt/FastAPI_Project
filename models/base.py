@@ -67,6 +67,7 @@ class Object(Base):
     apartments = relationship('ApartmentProfile', back_populates='object')
     news = relationship('News', back_populates='object')
     employees = relationship('EmployeeUK', back_populates='object')
+    service_list_object = relationship('ServiceObjectList', back_populates='object')
 
 
 class ApartmentProfile(Base):
@@ -139,6 +140,13 @@ class TenantProfile(Base):
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "active_request": self.active_request,
+            "balance": self.balance
+        }
+
 
 class TenantApartments(Base):
     __tablename__ = 'tenant_apartments'
@@ -158,6 +166,18 @@ class Service(Base):
 
     additional_services_list = relationship("AdditionalServiceList", back_populates="service")
     orders = relationship("Order", back_populates="selected_service")
+    service_list_service = relationship("ServiceObjectList", back_populates="service")
+
+
+class ServiceObjectList(Base):
+    __tablename__ = 'service_objects_list'
+
+    id = Column(Integer, primary_key=True)
+    object_id = Column(Integer, ForeignKey(Object.id))
+    service_id = Column(Integer, ForeignKey(Service.id))
+
+    object = relationship("Object", back_populates="service_list_object")
+    service = relationship("Service", back_populates="service_list_service")
 
 
 class AdditionalService(Base):
@@ -166,9 +186,12 @@ class AdditionalService(Base):
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
     service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
-    name = Column(VARCHAR(100), nullable=False)
-    price = Column(Float, nullable=False)
+    additional_service_id = Column(Integer, ForeignKey('additional_services_list.id'))
     quantity = Column(Integer, nullable=True)
+
+    # order = relationship("Order", back_populates="additional_services")
+    # service = relationship("Service", back_populates="additional_services")
+    additional_service = relationship("AdditionalServiceList", back_populates="additional_services_list")
 
 
 class Document(Base):
@@ -185,13 +208,14 @@ class Order(Base):
     __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
     tenant_id = Column(Integer, ForeignKey('tenant_profiles.id'))
-    address = Column(String, nullable=False)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
     completion_date = Column(VARCHAR(20), nullable=False)
     completion_time = Column(VARCHAR(20), nullable=False)
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
     selected_service_id = Column(Integer, ForeignKey('services.id'))
 
+    # apartments = relationship("TenantApartments", back_populates="orders")
     selected_service = relationship("Service", foreign_keys=[selected_service_id], back_populates="orders")
     additional_services = relationship("AdditionalService", back_populates="order")
     documents = relationship("Document", back_populates="order")
@@ -210,6 +234,7 @@ class AdditionalServiceList(Base):
     service_id = Column(Integer, ForeignKey(Service.id))
 
     service = relationship("Service", back_populates="additional_services_list")
+    additional_services_list = relationship("AdditionalService", back_populates="additional_service")
 
 
 class Contacts(Base):

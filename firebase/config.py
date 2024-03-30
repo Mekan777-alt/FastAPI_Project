@@ -34,7 +34,7 @@ async def register_user(user, session):
         docs = db.collection("users").document(f"{user['uid']}").get()
         data = docs.to_dict()
 
-        if data['role'] == 'Tenant':
+        if data['role'] == 'client':
             query = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
 
             if not query:

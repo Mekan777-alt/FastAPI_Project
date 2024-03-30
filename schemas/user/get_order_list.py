@@ -13,7 +13,12 @@ class Service(BaseModel):
     services: List[AdditionalService] = []
 
 
+class ApartmentList(BaseModel):
+    id: int
+    name: str
+
+
 class Apartment(BaseModel):
-    apartment_name: List[str]
+    apartment_name: List[ApartmentList]
     types_of_services: List[Literal["Cleaning", "Gardener", "Pool", "Trash removal", "Other"]]
     additional_services: Dict[Literal["Cleaning"], List[AdditionalService]]
