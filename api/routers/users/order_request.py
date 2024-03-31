@@ -54,13 +54,15 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
             completion_date=order_data.completion_date,
             completion_time=order_data.completion_time,
             notes=order_data.notes,
-            status=order_data.status,
+            status='new',
             selected_service_id=await get_model_id(session, "Service", order_data.selected_services),
         )
         session.add(order)
         await session.commit()
 
         for additional_service_data in order_data.additional_services:
+            if additional_service_data.additional_service_id != 2:
+                additional_service_data.quantity = 0
             additional_service = AdditionalService(
                 order_id=order.id,
                 service_id=await get_model_id(session, "Service", order_data.selected_services),

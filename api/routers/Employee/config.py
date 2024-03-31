@@ -1,8 +1,11 @@
-from models.base import EmployeeUK, TenantApartments, TenantProfile
+from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
-from models.base import Object, ApartmentProfile, ExecutorsProfile
+from fastapi import HTTPException
+from models.base import (Object, ApartmentProfile, ExecutorsProfile, Order, AdditionalService, AdditionalServiceList,
+                         ExecutorOrders, BathroomApartment)
 from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
+from starlette import status
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -29,17 +32,16 @@ async def get_apartment_list(session, user):
         employee_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
 
         if not employee_id:
-
             return "Employee not found"
 
         object_id = await session.scalar(select(Object).where(Object.id == employee_id.object_id))
 
-        apartment_list = await session.scalars(select(ApartmentProfile).where(ApartmentProfile.object_id == object_id.id))
+        apartment_list = await session.scalars(
+            select(ApartmentProfile).where(ApartmentProfile.object_id == object_id.id))
 
         apartment_profile_list = []
 
         for apartment in apartment_list:
-
             apartment_data = {
                 "id": apartment.id,
                 "apartment_name": apartment.apartment_name,
@@ -65,7 +67,6 @@ async def create_apartment(session, user, apartment_data):
         object_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
 
         if not object_id:
-
             return "Employee not found"
 
         new_apartment = ApartmentProfile(
@@ -91,30 +92,37 @@ async def create_apartment(session, user, apartment_data):
 
 
 async def get_apartments_info(session, apartment_id, user):
-
     try:
 
-        employee = user['uid']
+        # employee = user['uid']
+        #
+        # check_employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
 
-        check_employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
-
-        if not check_employee:
-
-            return "Employee not found"
+        # if not check_employee:
+        #     return "Employee not found"
 
         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         if not apartment:
-
             return "Apartment not found"
 
-        data = {
-            "apartment_name": apartment.apartment_name,
-            "area": apartment.area
-        }
+        bathrooms = await session.scalars(
+            select(BathroomApartment).where(BathroomApartment.apartment_id == apartment_id))
 
-        return data
+        if not bathrooms:
 
+            return apartment.to_dict()
+
+        else:
+
+            data = apartment.to_dict()
+            data['bathrooms'] = []
+
+            for bathroom in bathrooms:
+                data['bathrooms'].append({"id": bathroom.id,
+                                          "characteristic": bathroom.characteristic})
+
+            return data
     except Exception as e:
 
         return e
@@ -128,13 +136,11 @@ async def get_employee_info(session, user):
         check_employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
 
         if not check_employee:
-
             return "Employee not found"
 
         firestore = await get_staff_firebase(employee)
 
         if not firestore:
-
             return "Employee not found from firestore"
 
         del firestore['role']
@@ -148,7 +154,6 @@ async def get_employee_info(session, user):
 
 
 async def get_executors_list(session):
-
     try:
 
         executors = await session.scalars(select(ExecutorsProfile))
@@ -156,7 +161,6 @@ async def get_executors_list(session):
         executors_list = []
 
         for executor in executors:
-
             data = await get_staff_firebase(executor.uuid)
 
             del data['role']
@@ -179,7 +183,6 @@ async def get_executors_list(session):
 
 
 async def get_executors_detail(session, staff_id):
-
     try:
 
         executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == staff_id))
@@ -197,7 +200,6 @@ async def get_executors_detail(session, staff_id):
 
 
 async def add_tenant_db(session, apartment_id, tenant_info, employee):
-
     try:
 
         new_tenant = auth.create_user(
@@ -241,3 +243,178 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
     except Exception as e:
 
         return e
+
+
+async def get_new_order(session, apartment_id: int):
+    try:
+
+        query = (
+            select(Order, AdditionalServiceList, AdditionalService)
+            .join(AdditionalService, Order.id == AdditionalService.order_id)
+            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
+            .where(Order.apartment_id == apartment_id, Order.status == 'new')
+        )
+
+        orders = await session.execute(query)
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        order_dict = {}
+        for order, additional_service_list, additional_service in orders:
+            if order.id not in order_dict:
+                order_dict[order.id] = {
+                    "order_id": order.id,
+                    "apartment_name": order.apartments.apartment_name,
+                    "created_at": f"{order.created_at.strftime('%H:%M')}",
+                    "status": order.status,
+                    "additional_info": {
+                        "additional_service_list": []
+                    }
+                }
+            if additional_service_list:
+                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+
+        return order_dict
+    except Exception as e:
+        return str(e)
+
+
+async def get_new_order_id(session, apartment_id, order_id):
+    try:
+
+        query = (
+            select(Order, AdditionalServiceList, AdditionalService)
+            .join(AdditionalService, Order.id == AdditionalService.order_id)
+            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
+            .where(Order.apartment_id == apartment_id, Order.id == order_id)
+        )
+
+        orders = await session.execute(query)
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        executors = await session.scalars(select(ExecutorsProfile))
+
+        order_dict = {}
+        for order, additional_service_list, additional_service in orders:
+            if order.id not in order_dict:
+                order_dict[order.id] = {
+                    "order_id": order.id,
+                    "apartment_name": order.apartments.apartment_name,
+                    "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
+                    "completion_date": order.completion_date,
+                    "completed_at": order.completion_time,
+                    "status": order.status,
+                    "additional_info": {
+                        "additional_service_list": []
+                    },
+                    "executors": []
+                }
+            if additional_service_list:
+                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+
+            for executor in executors:
+                check_executor = await session.scalar(
+                    select(ExecutorOrders).where(ExecutorOrders.executor_id == executor.id))
+                if not check_executor:
+                    data = await get_staff_firebase(executor.uuid)
+                    data["id"] = executor.id
+                    order_dict[order.id]["executors"].append(data)
+
+        return order_dict
+
+    except HTTPException as e:
+
+        raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def select_executor(session, order_id, executor_id):
+    try:
+        check_order = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+        if check_order:
+            return "Данный исполнитель занят или данный ордер уже исполняется"
+        else:
+            executor = ExecutorOrders(
+                executor_id=executor_id,
+                order_id=order_id
+            )
+            session.add(executor)
+            order = await session.scalar(select(Order).where(Order.id == order_id))
+            order.status = 'in progress'
+            await session.commit()
+
+            return {"executor_id": executor.executor_id, "order_id": executor.order_id}
+    except HTTPException as e:
+
+        return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def get_in_progress_order(session, apartment_id):
+    try:
+
+        query = (
+            select(Order, AdditionalServiceList, AdditionalService)
+            .join(AdditionalService, Order.id == AdditionalService.order_id)
+            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
+            .where(Order.apartment_id == apartment_id, Order.status == 'in progress')
+        )
+
+        orders = await session.execute(query)
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        order_dict = {}
+        for order, additional_service_list, additional_service in orders:
+            if order.id not in order_dict:
+                order_dict[order.id] = {
+                    "order_id": order.id,
+                    "apartment_name": order.apartments.apartment_name,
+                    "created_at": f"{order.created_at.strftime('%H:%M')}",
+                    "status": order.status,
+                    "additional_info": {
+                        "additional_service_list": []
+                    }
+                }
+            if additional_service_list:
+                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+
+        return order_dict
+    except Exception as e:
+
+        return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def create_bathroom(session, bathroom_data, apartment_id):
+    try:
+
+        new_bathroom = BathroomApartment(
+            characteristic=bathroom_data.characteristic,
+            apartment_id=apartment_id
+        )
+
+        session.add(new_bathroom)
+        await session.commit()
+
+        return new_bathroom.to_dict()
+    except Exception as e:
+
+        return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def create_additionally(session, apartment_id, additionally_data):
+    try:
+
+        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        if additionally_data.garden is True or additionally_data.garden is False:
+            apartment.garden = additionally_data.garden
+        if additionally_data.pool is True or additionally_data.pool is False:
+            apartment.pool = additionally_data.pool
+
+        session.add(apartment)
+        await session.commit()
+
+        return apartment.to_dict()
+
+    except (HTTPException, Exception) as e:
+        return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)

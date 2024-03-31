@@ -75,7 +75,6 @@ class ApartmentProfile(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     apartment_name = Column(String, nullable=False)
     area = Column(Float, nullable=False)
-    bathrooms = Column(Integer)
     garden = Column(Boolean)
     pool = Column(Boolean)
     internet_operator = Column(String)
@@ -86,6 +85,21 @@ class ApartmentProfile(Base):
     object = relationship('Object', back_populates='apartments')
 
     tenant_apartments = relationship('TenantApartments', back_populates='apartment')
+    orders = relationship('Order', back_populates='apartments')
+    bathroom_apartments = relationship('BathroomApartment', back_populates='apartments')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "apartment_name": self.apartment_name,
+            "area": self.area,
+            "garden": self.garden,
+            "pool": self.pool,
+            "internet_operator": self.internet_operator,
+            "internet_speed": str(self.internet_speed),
+            "internet_fee": str(self.internet_fee),
+            "key_holder": self.key_holder
+        }
 
 
 class ExecutorsProfile(Base):
@@ -98,6 +112,7 @@ class ExecutorsProfile(Base):
 
     bank_details = relationship('BankDetailExecutors', back_populates='executors')
     invoices = relationship('InvoiceHistory', back_populates='performer')
+    executor_order = relationship('ExecutorOrders', back_populates='executor')
 
 
 class BankDetailExecutors(Base):
@@ -211,14 +226,16 @@ class Order(Base):
     apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
     completion_date = Column(VARCHAR(20), nullable=False)
     completion_time = Column(VARCHAR(20), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
     selected_service_id = Column(Integer, ForeignKey('services.id'))
 
-    # apartments = relationship("TenantApartments", back_populates="orders")
+    apartments = relationship("ApartmentProfile", back_populates="orders")
     selected_service = relationship("Service", foreign_keys=[selected_service_id], back_populates="orders")
     additional_services = relationship("AdditionalService", back_populates="order")
     documents = relationship("Document", back_populates="order")
+    executor_order = relationship("ExecutorOrders", back_populates="order")
 
 
 AdditionalService.order = relationship("Order", back_populates="additional_services")
@@ -257,3 +274,31 @@ class News(Base):
     object_id = Column(Integer, ForeignKey(Object.id))
 
     object = relationship('Object', back_populates="news")
+
+
+class ExecutorOrders(Base):
+    __tablename__ = 'orders_executors'
+
+    id = Column(Integer, primary_key=True)
+    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id), unique=True)
+    order_id = Column(Integer, ForeignKey(Order.id), unique=True)
+
+    order = relationship("Order", back_populates="executor_order")
+    executor = relationship("ExecutorsProfile", back_populates="executor_order")
+
+
+class BathroomApartment(Base):
+    __tablename__ = 'bathroom_apartments'
+
+    id = Column(Integer, primary_key=True)
+    characteristic = Column(String)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+
+    apartments = relationship("ApartmentProfile", back_populates="bathroom_apartments")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "characteristic": self.characteristic,
+            "apartment_id": self.apartment_id
+        }
