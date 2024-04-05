@@ -69,23 +69,3 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
         return HTTPException(detail={'message': f'{e}'}, status_code=400)
 
 
-# @router.post("/register")
-# async def register_user(request: Request):
-#     req_json = await request.json()
-#     user = get_user(req_json)
-#
-#     try:
-#         db = async_session_maker()
-#         if user['role'] == "Tenant":
-#             new_user = TenantProfile(
-#                 uuid=req_json['uuid'],
-#                 apartment_id=1
-#             )
-#             db.add(new_user)
-#             await db.commit()
-#             await db.close()
-#     except Exception as e:
-#         print(e)
-#     return user
-
-

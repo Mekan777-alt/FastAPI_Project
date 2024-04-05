@@ -10,7 +10,7 @@ from starlette import status
 from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
-                                         get_apartment_invoice, create_invoice)
+                                         get_apartment_invoice, create_invoice, meter_readings_get)
 from starlette.responses import JSONResponse
 
 from schemas.employee.bathroom import CreateBathroom
@@ -243,7 +243,9 @@ async def get_apartment_info_meter_readings(apartment_id: int, user: Annotated[d
                                             session: AsyncSession = Depends(get_session)):
     try:
 
-        pass
+        data = await meter_readings_get(session, apartment_id, user)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 

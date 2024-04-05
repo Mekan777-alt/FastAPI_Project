@@ -342,6 +342,7 @@ class Meters(Base):
     meter_readings = Column(String)
     comment = Column(String)
     status = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     apartment = relationship("ApartmentProfile", back_populates="meters")
     meter_service = relationship("MeterService", back_populates="meters")

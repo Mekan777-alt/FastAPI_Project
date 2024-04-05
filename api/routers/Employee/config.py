@@ -567,7 +567,20 @@ async def create_invoice(session, apartment_id, invoice_data, user):
 async def meter_readings_get(session, apartment_id, user):
     try:
 
-        pass
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        meters_info = await session.scalars(select(Meters).where(Meters.apartment_id == apartment_id))
+        data_list = []
+
+        for meter in meters_info:
+            data = {
+                'id': meter.id,
+                'apartment_name': apartment_info.apartment_name,
+                'created_at': meter.created_at.strftime('%d %h %H:%M'),
+            }
+            data_list.append(data)
+
+        return data_list
 
     except HTTPException as e:
 
