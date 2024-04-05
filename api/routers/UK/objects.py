@@ -6,10 +6,10 @@ from starlette import status
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.UK.config import (get_objects_from_uk, create_object_to_db, get_object_id, get_apartments_from_object,
-                                   create_apartment_for_object)
+                                   create_apartment_for_object, get_staff_object, get_staff_id_object)
 from schemas.uk.object import ObjectSchemas, ObjectCreateSchema, Object
 from schemas.uk.apartments import ApartmentsList, ApartmentSchemasCreate
-
+from schemas.user.users import User
 
 router = APIRouter(
     prefix="/api/v1"
@@ -82,6 +82,36 @@ async def create_apartment(object_id: int, apartment_data: ApartmentSchemasCreat
         data = await create_apartment_for_object(session, object_id, apartment_data)
 
         return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+
+    except Exception as e:
+
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/get_objects_uk/{object_id}/get_staff_object")
+async def get_object_id_uk(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                           session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        data = await get_staff_object(session, object_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/get_objects_uk/{object_id}/get_staff_object/{staff_id}")
+async def get_object_id_uk(object_id: int, staff_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                           session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        data = await get_staff_id_object(session, object_id, staff_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 

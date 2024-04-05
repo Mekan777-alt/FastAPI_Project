@@ -1,6 +1,7 @@
 from datetime import datetime
 from datetime import date
-from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, Enum, VARCHAR, DATE
+from enum import Enum
+from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, VARCHAR, DATE
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 
@@ -87,6 +88,8 @@ class ApartmentProfile(Base):
     tenant_apartments = relationship('TenantApartments', back_populates='apartment')
     orders = relationship('Order', back_populates='apartments')
     bathroom_apartments = relationship('BathroomApartment', back_populates='apartments')
+    meters = relationship("Meters", back_populates="apartment")
+    invoice_history = relationship("InvoiceHistory", back_populates="apartment")
 
     def to_dict(self):
         return {
@@ -111,7 +114,6 @@ class ExecutorsProfile(Base):
     bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))
 
     bank_details = relationship('BankDetailExecutors', back_populates='executors')
-    invoices = relationship('InvoiceHistory', back_populates='performer')
     executor_order = relationship('ExecutorOrders', back_populates='executor')
 
 
@@ -135,14 +137,28 @@ class InvoiceHistory(Base):
     __tablename__ = 'invoice_history'
     id = Column(Integer, primary_key=True, autoincrement=True)
     amount = Column(Float, nullable=False)
-    status = Column(String, default='не оплачен')
+    status = Column(String, default='not paid')
     issue_date = Column(DateTime, default=datetime.utcnow)
     payment_date = Column(DateTime)
     notification_sent = Column(Boolean, default=False)
-    performer_id = Column(Integer, ForeignKey('executor_profiles.id'))
-    performer = relationship('ExecutorsProfile', back_populates='invoices', foreign_keys=[performer_id])
-    object_id = Column(Integer, ForeignKey('object_profiles.id'))
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    comment = Column(String)
+    service_id = Column(Integer, ForeignKey('services.id'))
+    meter_service_id = Column(Integer, ForeignKey('meter_service.id'))
+    bill_number = Column(String)
+
+    apartment = relationship('ApartmentProfile', back_populates='invoice_history')
+    service = relationship('Service', back_populates='invoice_history')
+    meter_service = relationship('MeterService', back_populates='invoice_history')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "amount": self.amount,
+            "status": self.status,
+            "apartment_id": self.apartment_id
+        }
 
 
 class TenantProfile(Base):
@@ -182,6 +198,7 @@ class Service(Base):
     additional_services_list = relationship("AdditionalServiceList", back_populates="service")
     orders = relationship("Order", back_populates="selected_service")
     service_list_service = relationship("ServiceObjectList", back_populates="service")
+    invoice_history = relationship("InvoiceHistory", back_populates="service")
 
 
 class ServiceObjectList(Base):
@@ -301,4 +318,39 @@ class BathroomApartment(Base):
             "id": self.id,
             "characteristic": self.characteristic,
             "apartment_id": self.apartment_id
+        }
+
+
+class MeterService(Base):
+    __tablename__ = 'meter_service'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    meters = relationship("Meters", back_populates="meter_service")
+    invoice_history = relationship("InvoiceHistory", back_populates="meter_service")
+
+
+class Meters(Base):
+    __tablename__ = 'meters'
+
+    id = Column(Integer, primary_key=True)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    meter_service_id = Column(Integer, ForeignKey(MeterService.id))
+    bill_number = Column(String)
+    meters_for = Column(String)
+    meter_readings = Column(String)
+    comment = Column(String)
+    status = Column(String)
+
+    apartment = relationship("ApartmentProfile", back_populates="meters")
+    meter_service = relationship("MeterService", back_populates="meters")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "apartment_id": self.apartment_id,
+            "meter_service_id": self.meter_service_id,
+            "bill_number": self.bill_number,
+            "status": self.status
         }

@@ -2,7 +2,7 @@ from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
 from fastapi import HTTPException
 from models.base import (Object, ApartmentProfile, ExecutorsProfile, Order, AdditionalService, AdditionalServiceList,
-                         ExecutorOrders, BathroomApartment)
+                         ExecutorOrders, BathroomApartment, MeterService, Meters, InvoiceHistory)
 from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
@@ -418,3 +418,157 @@ async def create_additionally(session, apartment_id, additionally_data):
 
     except (HTTPException, Exception) as e:
         return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def enter_meters(session, apartment_id, user):
+    try:
+
+        data_list = []
+        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+        if apartment:
+
+            apartment_data = {
+                "id": apartment.id,
+                "name": apartment.apartment_name
+            }
+            data_list.append(apartment_data)
+
+            meter_service = await session.scalars(select(MeterService))
+            meter_service_list = []
+
+            for service in meter_service:
+                data = {
+                    "id": service.id,
+                    "name": service.name
+                }
+                meter_service_list.append(data)
+            data_list.append(meter_service_list)
+        return data_list
+    except HTTPException as e:
+        return e
+
+
+async def new_meters(session, meter_data, apartment_id, user):
+    try:
+
+        readings = Meters(
+            apartment_id=meter_data.apartment_id,
+            meter_service_id=meter_data.meter_id,
+            bill_number=meter_data.bill_number,
+            meters_for=meter_data.month_year,
+            meter_readings=meter_data.meter_readings,
+            comment=meter_data.comment,
+            status='not paid'
+        )
+        session.add(readings)
+        await session.commit()
+
+        return readings
+    except HTTPException as e:
+        return e
+
+
+async def get_apartment_invoice(session, apartment_id, user):
+    try:
+
+        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        meter_service = await session.scalars(select(MeterService))
+        services = await session.scalars(select(Service))
+
+        data_list = []
+
+        apartment_data = {
+            "id": apartment.id,
+            "name": apartment.apartment_name
+        }
+        data_list.append(apartment_data)
+        service_list = []
+        meter_service_list = {
+            "meter_service_list": []
+        }
+        for service in meter_service:
+            meter_service_data = {
+                "id": service.id,
+                "name": service.name
+            }
+            meter_service_list["meter_service_list"].append(meter_service_data)
+        service_list.append(meter_service_list)
+
+        service_list_services = {
+            "service_list": []
+        }
+        for service in services:
+            service_data = {
+                "id": service.id,
+                "name": service.name
+            }
+            service_list_services["service_list"].append(service_data)
+        service_list.append(service_list_services)
+
+        response_service = {
+            "services_list": service_list
+        }
+        data_list.append(response_service)
+
+        return data_list
+
+    except HTTPException as e:
+
+        return e
+
+
+async def create_invoice(session, apartment_id, invoice_data, user):
+    try:
+
+        service_id, service_name = invoice_data.service_id, invoice_data.service_name
+
+        service = await session.scalar(select(Service).where(Service.id == service_id))
+
+        meter_service = await session.scalar(select(MeterService).where(MeterService.id == service_id))
+        if service.name == service_name:
+
+            new_invoice = InvoiceHistory(
+                amount=invoice_data.amount,
+                apartment_id=invoice_data.apartment_id,
+                service_id=service.id,
+                bill_number=invoice_data.bill_number,
+                comment=invoice_data.comment
+            )
+
+            session.add(new_invoice)
+            await session.commit()
+
+            return new_invoice
+
+        if meter_service.name == service_name:
+
+            new_invoice = InvoiceHistory(
+                amount=invoice_data.amount,
+                apartment_id=invoice_data.apartment_id,
+                meter_service_id=meter_service.id,
+                bill_number=invoice_data.bill_number,
+                comment=invoice_data.comment
+            )
+            session.add(new_invoice)
+            await session.commit()
+
+            return new_invoice
+
+        else:
+
+            return None
+
+    except HTTPException as e:
+
+        return e
+
+
+async def meter_readings_get(session, apartment_id, user):
+    try:
+
+        pass
+
+    except HTTPException as e:
+
+        raise e

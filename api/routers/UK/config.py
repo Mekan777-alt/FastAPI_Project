@@ -320,3 +320,51 @@ async def create_employee(session, employee_data, user):
     except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
 
         return str(e)
+
+
+async def get_staff_object(session, object_id):
+
+    try:
+
+        staff_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_id))
+
+        data = []
+
+        for employee in staff_info:
+
+            employee_data = await get_staff_firebase(employee.uuid)
+            del employee_data['role']
+            del employee_data['email']
+
+            employee_data['id'] = employee.id
+            employee_data['photo_path'] = employee.photo_path
+            data.append(employee_data)
+
+        return data
+    except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
+        raise e
+
+
+async def get_staff_id_object(session, object_id, staff_id):
+
+    try:
+
+        staff_info = await session.scalar(select(EmployeeUK).where(
+            (EmployeeUK.id == staff_id) & (EmployeeUK.object_id == object_id)))
+
+        if staff_info is None:
+
+            return "Staff ID not found"
+
+        object_info = await session.scalar(select(Object).where(Object.id == staff_info.object_id))
+
+        staff_data = await get_staff_firebase(staff_info.uuid)
+        del staff_data['role']
+
+        staff_data['id'] = staff_info.id
+        staff_data['photo_path'] = staff_info.photo_path
+        staff_data['object_name'] = object_info.object_name
+
+        return staff_data
+    except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
+        raise e

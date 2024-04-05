@@ -3,11 +3,14 @@ from firebase.config import get_firebase_user_from_token
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
+from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
+from schemas.employee.invoice import Invoice
 from starlette import status
 from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
-                                         create_bathroom, create_additionally)
+                                         create_bathroom, create_additionally, enter_meters, new_meters,
+                                         get_apartment_invoice, create_invoice)
 from starlette.responses import JSONResponse
 
 from schemas.employee.bathroom import CreateBathroom
@@ -177,3 +180,71 @@ async def add_additionally_to_apartments(apartment_id: int, user: Annotated[dict
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+
+@router.get("/apartments/apartment_info/{apartment_id}/enter_meters")
+async def apartment_info_enter_meters(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                         apartment_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await enter_meters(session, apartment_id, user)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/enter_meters")
+async def apartment_info_enter_meters_pose(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                           meter_data: EnterMeters, apartment_id: int,
+                                           session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        data = await new_meters(session, meter_data, apartment_id, user)
+
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=data.to_dict())
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.get("/apartments/apartment_info/{apartment_id}/invoice")
+async def apartment_info_invoice_get(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                     apartment_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_apartment_invoice(session, apartment_id, user)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/invoice")
+async def apartment_info_invoice_post(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                      invoice_data: Invoice, apartment_id: int,
+                                      session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await create_invoice(session, apartment_id, invoice_data, user)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data.to_dict())
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.get("/apartments/apartment_info/{apartment_id}/meter_readings")
+async def get_apartment_info_meter_readings(apartment_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                            session: AsyncSession = Depends(get_session)):
+    try:
+
+        pass
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
