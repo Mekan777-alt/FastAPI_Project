@@ -1,6 +1,9 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from models.base import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts
+from firebase.config import get_staff_firebase
+from fastapi import HTTPException
+from starlette import status
 
 
 async def get_user_id(session, user_uuid):
@@ -83,3 +86,22 @@ async def get_contacts_from_db(session):
     except Exception as e:
 
         return None
+
+
+async def get_profile_tenant(user, session):
+
+    try:
+
+        client = await get_staff_firebase(user['uid'])
+        tenant_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
+
+        if client['role'] != 'client':
+
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to client")
+
+        client['photo_path'] = tenant_profile.photo_path
+
+        return client
+
+    except HTTPException as e:
+        raise e

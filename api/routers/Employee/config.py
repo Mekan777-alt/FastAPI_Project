@@ -202,6 +202,12 @@ async def get_executors_detail(session, staff_id):
 async def add_tenant_db(session, apartment_id, tenant_info, employee):
     try:
 
+        user = auth.get_user_by_email(tenant_info.email)
+
+        if user:
+
+            return "Данный пользователь уже зарегистрирован"
+
         new_tenant = auth.create_user(
             email=tenant_info.email,
             password=tenant_info.password
