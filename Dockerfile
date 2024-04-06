@@ -12,8 +12,6 @@ COPY run.sh .
 
 RUN chmod +x run.sh
 
-ENV DBPASSWORD ${DBPASSWORD}
-
 EXPOSE 8000
 
 CMD ["bash", "-c", "chmod +x run.sh &&./run.sh"]
