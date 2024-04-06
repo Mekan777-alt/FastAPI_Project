@@ -16,4 +16,4 @@ ENV DBPASSWORD ${DBPASSWORD}
 
 EXPOSE 8000
 
-CMD ["bash", "-c", "chmod +x run.sh &&./run.sh && uvicorn app:app --host 0.0.0.0 --port 8000"]
+CMD ["bash", "-c", "chmod +x run.sh &&./run.sh"]
