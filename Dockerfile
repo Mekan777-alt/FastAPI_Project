@@ -12,6 +12,8 @@ COPY run.sh .
 
 RUN chmod +x run.sh
 
+RUN dos2unix .env
+
 ENV DBPASSWORD ${DBPASSWORD}
 
 EXPOSE 8000
