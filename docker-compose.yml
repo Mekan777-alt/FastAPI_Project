@@ -1,9 +1,9 @@
-version: "3.9"
+version: "3"
 services:
   db:
     image: bitnami/postgresql
     ports:
-      - "${DBPORT}:5432"
+      - "5431:5432"
     env_file:
       - .env
     environment:
@@ -28,8 +28,6 @@ services:
       - db
     networks:
       - mynetwork
-    environment:
-      - DATABASE_URL=postgresql://${DBUSER}:${DBPASSWORD}@$db:5432/${DBNAME}
 
 
 networks:
