@@ -28,6 +28,8 @@ services:
       - db
     networks:
       - mynetwork
+    environment:
+      - DATABASE_URL=postgresql://${DBUSER}:${DBPASSWORD}@$db:5432/${DBNAME}
 
 
 networks:
