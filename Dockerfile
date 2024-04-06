@@ -1,6 +1,6 @@
 FROM python:3.10-slim-buster AS builder
 
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apt-get update && apt-get install -y postgresql-client dos2unix
 
 COPY requirements.txt .
 
