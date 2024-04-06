@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Wait for PostgreSQL to start
-until psql -h "db" -U "$DB_USER" -c '\q'; do
+until psql -h "db" -U "postgres" -c '\q'; do
   >&2 echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
