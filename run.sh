@@ -1,7 +1,9 @@
 #!/bin/bash
 
+source .env
+
 # Wait for PostgreSQL to start
-until psql -h "db" -U "postgres" -c '\q'; do
+until PGPASSWORD="${DBPASSWORD}" psql -h "db" -U "${DBUSER}" -c '\q'; do
   >&2 echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
