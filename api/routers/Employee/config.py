@@ -6,6 +6,7 @@ from models.base import (Object, ApartmentProfile, ExecutorsProfile, Order, Addi
 from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
+from datetime import date, timedelta
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -576,14 +577,21 @@ async def create_invoice(session, apartment_id, invoice_data, user):
 
 async def meter_readings_get(session, apartment_id, user):
     try:
-
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
-
         meters_info = await session.scalars(select(Meters).where(Meters.apartment_id == apartment_id))
-        data_list = []
 
+        data_list = []
         for meter in meters_info:
             icon_path = await session.scalar(select(MeterService).where(MeterService.id == meter.id))
+            created_at = meter.created_at.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+
             data = {
                 'id': meter.id,
                 'icon_path': icon_path.mini_icons_path if icon_path else None,
@@ -591,10 +599,13 @@ async def meter_readings_get(session, apartment_id, user):
                 'created_at_date': meter.created_at.strftime('%d %h'),
                 'created_at_time': meter.created_at.strftime('%H:%M')
             }
-            data_list.append(data)
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
 
         return data_list
 
     except HTTPException as e:
-
         raise e
