@@ -194,6 +194,8 @@ class Service(Base):
     __tablename__ = 'services'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+    big_icons_path = Column(String)
+    mini_icons_path = Column(String)
 
     additional_services_list = relationship("AdditionalServiceList", back_populates="service")
     orders = relationship("Order", back_populates="selected_service")
@@ -326,6 +328,8 @@ class MeterService(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    big_icons_path = Column(String)
+    mini_icons_path = Column(String)
 
     meters = relationship("Meters", back_populates="meter_service")
     invoice_history = relationship("InvoiceHistory", back_populates="meter_service")

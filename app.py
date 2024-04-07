@@ -26,4 +26,4 @@ app.add_middleware(
 
 firebase_admin.initialize_app(cred)
 
-app.mount('/media', StaticFiles(directory='media'), name='media')
+app.mount('/static', StaticFiles(directory='static'), name='static')

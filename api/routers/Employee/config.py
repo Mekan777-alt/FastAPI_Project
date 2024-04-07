@@ -267,9 +267,11 @@ async def get_new_order(session, apartment_id: int):
 
         order_dict = {}
         for order, additional_service_list, additional_service in orders:
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
             if order.id not in order_dict:
                 order_dict[order.id] = {
                     "order_id": order.id,
+                    "icon_path": icon_path.mini_icons_path if icon_path else None,
                     "apartment_name": order.apartments.apartment_name,
                     "created_at": f"{order.created_at.strftime('%H:%M')}",
                     "status": order.status,
@@ -303,9 +305,11 @@ async def get_new_order_id(session, apartment_id, order_id):
 
         order_dict = {}
         for order, additional_service_list, additional_service in orders:
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
             if order.id not in order_dict:
                 order_dict[order.id] = {
                     "order_id": order.id,
+                    "icon_path": icon_path.big_icons_path if icon_path else None,
                     "apartment_name": order.apartments.apartment_name,
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
                     "completion_date": order.completion_date,
@@ -579,10 +583,13 @@ async def meter_readings_get(session, apartment_id, user):
         data_list = []
 
         for meter in meters_info:
+            icon_path = await session.scalar(select(MeterService).where(MeterService.id == meter.id))
             data = {
                 'id': meter.id,
+                'icon_path': icon_path.mini_icons_path if icon_path else None,
                 'apartment_name': apartment_info.apartment_name,
-                'created_at': meter.created_at.strftime('%d %h %H:%M'),
+                'created_at_date': meter.created_at.strftime('%d %h'),
+                'created_at_time': meter.created_at.strftime('%H:%M')
             }
             data_list.append(data)
 

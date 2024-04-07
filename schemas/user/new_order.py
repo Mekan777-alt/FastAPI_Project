@@ -19,5 +19,5 @@ class OrderCreateSchema(BaseModel):
     selected_services: str = Field(..., example="Cleaning")
     notes: str = None
     additional_services: List[AdditionalServiceSchema] = Field(..., example=[
-        {"service_id": 1, "quantity": 2}])
+        {"additional_service_id": 1, "quantity": 2}])
     documents: List[DocumentSchema] = Field(..., example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])
