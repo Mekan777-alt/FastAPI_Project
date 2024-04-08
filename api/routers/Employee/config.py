@@ -7,6 +7,7 @@ from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
 from datetime import date, timedelta
+from sqlalchemy import delete
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -606,6 +607,24 @@ async def meter_readings_get(session, apartment_id, user):
             data_list[-1]['services'].append(data)
 
         return data_list
+
+    except HTTPException as e:
+        raise e
+
+
+async def delete_bathroom(session, apartment_id, bathroom_id):
+    try:
+
+        bathroom = await session.scalar(select(BathroomApartment).where(BathroomApartment.id == bathroom_id))
+
+        if bathroom:
+
+            await session.execute(delete(BathroomApartment).where(BathroomApartment.id == bathroom_id))
+            await session.commit()
+
+        else:
+
+            return "Bathroom not found"
 
     except HTTPException as e:
         raise e

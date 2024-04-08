@@ -10,7 +10,7 @@ from starlette import status
 from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
-                                         get_apartment_invoice, create_invoice, meter_readings_get)
+                                         get_apartment_invoice, create_invoice, meter_readings_get, delete_bathroom)
 from starlette.responses import JSONResponse
 
 from schemas.employee.bathroom import CreateBathroom
@@ -155,7 +155,6 @@ async def get_service_order_new_id(user: Annotated[dict, Depends(get_firebase_us
 @router.post("/apartments/apartment_info/{apartment_id}/add_bathroom")
 async def add_bathroom_to_apartments(apartment_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                      bathroom_data: CreateBathroom, session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await create_bathroom(session, bathroom_data, apartment_id)
@@ -167,8 +166,23 @@ async def add_bathroom_to_apartments(apartment_id: int, user: Annotated[dict, De
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+@router.delete("/apartments/apartment_info/{apartment_id}/add_bathroom/{bathroom_id}")
+async def delete_bathroom_to_apartments(apartment_id: int, bathroom_id: int,
+                                        session: AsyncSession = Depends(get_session)):
+    try:
+
+        await delete_bathroom(session, apartment_id, bathroom_id)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=f"bathroom {bathroom_id} deleted successfully")
+
+    except HTTPException as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.post("/apartments/apartment_info/{apartment_id}/add_additionally", response_model=Additionally)
-async def add_additionally_to_apartments(apartment_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+async def add_additionally_to_apartments(apartment_id: int,
+                                         user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                          additionally_data: Additionally, session: AsyncSession = Depends(get_session)):
     try:
 
@@ -183,7 +197,7 @@ async def add_additionally_to_apartments(apartment_id: int, user: Annotated[dict
 
 @router.get("/apartments/apartment_info/{apartment_id}/enter_meters")
 async def apartment_info_enter_meters(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                         apartment_id: int, session: AsyncSession = Depends(get_session)):
+                                      apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
         data = await enter_meters(session, apartment_id, user)
@@ -199,7 +213,6 @@ async def apartment_info_enter_meters(user: Annotated[dict, Depends(get_firebase
 async def apartment_info_enter_meters_pose(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                            meter_data: EnterMeters, apartment_id: int,
                                            session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await new_meters(session, meter_data, apartment_id, user)
@@ -239,7 +252,8 @@ async def apartment_info_invoice_post(user: Annotated[dict, Depends(get_firebase
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/meter_readings")
-async def get_apartment_info_meter_readings(apartment_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+async def get_apartment_info_meter_readings(apartment_id: int,
+                                            user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                             session: AsyncSession = Depends(get_session)):
     try:
 
