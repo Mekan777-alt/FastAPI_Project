@@ -7,6 +7,7 @@ from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
 from starlette import status
+from firebase_admin import auth
 from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
@@ -75,15 +76,19 @@ async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
         data = await add_tenant_db(session, apartment_id, tenant_info, user)
 
+        if data is None:
+
+            return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"info": "Tenant already exists"})
+
         return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/new")
-async def get_service_order_new(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+async def get_service_order_new(
                                 apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
@@ -168,6 +173,7 @@ async def add_bathroom_to_apartments(apartment_id: int, user: Annotated[dict, De
 
 @router.delete("/apartments/apartment_info/{apartment_id}/add_bathroom/{bathroom_id}")
 async def delete_bathroom_to_apartments(apartment_id: int, bathroom_id: int,
+                                        user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         session: AsyncSession = Depends(get_session)):
     try:
 

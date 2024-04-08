@@ -65,15 +65,15 @@ try:
         conn.commit()
 
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Cleaning", "/static/icons/big/cleaning.jpg", "/static/icons/mini/cleaning.jpg"))
+                       ("Cleaning", "http://46.149.74.145:8000/static/icons/big/cleaning.jpg", "http://46.149.74.145:8000/static/icons/mini/cleaning.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Gardener", None, "/static/icons/mini/garden.jpg"))
+                       ("Gardener", None, "http://46.149.74.145:8000/static/icons/mini/garden.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Pool", None, "/static/icons/mini/pool.jpg"))
+                       ("Pool", None, "http://46.149.74.145:8000/static/icons/mini/pool.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Trash removal", None, "/static/icons/mini/trash_removal.jpg"))
+                       ("Trash removal", None, "http://46.149.74.145:8000/static/icons/mini/trash_removal.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Other", "/static/icons/big/other.jpg", "/static/icons/mini/other.jpg"))
+                       ("Other", "http://46.149.74.145:8000/static/icons/big/other.jpg", "http://46.149.74.145:8000/static/icons/mini/other.jpg"))
 
         conn.commit()
 
@@ -112,13 +112,12 @@ try:
         conn.commit()
 
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Water", None, "/static/icons/mini/water.jpg"))
+                       ("Water", None, "http://46.149.74.145:8000/static/icons/mini/water.jpg"))
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Internet", None, "/static/icons/mini/wifi.jpg"))
+                       ("Internet", None, "http://46.149.74.145:8000/static/icons/mini/wifi.jpg"))
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Electricity", "/static/icons/big/electric.jpg", "/static/icons/mini/electric.jpg"))
+                       ("Electricity", "http://46.149.74.145:8000/static/icons/big/electric.jpg", "http://46.149.74.145:8000/static/icons/mini/electric.jpg"))
         conn.commit()
-
 
         cursor.close()
 
@@ -127,6 +126,5 @@ try:
     else:
 
         pass
-
 except Exception as e:
     print(e)

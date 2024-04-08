@@ -1,6 +1,6 @@
 from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from models.base import (Object, ApartmentProfile, ExecutorsProfile, Order, AdditionalService, AdditionalServiceList,
                          ExecutorOrders, BathroomApartment, MeterService, Meters, InvoiceHistory)
 from firebase.config import get_staff_firebase
@@ -204,12 +204,6 @@ async def get_executors_detail(session, staff_id):
 async def add_tenant_db(session, apartment_id, tenant_info, employee):
     try:
 
-        user = auth.get_user_by_email(tenant_info.email)
-
-        if user:
-
-            return "Данный пользователь уже зарегистрирован"
-
         new_tenant = auth.create_user(
             email=tenant_info.email,
             password=tenant_info.password
@@ -250,7 +244,7 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
 
     except Exception as e:
 
-        return e
+        return None
 
 
 async def get_new_order(session, apartment_id: int):
@@ -267,24 +261,38 @@ async def get_new_order(session, apartment_id: int):
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
-        order_dict = {}
+        data_list = []
         for order, additional_service_list, additional_service in orders:
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
-            if order.id not in order_dict:
-                order_dict[order.id] = {
-                    "order_id": order.id,
-                    "icon_path": icon_path.mini_icons_path if icon_path else None,
-                    "apartment_name": order.apartments.apartment_name,
-                    "created_at": f"{order.created_at.strftime('%H:%M')}",
-                    "status": order.status,
-                    "additional_info": {
-                        "additional_service_list": []
-                    }
-                }
-            if additional_service_list:
-                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
 
-        return order_dict
+            created_at = order.created_at.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+            data = {
+                "order_id": order.id,
+                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "apartment_name": order.apartments.apartment_name,
+                "created_at": f"{order.created_at.strftime('%H:%M')}",
+                "status": order.status,
+                "additional_info": {
+                    "additional_service_list": []
+                }
+            }
+
+            if additional_service_list:
+                data["additional_info"]["additional_service_list"].append(additional_service_list.name)
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
+
+        return data_list
     except Exception as e:
         return str(e)
 

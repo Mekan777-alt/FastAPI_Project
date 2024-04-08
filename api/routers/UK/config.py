@@ -10,17 +10,19 @@ from firebase_admin import auth, firestore
 async def get_uk_profile(session, uk_id):
     uk = await session.scalar(select(UK).where(UK.id == uk_id))
     payment_details = await session.scalar(select(PaymentDetails).where(PaymentDetails.uk_id == uk_id))
-
-    requisites = {
-        "recipient": payment_details.recipient_name,
-        "inn": payment_details.inn,
-        "kpp": payment_details.kpp,
-        "account": payment_details.account,
-        "bic": payment_details.bic,
-        "correspondent_account": payment_details.correspondent_account,
-        "okpo": payment_details.okpo,
-        "bank_name": payment_details.bank_name
-    }
+    if not payment_details:
+        requisites = {}
+    else:
+        requisites = {
+            "recipient": payment_details.recipient_name,
+            "inn": payment_details.inn,
+            "kpp": payment_details.kpp,
+            "account": payment_details.account,
+            "bic": payment_details.bic,
+            "correspondent_account": payment_details.correspondent_account,
+            "okpo": payment_details.okpo,
+            "bank_name": payment_details.bank_name
+        }
     data = {
         "UK name": uk.name,
         "Requisites": requisites
