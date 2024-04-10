@@ -125,7 +125,7 @@ async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_to
 
         data = {
             "apartment_name": apartment_name,
-            "types of services": service_list,
+            "types_of_services": service_list,
             "additional_services": additional_services_dict
         }
 
