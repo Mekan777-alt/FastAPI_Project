@@ -22,7 +22,6 @@ router = APIRouter(
 #     req_json = await request.json()
 #     email = req_json["email"]
 #     password = req_json["password"]
-#
 #     try:
 #         user = pb.auth().sign_in_with_email_and_password(email, password)
 #         access_token = user['idToken']
