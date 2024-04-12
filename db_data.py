@@ -85,6 +85,12 @@ try:
                        ("Maintenance cleaning", 0, 1))
         cursor.execute("""INSERT INTO additional_services_list (name, price, service_id) VALUES (%s, %s, %s)""",
                        ("Garage cleaning", 0, 1))
+        cursor.execute("""INSERT INTO additional_services_list (name, price, service_id) VALUES (%s, %s, %s)""",
+                       ("Garden cleaning", 30, 2))
+        cursor.execute("""INSERT INTO additional_services_list (name, price, service_id) VALUES (%s, %s, %s)""",
+                       ("Pool cleaning", 5, 3))
+        cursor.execute("""INSERT INTO additional_services_list (name, price, service_id) VALUES (%s, %s, %s)""",
+                       ("Trash removal", 19, 4))
 
         conn.commit()
 

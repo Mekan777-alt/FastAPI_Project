@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 from api.routers.users.config import get_user_id
 from schemas.user.get_orders import OrderListResponse
 from schemas.user.get_order_list import Apartment
-from schemas.user.new_order import AdditionalServiceSchema, DocumentSchema
+from schemas.user.new_order import AdditionalServiceSchemaRead, DocumentSchema
 from config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
@@ -18,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.get("/get_orders", response_model=OrderListResponse)
+@router.get("/get_orders")
 async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      session: AsyncSession = Depends(get_session)):
 
@@ -30,37 +30,27 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
             for row in order:
                 order = row[0]
                 order_data = {
-                    "order_id": str(order.id),
+                    "order_id": order.id,
                     "status": order.status,
-                    "address": order.address,
-                    "completion_date": order.completion_date,
-                    "completion_time": order.completion_time,
+                    "name": f"Service on {order.created_at.strftime('%d.%m.%Y')} at {order.created_at.strftime('%H:%M')}",
+                    "created_at": order.created_at.strftime('%d %h %Y'),
                     "selected_services": order.selected_service.name,
-                    "additional_services": [
-                        AdditionalServiceSchema(
-                            service=additional_service.name,
-                            price=additional_service.price,
-                            countable=additional_service.quantity is not None,
-                            quantity=additional_service.quantity if additional_service.quantity is not None else 0
-                        )
-                        for additional_service in await session.scalars(
+                    "additional_services": [],
+                }
+                for additional_service in await session.scalars(
                             select(AdditionalService)
                             .where(AdditionalService.order_id == order.id)
-                        )
-                    ],
-                    "documents": [
-                        DocumentSchema(
-                            file_name=document.file_name,
-                            mime_type=document.mime_type
-                        )
-                        for document in await session.scalars(
-                            select(Document)
-                            .where(Document.order_id == order.id)
-                        )
-                    ],
-                    "notes": order.notes
-                }
+                    ):
+                    service_name = await session.scalar(select(AdditionalServiceList).where
+                                                        (AdditionalServiceList.id == additional_service.id))
+                    additional_service_data = {
+                        "name": service_name.name,
+                        "quantity": additional_service.quantity if additional_service.quantity else 0,
+
+                    }
+                    order_data["additional_services"].append(additional_service_data)
                 orders.append(order_data)
+
 
         return {"orders": orders}
     except Exception as e:

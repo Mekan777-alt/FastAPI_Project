@@ -8,15 +8,11 @@ from starlette import status
 
 async def get_user_id(session, user_uuid):
 
-    query = select(TenantProfile).where(TenantProfile.uuid == user_uuid)
-
-    result = await session.execute(query)
-
-    models = result.scalars()
+    query = await session.scalars(select(TenantProfile).where(TenantProfile.uuid == user_uuid))
 
     orders_data = []
 
-    for i in models:
+    for i in query:
         query = await session.execute(
                 select(Order, Service)
                 .where(Order.tenant_id == i.id)
