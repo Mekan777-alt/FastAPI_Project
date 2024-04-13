@@ -249,7 +249,6 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
 
 async def get_new_order(session, apartment_id: int):
     try:
-
         query = (
             select(Order, AdditionalServiceList, AdditionalService)
             .join(AdditionalService, Order.id == AdditionalService.order_id)
@@ -263,6 +262,11 @@ async def get_new_order(session, apartment_id: int):
 
         data_list = []
         for order, additional_service_list, additional_service in orders:
+
+            if data_list and order.id in [service['order_id'] for service in data_list[-1]['services']]:
+                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+                continue
+
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
 
             created_at = order.created_at.date()
