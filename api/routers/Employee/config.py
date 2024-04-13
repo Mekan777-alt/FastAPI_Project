@@ -277,9 +277,11 @@ async def get_new_order(session, apartment_id: int):
                 name = 'Yesterday'
             else:
                 name = created_at.strftime('%d %h')
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
             data = {
                 "order_id": order.id,
                 "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "service_name": service.name,
                 "apartment_name": order.apartments.apartment_name,
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
                 "status": order.status,
@@ -320,11 +322,13 @@ async def get_new_order_id(session, apartment_id, order_id):
         order_dict = {}
         for order, additional_service_list, additional_service in orders:
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
             if order.id not in order_dict:
                 order_dict[order.id] = {
                     "order_id": order.id,
                     "icon_path": icon_path.big_icons_path if icon_path else None,
                     "apartment_name": order.apartments.apartment_name,
+                    "service_name": service.name,
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
                     "completion_date": order.completion_date,
                     "completed_at": order.completion_time,
