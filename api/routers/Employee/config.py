@@ -391,22 +391,45 @@ async def get_in_progress_order(session, apartment_id):
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
-        order_dict = {}
+        data_list = []
         for order, additional_service_list, additional_service in orders:
-            if order.id not in order_dict:
-                order_dict[order.id] = {
-                    "order_id": order.id,
-                    "apartment_name": order.apartments.apartment_name,
-                    "created_at": f"{order.created_at.strftime('%H:%M')}",
-                    "status": order.status,
-                    "additional_info": {
-                        "additional_service_list": []
-                    }
-                }
-            if additional_service_list:
-                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
 
-        return order_dict
+            if data_list and order.id in [service['order_id'] for service in data_list[-1]['services']]:
+                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+                continue
+
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+
+            created_at = order.created_at.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            data = {
+                "order_id": order.id,
+                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "service_name": service.name,
+                "apartment_name": order.apartments.apartment_name,
+                "created_at": f"{order.created_at.strftime('%H:%M')}",
+                "status": order.status,
+                "additional_info": {
+                    "additional_service_list": []
+                }
+            }
+
+            if additional_service_list:
+                data["additional_info"]["additional_service_list"].append(additional_service_list.name)
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
+
+        return data_list
     except Exception as e:
 
         return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
