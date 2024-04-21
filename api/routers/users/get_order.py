@@ -41,12 +41,13 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
                     ):
                     service_name = await session.scalar(select(AdditionalServiceList).where
                                                         (AdditionalServiceList.id == additional_service.id))
-                    additional_service_data = {
-                        "name": service_name.name if service_name.name else None,
-                        "quantity": additional_service.quantity if additional_service.quantity else 0,
+                    if service_name:
+                        additional_service_data = {
+                            "name": service_name.name if service_name.name else None,
+                            "quantity": additional_service.quantity if additional_service.quantity else 0,
 
-                    }
-                    order_data["additional_services"].append(additional_service_data)
+                        }
+                        order_data["additional_services"].append(additional_service_data)
                 orders.append(order_data)
 
 
