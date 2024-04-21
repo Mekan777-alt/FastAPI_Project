@@ -5,7 +5,8 @@ from firebase.config import get_firebase_user_from_token
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from api.routers.users.config import get_guest_pass
+from api.routers.users.config import get_guest_pass, post_guest_pass
+from schemas.user.guest_pass import GuestPassModel
 
 
 router = APIRouter(
@@ -26,3 +27,18 @@ async def guest_pass(user: Annotated[dict, Depends(get_firebase_user_from_token)
     except Exception as e:
 
         raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post("/guest_pass")
+async def gust_pass_post(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                         request: GuestPassModel, session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        data = await post_guest_pass(session, user['uid'], request)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(content=e, status_code=status.HTTP_400_BAD_REQUEST)

@@ -177,3 +177,13 @@ async def get_guest_pass(session, user_id):
     except Exception as e:
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+async def post_guest_pass(session, user_id, request_form):
+    try:
+
+        pass
+
+    except Exception as e:
+
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

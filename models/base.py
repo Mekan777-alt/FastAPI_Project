@@ -1,7 +1,7 @@
 from datetime import datetime
-from datetime import date
+from datetime import date, time
 from enum import Enum
-from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, VARCHAR, DATE
+from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, VARCHAR, DATE, TIME
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 
@@ -90,6 +90,7 @@ class ApartmentProfile(Base):
     bathroom_apartments = relationship('BathroomApartment', back_populates='apartments')
     meters = relationship("Meters", back_populates="apartment")
     invoice_history = relationship("InvoiceHistory", back_populates="apartment")
+    guest_pass = relationship("GuestPass", back_populates="apartment")
 
     def to_dict(self):
         return {
@@ -359,3 +360,30 @@ class Meters(Base):
             "bill_number": self.bill_number,
             "status": self.status
         }
+
+
+class GuestPass(Base):
+    __tablename__ = 'guest_pass'
+
+    id = Column(Integer, primary_key=True)
+    visit_date = Column(DATE)
+    visit_time = Column(TIME)
+    full_name = Column(String)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    note = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    apartment = relationship("ApartmentProfile", back_populates="guest_pass")
+    guest_pass = relationship("GuestPassDocuments", back_populates="guest_pass_doc")
+
+
+class GuestPassDocuments(Base):
+    __tablename__ = 'guest_pass_documents'
+
+    id = Column(Integer, primary_key=True)
+    file_name = Column(String)
+    mime_type = Column(String)
+    file_path = Column(String)
+    guest_pass_id = Column(Integer, ForeignKey(GuestPass.id))
+
+    guest_pass_doc = relationship("GuestPass", back_populates="guest_pass")
