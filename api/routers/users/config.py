@@ -1,6 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from models.base import TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts
+from models.base import (TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts, Meters,
+                         MeterService)
 from firebase.config import get_staff_firebase
 from fastapi import HTTPException
 from starlette import status
@@ -103,3 +104,52 @@ async def get_profile_tenant(user, session):
 
     except HTTPException as e:
         raise e
+
+
+async def get_user_meters(session, user_id):
+    try:
+
+        user_info = await session.scalar(select(TenantApartments).where(TenantProfile.uuid == user_id))
+
+        if not user_info:
+            raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        apartment = await session.scalar(select(TenantApartments).where(TenantApartments.tenant_id == user_info.id))
+
+        if not apartment:
+
+            raise HTTPException(detail="Apartment not found", status_code=status.HTTP_404_NOT_FOUND)
+
+
+        meters = await session.scalars(select(Meters).where(Meters.apartment_id == apartment.apartment_id))
+
+        if not meters:
+
+            return "No Meters"
+
+        data = []
+        for meter in meters:
+            meter_service_info = await session.scalar(select(MeterService).where(
+                MeterService.id == meter.meter_service_id))
+
+            service_info = {
+                "id": meter.id,
+                "icon_path": meter_service_info.big_icons_path,
+                "name": meter_service_info.name,
+            }
+            data.append(service_info)
+        return data
+
+    except Exception as e:
+
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+async def get_guest_pass(session, user_id):
+    try:
+
+        pass
+
+    except Exception as e:
+
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

@@ -9,7 +9,6 @@ from api.routers.UK.config import (get_objects_from_uk, create_object_to_db, get
                                    create_apartment_for_object, get_staff_object, get_staff_id_object)
 from schemas.uk.object import ObjectSchemas, ObjectCreateSchema, Object
 from schemas.uk.apartments import ApartmentsList, ApartmentSchemasCreate
-from schemas.user.users import User
 
 router = APIRouter(
     prefix="/api/v1"
@@ -43,7 +42,7 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
     except Exception as e:
 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=e)
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/get_objects_uk/{object_id}", response_model=Object)
