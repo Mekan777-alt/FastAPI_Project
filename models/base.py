@@ -376,6 +376,16 @@ class GuestPass(Base):
     apartment = relationship("ApartmentProfile", back_populates="guest_pass")
     guest_pass = relationship("GuestPassDocuments", back_populates="guest_pass_doc")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "visit_date": self.visit_date,
+            "visit_time": self.visit_time,
+            "full_name": self.full_name,
+            "apartment_id": self.apartment_id,
+            "note": self.note
+        }
+
 
 class GuestPassDocuments(Base):
     __tablename__ = 'guest_pass_documents'
@@ -387,3 +397,13 @@ class GuestPassDocuments(Base):
     guest_pass_id = Column(Integer, ForeignKey(GuestPass.id))
 
     guest_pass_doc = relationship("GuestPass", back_populates="guest_pass")
+
+    def to_dict(self):
+
+        return {
+            "id": self.id,
+            "file_name": self.file_name,
+            "mime_type": self.mime_type,
+            "file_path": self.file_path,
+            "guest_pass_id": self.guest_pass_id
+        }

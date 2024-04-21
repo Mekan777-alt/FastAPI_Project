@@ -29,7 +29,7 @@ async def guest_pass(user: Annotated[dict, Depends(get_firebase_user_from_token)
         raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-@router.post("/guest_pass")
+@router.post("/guest_pass", status_code=status.HTTP_201_CREATED)
 async def gust_pass_post(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                          request: GuestPassModel, session: AsyncSession = Depends(get_session)):
 
@@ -37,8 +37,8 @@ async def gust_pass_post(user: Annotated[dict, Depends(get_firebase_user_from_to
 
         data = await post_guest_pass(session, user['uid'], request)
 
-        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+        return data
 
     except Exception as e:
 
-        return JSONResponse(content=e, status_code=status.HTTP_400_BAD_REQUEST)
+        return HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)

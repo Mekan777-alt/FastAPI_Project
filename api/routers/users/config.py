@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from models.base import (TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts, Meters,
-                         MeterService)
+                         MeterService, GuestPass, GuestPassDocuments)
 from firebase.config import get_staff_firebase
 from fastapi import HTTPException
 from starlette import status
@@ -182,7 +182,31 @@ async def get_guest_pass(session, user_id):
 async def post_guest_pass(session, user_id, request_form):
     try:
 
-        pass
+        data = []
+        guest_pass = GuestPass(
+            visit_date=request_form.visit_date,
+            visit_time=request_form.visit_time,
+            full_name=request_form.full_name,
+            note=request_form.note if request_form.note else None,
+            apartment_id=request_form.apartment_id
+        )
+        session.add(guest_pass)
+        await session.commit()
+        data.append(guest_pass.to_dict())
+
+        if request_form.documents:
+            for doc in request_form.documents:
+                document = GuestPassDocuments(
+                    file_name=doc.file_name,
+                    mime_type=doc.mime_type,
+                    file_path='yes',
+                    guest_pass_id=guest_pass.id
+                )
+                session.add(document)
+                await session.commit()
+                data.append(document.to_dict())
+
+        return data
 
     except Exception as e:
 
