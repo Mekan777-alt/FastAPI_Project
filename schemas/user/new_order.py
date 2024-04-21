@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class AdditionalServiceSchema(BaseModel):
@@ -17,7 +17,7 @@ class OrderCreateSchema(BaseModel):
     completion_date: str = Field(..., example="2023-07-25")
     completion_time: str = Field(..., example="12:05")
     selected_services: str = Field(..., example="Cleaning")
-    notes: str = None
-    additional_services: List[AdditionalServiceSchema] = Field(..., example=[
+    notes: Optional[str] = None
+    additional_services: Optional[List[AdditionalServiceSchema]] = Field(None, example=[
         {"additional_service_id": 1, "quantity": 2}])
-    documents: List[DocumentSchema] = Field(..., example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])
+    documents: Optional[List[DocumentSchema]] = Field(None, example=[{"file_name": "invoice.pdf", "mime_type": "application/pdf"}])

@@ -60,31 +60,32 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         session.add(order)
         await session.commit()
 
-        for additional_service_data in order_data.additional_services:
-            if additional_service_data.additional_service_id != 2:
-                additional_service_data.quantity = 0
-            additional_service = AdditionalService(
-                order_id=order.id,
-                service_id=await get_model_id(session, "Service", order_data.selected_services),
-                quantity=additional_service_data.quantity,
-                additional_service_id=additional_service_data.additional_service_id,
-            )
-            session.add(additional_service)
+        if order_data.additional_services:
+            for additional_service_data in order_data.additional_services:
+                if additional_service_data.additional_service_id != 2:
+                    additional_service_data.quantity = 0
+                additional_service = AdditionalService(
+                    order_id=order.id,
+                    service_id=await get_model_id(session, "Service", order_data.selected_services),
+                    quantity=additional_service_data.quantity,
+                    additional_service_id=additional_service_data.additional_service_id,
+                )
+                session.add(additional_service)
 
-        await session.commit()
+            await session.commit()
 
         # file_path = "uploads/document/" + file.filename
+        if order_data.documents:
+            for document_data in order_data.documents:
+                document = Document(
+                    order_id=order.id,
+                    file_name=document_data.file_name,
+                    mime_type=document_data.mime_type,
+                    file_path='yes'
+                )
+                session.add(document)
 
-        for document_data in order_data.documents:
-            document = Document(
-                order_id=order.id,
-                file_name=document_data.file_name,
-                mime_type=document_data.mime_type,
-                file_path='yes'
-            )
-            session.add(document)
-
-        await session.commit()
+            await session.commit()
 
         query = (
             update(TenantProfile)
