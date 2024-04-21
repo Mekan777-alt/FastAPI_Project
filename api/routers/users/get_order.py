@@ -32,7 +32,7 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
                     "status": order.status,
                     "name": f"Service on {order.created_at.strftime('%d.%m.%Y')} at {order.created_at.strftime('%H:%M')}",
                     "created_at": order.created_at.strftime('%d %h %Y'),
-                    "selected_services": order.selected_service.name,
+                    "selected_services": order.selected_service.name if order.selected_service.name else None,
                     "additional_services": [],
                 }
                 for additional_service in await session.scalars(
@@ -42,7 +42,7 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
                     service_name = await session.scalar(select(AdditionalServiceList).where
                                                         (AdditionalServiceList.id == additional_service.id))
                     additional_service_data = {
-                        "name": service_name.name,
+                        "name": service_name.name if service_name.name else None,
                         "quantity": additional_service.quantity if additional_service.quantity else 0,
 
                     }
