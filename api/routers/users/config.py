@@ -148,7 +148,31 @@ async def get_user_meters(session, user_id):
 async def get_guest_pass(session, user_id):
     try:
 
-        pass
+        tenant = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_id))
+
+        if not tenant:
+
+            raise HTTPException(detail="Tenant not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        apartment_id = await session.scalars(select(TenantApartments).where(TenantApartments.tenant_id == tenant.id))
+
+        if not apartment_id:
+
+            raise HTTPException(detail="Apartment not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        data = []
+
+        for apartment in apartment_id:
+
+            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.id))
+
+            apartment_data = {
+                "id": apartment_info.id,
+                "name": apartment_info.apartment_name,
+            }
+            data.append(apartment_data)
+
+        return data
 
     except Exception as e:
 
