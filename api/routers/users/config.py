@@ -99,7 +99,7 @@ async def get_profile_tenant(user, session):
 
         client['photo_path'] = tenant_profile.photo_path
         client['apartment_id'] = apartment.apartment_id
-
+        client['balance'] = tenant_profile.balance
         return client
 
     except HTTPException as e:
