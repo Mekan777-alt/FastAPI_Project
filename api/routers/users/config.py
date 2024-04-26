@@ -211,3 +211,24 @@ async def post_guest_pass(session, user_id, request_form):
     except Exception as e:
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+async def get_finance_from_user(session, user):
+    try:
+
+        user_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
+        from_firebase = await get_staff_firebase(user['uid'])
+
+        if not user:
+
+            raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        del from_firebase['phone_number']
+        del from_firebase['email']
+        del from_firebase['role']
+
+        from_firebase['balance'] = user_profile.balance
+        return from_firebase
+    except Exception as e:
+
+        return e
