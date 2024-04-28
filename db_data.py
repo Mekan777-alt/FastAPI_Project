@@ -61,7 +61,7 @@ try:
         conn.commit()
 
         cursor.execute("""INSERT INTO tenant_apartments (tenant_id, apartment_id) VALUES (%s, %s)""", (1, 1))
-
+        cursor.execute("""INSERT INTO tenant_apartments (tenant_id, apartment_id) VALUES (%s, %s)""", (1, 2))
         conn.commit()
 
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
