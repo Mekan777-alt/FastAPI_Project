@@ -99,9 +99,10 @@ async def get_profile_tenant(user, session):
 
         client['apartment_info'] = []
         for apartment in apartments:
+            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
             data = {
-                'id': apartment.id,
-                'name': apartment.apartment_name,
+                'id': apartment_info.id,
+                'name': apartment_info.apartment_name,
             }
             client['apartment_info'].append(data)
         client['photo_path'] = tenant_profile.photo_path
