@@ -146,7 +146,6 @@ async def get_employee_info(session, user):
             return "Employee not found from firestore"
 
         del firestore['role']
-        del firestore['is_admin']
         firestore['photo_path'] = check_employee.photo_path
 
         return firestore
