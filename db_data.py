@@ -65,15 +65,15 @@ try:
         conn.commit()
 
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                           ("Cleaning", "http://93.183.94.12:8000/static/icons/big/cleaning.jpg", "http://93.183.94.12:8000/static/icons/mini/cleaning.jpg"))
+                           ("Cleaning", "http://217.25.95.113:8000/static/icons/big/cleaning.jpg", "http://217.25.95.113:8000/static/icons/mini/cleaning.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Gardener", None, "http://93.183.94.12:8000/static/icons/mini/garden.jpg"))
+                       ("Gardener", None, "http://217.25.95.113:8000/static/icons/mini/garden.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Pool", None, "http://93.183.94.12:8000/static/icons/mini/pool.jpg"))
+                       ("Pool", None, "http://217.25.95.113:8000/static/icons/mini/pool.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Trash removal", None, "http://93.183.94.12:8000/static/icons/mini/trash_removal.jpg"))
+                       ("Trash removal", None, "http://217.25.95.113:8000/static/icons/mini/trash_removal.jpg"))
         cursor.execute("""INSERT INTO services (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Other", "http://93.183.94.12:8000/static/icons/big/other.jpg", "http://93.183.94.12:8000/static/icons/mini/other.jpg"))
+                       ("Other", "http://217.25.95.113:8000/static/icons/big/other.jpg", "http://217.25.95.113:8000/static/icons/mini/other.jpg"))
 
         conn.commit()
 
@@ -118,11 +118,11 @@ try:
         conn.commit()
 
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Water", None, "http://93.183.94.12:8000/static/icons/mini/water.jpg"))
+                       ("Water", None, "http://217.25.95.113:8000/static/icons/mini/water.jpg"))
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Internet", None, "http://93.183.94.12:8000/static/icons/mini/wifi.jpg"))
+                       ("Internet", None, "http://217.25.95.113:8000/static/icons/mini/wifi.jpg"))
         cursor.execute("""INSERT INTO meter_service (name, big_icons_path, mini_icons_path) VALUES (%s, %s, %s)""",
-                       ("Electricity", "http://93.183.94.12:8000/static/icons/big/electric.jpg", "http://93.183.94.12:8000/static/icons/mini/electric.jpg"))
+                       ("Electricity", "http://217.25.95.113:8000/static/icons/big/electric.jpg", "http://217.25.95.113:8000/static/icons/mini/electric.jpg"))
         conn.commit()
 
         cursor.close()
