@@ -307,23 +307,29 @@ async def get_new_order(session, apartment_id: int):
 async def get_new_order_id(session, apartment_id, order_id):
     try:
 
-        query = (
-            select(Order, AdditionalServiceList, AdditionalService)
-            .join(AdditionalService, Order.id == AdditionalService.order_id)
-            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
-            .where(Order.id == order_id)
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.id == order_id))
         )
-
-        orders = await session.execute(query)
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         executors = await session.scalars(select(ExecutorsProfile))
 
         order_dict = {}
-        for order, additional_service_list, additional_service in orders:
+        for order in orders:
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
             service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
             if order.id not in order_dict:
                 order_dict[order.id] = {
                     "order_id": order.id,
@@ -335,12 +341,10 @@ async def get_new_order_id(session, apartment_id, order_id):
                     "completed_at": order.completion_time,
                     "status": order.status,
                     "additional_info": {
-                        "additional_service_list": []
+                        "additional_service_list": service_data
                     },
                     "executors": []
                 }
-            if additional_service_list:
-                order_dict[order.id]["additional_info"]["additional_service_list"].append(additional_service_list.name)
 
             for executor in executors:
                 check_executor = await session.scalar(
