@@ -385,24 +385,15 @@ async def select_executor(session, order_id, executor_id):
 async def get_in_progress_order(session, apartment_id):
     try:
 
-        query = (
-            select(Order, AdditionalServiceList, AdditionalService)
-            .join(AdditionalService, Order.id == AdditionalService.order_id)
-            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
-            .where(Order.apartment_id == apartment_id, Order.status == 'in progress')
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.status == 'in progress'))
         )
-
-        orders = await session.execute(query)
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         data_list = []
-        for order, additional_service_list, additional_service in orders:
-
-            if data_list and order.id in [service['order_id'] for service in data_list[-1]['services']]:
-                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(
-                    additional_service_list.name)
-                continue
+        for order in orders:
 
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
 
@@ -415,6 +406,16 @@ async def get_in_progress_order(session, apartment_id):
             else:
                 name = created_at.strftime('%d %h')
             service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
+
             data = {
                 "order_id": order.id,
                 "icon_path": icon_path.mini_icons_path if icon_path else None,
@@ -423,12 +424,9 @@ async def get_in_progress_order(session, apartment_id):
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
                 "status": order.status,
                 "additional_info": {
-                    "additional_service_list": []
+                    "additional_service_list": service_data
                 }
             }
-
-            if additional_service_list:
-                data["additional_info"]["additional_service_list"].append(additional_service_list.name)
 
             if not data_list or data_list[-1]['name'] != name:
                 data_list.append({'name': name, 'services': []})
