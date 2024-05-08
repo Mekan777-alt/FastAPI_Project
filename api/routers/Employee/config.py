@@ -311,7 +311,7 @@ async def get_new_order_id(session, apartment_id, order_id):
             select(Order, AdditionalServiceList, AdditionalService)
             .join(AdditionalService, Order.id == AdditionalService.order_id)
             .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
-            .where(Order.apartment_id == apartment_id, Order.id == order_id)
+            .where(Order.id == order_id)
         )
 
         orders = await session.execute(query)
