@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
 from fastapi import HTTPException, Depends
@@ -7,7 +9,7 @@ from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
 from datetime import date, timedelta
-from sqlalchemy import delete
+from sqlalchemy import delete, and_
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -248,23 +250,16 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
 
 async def get_new_order(session, apartment_id: int):
     try:
-        query = (
-            select(Order, AdditionalServiceList, AdditionalService)
-            .join(AdditionalService, Order.id == AdditionalService.order_id)
-            .join(AdditionalServiceList, AdditionalService.additional_service_id == AdditionalServiceList.id)
-            .where(Order.apartment_id == apartment_id, Order.status == 'new')
-        )
 
-        orders = await session.execute(query)
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.status == 'new'))
+        )
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         data_list = []
-        for order, additional_service_list, additional_service in orders:
-
-            if data_list and order.id in [service['order_id'] for service in data_list[-1]['services']]:
-                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(additional_service_list.name)
-                continue
+        for order in orders:
 
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
 
@@ -277,6 +272,16 @@ async def get_new_order(session, apartment_id: int):
             else:
                 name = created_at.strftime('%d %h')
             service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
+
             data = {
                 "order_id": order.id,
                 "icon_path": icon_path.mini_icons_path if icon_path else None,
@@ -285,12 +290,9 @@ async def get_new_order(session, apartment_id: int):
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
                 "status": order.status,
                 "additional_info": {
-                    "additional_service_list": []
+                    "additional_service_list": service_data
                 }
             }
-
-            if additional_service_list:
-                data["additional_info"]["additional_service_list"].append(additional_service_list.name)
 
             if not data_list or data_list[-1]['name'] != name:
                 data_list.append({'name': name, 'services': []})
@@ -299,7 +301,7 @@ async def get_new_order(session, apartment_id: int):
 
         return data_list
     except Exception as e:
-        return str(e)
+        raise e
 
 
 async def get_new_order_id(session, apartment_id, order_id):
@@ -394,7 +396,8 @@ async def get_in_progress_order(session, apartment_id):
         for order, additional_service_list, additional_service in orders:
 
             if data_list and order.id in [service['order_id'] for service in data_list[-1]['services']]:
-                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(additional_service_list.name)
+                data_list[-1]['services'][-1]["additional_info"]["additional_service_list"].append(
+                    additional_service_list.name)
                 continue
 
             icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
@@ -577,7 +580,6 @@ async def create_invoice(session, apartment_id, invoice_data, user):
 
         meter_service = await session.scalar(select(MeterService).where(MeterService.id == service_id))
         if service.name == service_name:
-
             new_invoice = InvoiceHistory(
                 amount=invoice_data.amount,
                 apartment_id=invoice_data.apartment_id,
