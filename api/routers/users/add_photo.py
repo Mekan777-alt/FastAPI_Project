@@ -20,7 +20,7 @@ async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)]
 
     try:
         photo.filename = photo.filename.lower()
-        path = f'media/{photo.filename}'
+        path = f'static/photo/user/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -30,7 +30,7 @@ async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)]
         tenant = await session.execute(select(TenantProfile).where(TenantProfile.uuid == tenant_id))
         tenant_profile = tenant.scalar()
 
-        tenant_profile.photo_path = path
+        tenant_profile.photo_path = f"http://217.25.95.113:8000/{path}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
