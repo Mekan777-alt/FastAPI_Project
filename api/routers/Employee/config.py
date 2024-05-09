@@ -584,7 +584,7 @@ async def create_invoice(session, apartment_id, invoice_data, user):
         if service.name == service_name:
             new_invoice = InvoiceHistory(
                 amount=invoice_data.amount,
-                apartment_id=invoice_data.apartment_id,
+                apartment_id=apartment_id,
                 service_id=service.id,
                 bill_number=invoice_data.bill_number,
                 comment=invoice_data.comment
@@ -593,19 +593,37 @@ async def create_invoice(session, apartment_id, invoice_data, user):
             session.add(new_invoice)
             await session.commit()
 
+            tenant_info = await session.scalar(select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
+
+            if tenant_info:
+
+                tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_info.tenant_id))
+
+                tenant.balance += invoice_data.amount
+                await session.commit()
+
             return new_invoice
 
         if meter_service.name == service_name:
 
             new_invoice = InvoiceHistory(
                 amount=invoice_data.amount,
-                apartment_id=invoice_data.apartment_id,
+                apartment_id=apartment_id,
                 meter_service_id=meter_service.id,
                 bill_number=invoice_data.bill_number,
                 comment=invoice_data.comment
             )
             session.add(new_invoice)
             await session.commit()
+
+            tenant_info = await session.scalar(
+                select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
+
+            if tenant_info:
+                tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_info.tenant_id))
+
+                tenant.balance += invoice_data.amount
+                await session.commit()
 
             return new_invoice
 
