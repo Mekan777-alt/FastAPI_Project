@@ -8,7 +8,7 @@ from .config import get_finance_from_user
 from starlette.responses import JSONResponse
 
 router = APIRouter(
-    prefix="/api/v1"
+    prefix="/api/v1/client"
 )
 
 

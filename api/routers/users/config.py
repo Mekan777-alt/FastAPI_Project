@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from models.base import (TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts, Meters,
-                         MeterService, GuestPass, GuestPassDocuments)
+                         MeterService, GuestPass, GuestPassDocuments, InvoiceHistory)
 from firebase.config import get_staff_firebase
 from fastapi import HTTPException
 from starlette import status
@@ -224,6 +224,9 @@ async def get_finance_from_user(session, user):
     try:
 
         user_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
+        tenant_info = await session.scalar(select(TenantApartments).where(TenantApartments.tenant_id == user_profile.id))
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == tenant_info.apartment_id))
+        object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
         from_firebase = await get_staff_firebase(user['uid'])
 
         if not user:
@@ -235,6 +238,20 @@ async def get_finance_from_user(session, user):
         del from_firebase['role']
 
         from_firebase['balance'] = user_profile.balance
+        from_firebase['object_name'] = object_info.object_name
+        from_firebase['invoice_history'] = []
+
+        invoice_info = await session.scalars(select(InvoiceHistory).where(InvoiceHistory.apartment_id == apartment_info.id))
+
+        for invoice in invoice_info:
+
+            invoice_history_data = {
+                "id": invoice.id,
+                "name": "Invoice",
+                "amount": invoice.amount,
+                "icon_path": invoice.photo_path,
+            }
+            from_firebase['invoice_history'].append(invoice_history_data)
         return from_firebase
     except Exception as e:
 

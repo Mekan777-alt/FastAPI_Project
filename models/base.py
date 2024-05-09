@@ -141,6 +141,7 @@ class InvoiceHistory(Base):
     status = Column(String, default='not paid')
     issue_date = Column(DateTime, default=datetime.utcnow)
     payment_date = Column(DateTime)
+    photo_path = Column(String)
     notification_sent = Column(Boolean, default=False)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
     apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))

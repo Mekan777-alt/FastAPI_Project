@@ -586,6 +586,7 @@ async def create_invoice(session, apartment_id, invoice_data, user):
                 amount=invoice_data.amount,
                 apartment_id=apartment_id,
                 service_id=service.id,
+                photo_path="http://217.25.95.113:8000/static/icons/mini/invoice.jpg",
                 bill_number=invoice_data.bill_number,
                 comment=invoice_data.comment
             )
