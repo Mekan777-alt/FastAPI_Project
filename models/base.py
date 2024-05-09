@@ -64,6 +64,7 @@ class Object(Base):
     address = Column(String, nullable=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='objects')
+    photo_path = Column(String)
 
     apartments = relationship('ApartmentProfile', back_populates='object')
     news = relationship('News', back_populates='object')

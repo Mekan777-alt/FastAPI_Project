@@ -1,7 +1,7 @@
 import firebase_admin.auth
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object, Contacts, ApartmentProfile, PaymentDetails
+from models.base import UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
 from firebase_admin import auth, firestore
@@ -222,8 +222,18 @@ async def get_object_id(session, object_id):
         data = {
             'id': object.id,
             'object_name': object.object_name,
-            'object_address': object.address
+            'object_address': object.address,
+            'main_photo_path': object.photo_path,
+            'list_services': []
         }
+
+        services = await session.scalars(select(ServiceObjectList).where(ServiceObjectList.object_id == object.id))
+
+        for service in services:
+
+            service_id = await session.scalar(select(Service).where(Service.id == service.service_id))
+
+            data['list_services'].append(service_id.name)
 
         return data
 

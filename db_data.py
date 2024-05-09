@@ -22,7 +22,7 @@ try:
         cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
                        ('Pyd59B6pARao3ewSFVf2Y1Ov1Co1', 'Plumber', 'null'))
         conn.commit()
-        cursor.execute("INSERT INTO object_profiles (address, uk_id, object_name) VALUES (%s, %s, %s)", ('Object address', 1, 'Object name'))
+        cursor.execute("INSERT INTO object_profiles (address, uk_id, object_name, photo_path) VALUES (%s, %s, %s, %s)", ('Object address', 1, 'Object name', 'http://217.25.95.113:8000/static/icons/big/object_main.jpg'))
         conn.commit()
         cursor.execute("INSERT INTO apartment_profiles (apartment_name, area, garden, "
                        "pool, internet_operator, internet_speed, internet_fee, key_holder, object_id) "
