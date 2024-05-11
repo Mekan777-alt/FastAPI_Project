@@ -13,7 +13,8 @@ from api.routers.Employee.config import (get_apartment_list, create_apartment, g
                                          create_bathroom, create_additionally, enter_meters, new_meters,
                                          get_apartment_invoice, create_invoice, meter_readings_get, delete_bathroom,
                                          get_in_progress_order_id, get_in_progress_order_id_completed,
-                                         get_completed_orders, get_payment_history_apartment, get_payment_history_to_paid)
+                                         get_completed_orders, get_payment_history_apartment,
+                                         get_payment_history_to_paid, get_invoice_id, paid_invoice_id, unpaid_invoice_id)
 from starlette.responses import JSONResponse
 
 from schemas.employee.bathroom import CreateBathroom
@@ -84,9 +85,48 @@ async def get_payment_history(user: Annotated[dict, Depends(get_firebase_user_fr
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
+@router.get("/apartments/apartment_info/{apartment_id}/payment-history/unpaid/{invoice_id}")
+async def get_invoice_id_from_history(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                      apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except HTTPException as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/payment-history/unpaid/{invoice_id}/paid")
+async def paid_invoice(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                       apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await paid_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/payment-history/unpaid/{invoice_id}/unpaid")
+async def unpaid_invoice(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                         apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await unpaid_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/paid")
 async def get_paid_history_payment(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
-                              session: AsyncSession = Depends(get_session)):
+                                   session: AsyncSession = Depends(get_session)):
     try:
 
         data = await get_payment_history_to_paid(session, apartment_id)
@@ -105,7 +145,6 @@ async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)
         data = await add_tenant_db(session, apartment_id, tenant_info, user)
 
         if data is None:
-
             return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"info": "Tenant already exists"})
 
         return JSONResponse(content=data, status_code=status.HTTP_200_OK)
@@ -117,7 +156,7 @@ async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/new")
 async def get_service_order_new(
-                                apartment_id: int, session: AsyncSession = Depends(get_session)):
+        apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
         data = await get_new_order(session, apartment_id)

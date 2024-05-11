@@ -896,13 +896,13 @@ async def get_payment_history_to_paid(session, apartment_id):
 
                 service_info = await session.scalar(select(Service).where(Service.id == history.service_id))
 
-                service_info.mini_icons_path += icon_path
+                icon_path += service_info.mini_icons_path
 
             elif history.meter_service_id:
 
                 service_info = await session.scalar(select(MeterService).where(MeterService.id == history.meter_service_id))
 
-                service_info.mini_icons_path += icon_path
+                icon_path += service_info.mini_icons_path
 
             created_at = history.issue_date.date()
 
@@ -930,4 +930,132 @@ async def get_payment_history_to_paid(session, apartment_id):
             data_list[-1]['services'].append(data)
         return data_list
     except Exception as e:
+        raise e
+
+
+async def get_invoice_id(session, apartment_id, invoice_id):
+    try:
+
+        payment_history = await session.scalar(
+            select(InvoiceHistory)
+            .where((InvoiceHistory.apartment_id == apartment_id) & (InvoiceHistory.id == invoice_id))
+        )
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        icon_path = ""
+        service_name = ""
+        if payment_history.service_id:
+
+            service_info = await session.scalar(select(Service).where(Service.id == payment_history.service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        elif payment_history.meter_service_id:
+
+            service_info = await session.scalar(select(MeterService).where(MeterService.id ==
+                                                                           payment_history.meter_service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        data = {
+            "id": payment_history.id,
+            "apartment_name": apartment_info.apartment_name,
+            "icon_path": icon_path,
+            "service_name": service_name,
+            "amount": payment_history.amount,
+        }
+
+        return data
+
+    except Exception as e:
+        raise e
+
+
+async def paid_invoice_id(session, apartment_id, invoice_id):
+    try:
+
+        invoice = await session.scalar(
+            select(InvoiceHistory)
+            .where((InvoiceHistory.apartment_id == apartment_id) & (InvoiceHistory.id == invoice_id))
+        )
+
+        invoice.status = 'paid'
+        await session.commit()
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        icon_path = ""
+        service_name = ""
+        if invoice.service_id:
+
+            service_info = await session.scalar(select(Service).where(Service.id == invoice.service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        elif invoice.meter_service_id:
+
+            service_info = await session.scalar(select(MeterService).where(MeterService.id ==
+                                                                           invoice.meter_service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        data = {
+            "id": invoice.id,
+            "apartment_name": apartment_info.apartment_name,
+            "icon_path": icon_path,
+            "service_name": service_name,
+            "amount": invoice.amount,
+        }
+
+        return data
+
+    except HTTPException as e:
+        raise e
+
+
+async def unpaid_invoice_id(session, apartment_id, invoice_id):
+    try:
+
+        invoice = await session.scalar(
+            select(InvoiceHistory)
+            .where((InvoiceHistory.apartment_id == apartment_id) & (InvoiceHistory.id == invoice_id))
+        )
+
+        invoice.status = 'unpaid'
+        await session.commit()
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        icon_path = ""
+        service_name = ""
+        if invoice.service_id:
+
+            service_info = await session.scalar(select(Service).where(Service.id == invoice.service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        elif invoice.meter_service_id:
+
+            service_info = await session.scalar(select(MeterService).where(MeterService.id ==
+                                                                           invoice.meter_service_id))
+
+            icon_path += service_info.mini_icons_path
+            service_name += service_info.name
+
+        data = {
+            "id": invoice.id,
+            "apartment_name": apartment_info.apartment_name,
+            "icon_path": icon_path,
+            "service_name": service_name,
+            "amount": invoice.amount,
+        }
+
+        return data
+    except HTTPException as e:
         raise e
