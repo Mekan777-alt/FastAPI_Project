@@ -49,7 +49,7 @@ async def added_photo_to_profile_uk(user: Annotated[dict, Depends(get_firebase_u
         uk.photo_path = f"http://217.25.95.113:8000/{path}"
         await session.commit()
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": uk.photo_path})
 
     except HTTPException as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
