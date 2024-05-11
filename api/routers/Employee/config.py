@@ -690,3 +690,137 @@ async def delete_bathroom(session, apartment_id, bathroom_id):
 
     except HTTPException as e:
         raise e
+
+
+async def get_in_progress_order_id(session, order_id, apartment_id):
+    try:
+
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.id == order_id))
+        )
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+
+        executor = await session.scalar(select(ExecutorsProfile)
+                                        .where(ExecutorsProfile.id == executor_info.executor_id))
+
+        executor_data = await get_staff_firebase(executor.uuid)
+        executor_data["id"] = executor.id
+
+        order_dict = {}
+        for order in orders:
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
+            if order.id not in order_dict:
+                order_dict[order.id] = {
+                    "order_id": order.id,
+                    "icon_path": icon_path.big_icons_path if icon_path else None,
+                    "apartment_name": order.apartments.apartment_name,
+                    "service_name": service.name,
+                    "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
+                    "completion_date": order.completion_date,
+                    "completed_at": order.completion_time,
+                    "status": order.status,
+                    "additional_info": {
+                        "additional_service_list": service_data
+                    },
+                    "executor": executor_data
+                }
+
+
+        return order_dict
+
+
+    except Exception as e:
+        raise e
+
+
+async def get_in_progress_order_id_completed(session, order_id, apartment_id):
+
+    try:
+
+        order = await session.scalar(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.id == order_id))
+        )
+
+        order.status = 'completed'
+        await session.execute(delete(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+        await session.commit()
+
+
+        return order.to_dict()
+
+    except Exception as e:
+        raise e
+
+
+async def get_completed_orders(session, apartment_id):
+    try:
+
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.status == 'completed'))
+        )
+
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        data_list = []
+        for order in orders:
+
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+
+            created_at = order.created_at.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
+
+            data = {
+                "order_id": order.id,
+                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "service_name": service.name,
+                "apartment_name": order.apartments.apartment_name,
+                "created_at": f"{order.created_at.strftime('%H:%M')}",
+                "status": order.status,
+                "additional_info": {
+                    "additional_service_list": service_data
+                }
+            }
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
+
+        return data_list
+
+
+    except Exception as e:
+        raise e

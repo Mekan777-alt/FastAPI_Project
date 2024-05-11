@@ -11,7 +11,9 @@ from firebase_admin import auth
 from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
-                                         get_apartment_invoice, create_invoice, meter_readings_get, delete_bathroom)
+                                         get_apartment_invoice, create_invoice, meter_readings_get, delete_bathroom,
+                                         get_in_progress_order_id, get_in_progress_order_id_completed,
+                                         get_completed_orders)
 from starlette.responses import JSONResponse
 
 from schemas.employee.bathroom import CreateBathroom
@@ -114,12 +116,42 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
+@router.get("/apartments/apartment_info/{apartment_id}/service_order/progress/{order_id}")
+async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                        apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_in_progress_order_id(session, order_id, apartment_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/service_order/progress/{order_id}/completed")
+async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                        apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_in_progress_order_id_completed(session, order_id, apartment_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/completed")
 async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                       apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
-        pass
+        data = await get_completed_orders(session, apartment_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 

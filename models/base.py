@@ -259,6 +259,18 @@ class Order(Base):
     documents = relationship("Document", back_populates="order")
     executor_order = relationship("ExecutorOrders", back_populates="order")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "apartment_id": self.apartment_id,
+            "completed_date": self.completion_date,
+            "completed_time": self.completion_time,
+            "notes": self.notes,
+            "status": self.status,
+            "selected_service_id": self.selected_service_id
+        }
+
 
 AdditionalService.order = relationship("Order", back_populates="additional_services")
 Document.order = relationship("Order", back_populates="documents")
