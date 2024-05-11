@@ -8,7 +8,7 @@ from .guest_pass import router as guest_pass_router
 from .pay import router as pay_router
 
 user_router = APIRouter(
-    prefix="/client",
+    prefix="/api/v1/client",
     tags=['Client']
 )
 

@@ -6,6 +6,7 @@ from .get_profile_uk import router as get_profile_uk_router
 from .create_staff import router as create_staff_router
 
 admin_router = APIRouter(
+    prefix='/api/v1',
     tags=['Company']
 )
 
