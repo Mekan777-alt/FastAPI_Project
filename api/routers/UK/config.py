@@ -24,8 +24,9 @@ async def get_uk_profile(session, uk_id):
             "bank_name": payment_details.bank_name
         }
     data = {
-        "UK name": uk.name,
-        "Requisites": requisites
+        "uk_name": uk.name,
+        "photo_path": uk.photo_path,
+        "requisites": requisites
     }
     return data
 
