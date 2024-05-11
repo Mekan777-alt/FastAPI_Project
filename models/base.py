@@ -139,7 +139,7 @@ class InvoiceHistory(Base):
     __tablename__ = 'invoice_history'
     id = Column(Integer, primary_key=True, autoincrement=True)
     amount = Column(Float, nullable=False)
-    status = Column(String, default='not paid')
+    status = Column(String, default='unpaid')
     issue_date = Column(DateTime, default=datetime.utcnow)
     payment_date = Column(DateTime)
     photo_path = Column(String)

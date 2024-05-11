@@ -824,3 +824,110 @@ async def get_completed_orders(session, apartment_id):
 
     except Exception as e:
         raise e
+
+
+async def get_payment_history_apartment(session, apartment_id):
+    try:
+
+        payment_history = await session.scalars(
+            select(InvoiceHistory)
+            .where((InvoiceHistory.apartment_id == apartment_id) & (InvoiceHistory.status == 'unpaid'))
+        )
+
+        data_list = []
+        for history in payment_history:
+
+            icon_path = ""
+            if history.service_id:
+
+                service_info = await session.scalar(select(Service).where(Service.id == history.service_id))
+
+                icon_path += service_info.mini_icons_path
+
+            elif history.meter_service_id:
+
+                service_info = await session.scalar(select(MeterService).where(MeterService.id ==
+                                                                               history.meter_service_id))
+
+                icon_path += service_info.mini_icons_path
+
+            created_at = history.issue_date.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+
+            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+            data = {
+                "id": history.id,
+                "apartment_name": apartment_info.apartment_name,
+                "created_at": f"{history.issue_date.strftime('%H:%M')}",
+                "icon_path": icon_path,
+                "status": history.status,
+            }
+
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
+        return data_list
+    except Exception as e:
+        raise e
+
+
+async def get_payment_history_to_paid(session, apartment_id):
+    try:
+
+        payment_history = await session.scalars(
+            select(InvoiceHistory)
+            .where((InvoiceHistory.apartment_id == apartment_id) & (InvoiceHistory.status == 'paid'))
+        )
+
+        data_list = []
+        for history in payment_history:
+
+            icon_path = ""
+            if history.service_id:
+
+                service_info = await session.scalar(select(Service).where(Service.id == history.service_id))
+
+                service_info.mini_icons_path += icon_path
+
+            elif history.meter_service_id:
+
+                service_info = await session.scalar(select(MeterService).where(MeterService.id == history.meter_service_id))
+
+                service_info.mini_icons_path += icon_path
+
+            created_at = history.issue_date.date()
+
+            if created_at == date.today():
+                name = 'Today'
+            elif created_at == date.today() - timedelta(days=1):
+                name = 'Yesterday'
+            else:
+                name = created_at.strftime('%d %h')
+
+            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+            data = {
+                "id": history.id,
+                "apartment_name": apartment_info.apartment_name,
+                "created_at": f"{history.issue_date.strftime('%H:%M')}",
+                "icon_path": icon_path,
+                "status": history.status,
+            }
+
+
+            if not data_list or data_list[-1]['name'] != name:
+                data_list.append({'name': name, 'services': []})
+
+            data_list[-1]['services'].append(data)
+        return data_list
+    except Exception as e:
+        raise e
