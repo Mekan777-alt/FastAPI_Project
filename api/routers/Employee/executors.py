@@ -8,9 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.Employee.config import get_executors_list, get_executors_detail
 
 
-router = APIRouter(
-    prefix="/api/v1"
-)
+router = APIRouter()
 
 
 @router.get("/employee/executors")

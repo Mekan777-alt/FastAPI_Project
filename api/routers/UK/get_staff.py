@@ -8,9 +8,7 @@ from firebase.config import get_firebase_user_from_token
 from config import get_session
 from schemas.uk.get_staff import StaffList, StaffInfo, StaffDeleteList
 
-router = APIRouter(
-    prefix="/api/v1"
-)
+router = APIRouter()
 
 
 @router.get("/get_staff_uk", response_model=StaffList)

@@ -8,9 +8,7 @@ from firebase.config import get_firebase_user_from_token
 from starlette.responses import JSONResponse
 from starlette import status
 
-router = APIRouter(
-    prefix='/api/v1'
-)
+router = APIRouter()
 
 
 @router.post('/add_employee_uk/{obj_id}', response_model=CreateEmployee)

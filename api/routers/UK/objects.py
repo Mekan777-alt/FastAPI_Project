@@ -10,9 +10,7 @@ from api.routers.UK.config import (get_objects_from_uk, create_object_to_db, get
 from schemas.uk.object import ObjectSchemas, ObjectCreateSchema, Object
 from schemas.uk.apartments import ApartmentsList, ApartmentSchemasCreate
 
-router = APIRouter(
-    prefix="/api/v1"
-)
+router = APIRouter()
 
 
 @router.get("/get_objects_uk", response_model=ObjectSchemas)

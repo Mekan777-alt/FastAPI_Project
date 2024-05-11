@@ -6,9 +6,7 @@ from config import get_session
 from schemas.user.news import News as NewsSchemas
 from models.base import News
 
-router = APIRouter(
-    prefix='/api/v1/client',
-)
+router = APIRouter()
 
 
 @router.get('/news', response_model=NewsSchemas)

@@ -10,9 +10,7 @@ import shutil
 from sqlalchemy.future import select
 from models.base import EmployeeUK
 
-router = APIRouter(
-    prefix="/api/v1"
-)
+router = APIRouter()
 
 
 @router.get("/employee_info")

@@ -9,9 +9,7 @@ from sqlalchemy.future import select
 from models.base import TenantProfile
 from config import get_session
 
-router = APIRouter(
-    prefix="/api/v1/client",
-)
+router = APIRouter()
 
 
 @router.post("/add_photo")

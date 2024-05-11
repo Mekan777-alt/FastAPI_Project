@@ -7,9 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import get_session
 from api.routers.users.config import get_user_meters
 
-router = APIRouter(
-    prefix="/api/v1/client",
-)
+router = APIRouter()
 
 
 @router.get("/meters")

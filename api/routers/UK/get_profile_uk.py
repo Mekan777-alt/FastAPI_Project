@@ -11,9 +11,7 @@ from models.base import UK
 from schemas.uk.get_profile_uk import UKProfile
 import shutil
 
-router = APIRouter(
-    prefix="/api/v1"
-)
+router = APIRouter()
 
 
 @router.get('/get_profile_uk', response_model=UKProfile)

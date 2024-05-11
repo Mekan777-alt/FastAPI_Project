@@ -7,9 +7,7 @@ from starlette import status
 from .config import get_finance_from_user
 from starlette.responses import JSONResponse
 
-router = APIRouter(
-    prefix="/api/v1/client"
-)
+router = APIRouter()
 
 
 @router.get('/pay')

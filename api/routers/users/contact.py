@@ -5,9 +5,7 @@ from config import get_session
 from starlette.responses import JSONResponse
 from api.routers.users.config import get_contacts_from_db
 
-router = APIRouter(
-    prefix="/api/v1/client",
-)
+router = APIRouter()
 
 
 @router.get('/contacts')

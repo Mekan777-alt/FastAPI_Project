@@ -9,9 +9,7 @@ from api.routers.users.config import get_guest_pass, post_guest_pass
 from schemas.user.guest_pass import GuestPassModel
 
 
-router = APIRouter(
-    prefix="/api/v1/client",
-)
+router = APIRouter()
 
 
 @router.get("/guest_pass")

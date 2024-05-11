@@ -11,9 +11,7 @@ from sqlalchemy.future import select
 from models.base import (AdditionalService, Service, Document, TenantProfile, ApartmentProfile,
                          AdditionalServiceList, TenantApartments)
 
-router = APIRouter(
-    prefix="/api/v1/client",
-)
+router = APIRouter()
 
 
 @router.get("/get_orders")

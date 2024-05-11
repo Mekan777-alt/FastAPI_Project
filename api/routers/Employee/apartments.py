@@ -22,7 +22,7 @@ from schemas.uk.apartments import ApartmentSchemasCreate
 from schemas.uk.add_tenant import AddTenant
 
 router = APIRouter(
-    prefix="/api/v1/employee"
+    prefix="/employee"
 )
 
 
