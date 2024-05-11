@@ -137,6 +137,45 @@ async def get_paid_history_payment(user: Annotated[dict, Depends(get_firebase_us
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
+@router.get("/apartments/apartment_info/{apartment_id}/payment-history/paid/{invoice_id}")
+async def get_invoice_id_from_history(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                      apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except HTTPException as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/payment-history/paid/{invoice_id}/paid")
+async def paid_invoice(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                       apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await paid_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/payment-history/paid/{invoice_id}/unpaid")
+async def unpaid_invoice(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                         apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await unpaid_invoice_id(session, apartment_id, invoice_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.post("/apartments/apartment_info/{apartment_id}/add_tenant")
 async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
                      tenant_info: AddTenant, session: AsyncSession = Depends(get_session)):
