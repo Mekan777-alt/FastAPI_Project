@@ -868,6 +868,7 @@ async def get_payment_history_apartment(session, apartment_id):
                 "created_at": f"{history.issue_date.strftime('%H:%M')}",
                 "icon_path": icon_path,
                 "status": history.status,
+                "amount": history.amount,
             }
 
 
@@ -921,6 +922,7 @@ async def get_payment_history_to_paid(session, apartment_id):
                 "created_at": f"{history.issue_date.strftime('%H:%M')}",
                 "icon_path": icon_path,
                 "status": history.status,
+                "amount": history.amount,
             }
 
 
