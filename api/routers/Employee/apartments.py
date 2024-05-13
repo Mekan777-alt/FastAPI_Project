@@ -10,7 +10,6 @@ from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
 from starlette import status
 import shutil
-from firebase_admin import auth
 from api.routers.Employee.config import (get_apartment_list, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
@@ -21,7 +20,6 @@ from api.routers.Employee.config import (get_apartment_list, get_apartments_info
                                          unpaid_invoice_id)
 from starlette.responses import JSONResponse
 from schemas.employee.bathroom import CreateBathroom
-from schemas.uk.apartments import ApartmentSchemasCreate
 from schemas.uk.add_tenant import AddTenant
 
 router = APIRouter(
