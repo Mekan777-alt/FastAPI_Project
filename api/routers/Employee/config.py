@@ -63,38 +63,6 @@ async def get_apartment_list(session, user):
         return e
 
 
-async def create_apartment(session, user, apartment_data):
-    try:
-
-        employee = user['uid']
-
-        object_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
-
-        if not object_id:
-            return "Employee not found"
-
-        new_apartment = ApartmentProfile(
-            apartment_name=apartment_data.apartment_name,
-            area=apartment_data.area,
-            object_id=object_id.object_id
-        )
-
-        session.add(new_apartment)
-        await session.commit()
-
-        data = {
-            "id": new_apartment.id,
-            "apartment_name": new_apartment.apartment_name,
-            "area": new_apartment.area
-        }
-
-        return data
-
-    except Exception as e:
-
-        return e
-
-
 async def get_apartments_info(session, apartment_id, user):
     try:
 

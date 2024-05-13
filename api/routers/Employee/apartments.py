@@ -1,22 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from sqlalchemy import select
 from firebase.config import get_firebase_user_from_token
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
+from models.base import ApartmentProfile, EmployeeUK
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
 from starlette import status
+import shutil
 from firebase_admin import auth
-from api.routers.Employee.config import (get_apartment_list, create_apartment, get_apartments_info, add_tenant_db,
+from api.routers.Employee.config import (get_apartment_list, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
                                          get_apartment_invoice, create_invoice, meter_readings_get, delete_bathroom,
                                          get_in_progress_order_id, get_in_progress_order_id_completed,
                                          get_completed_orders, get_payment_history_apartment,
-                                         get_payment_history_to_paid, get_invoice_id, paid_invoice_id, unpaid_invoice_id)
+                                         get_payment_history_to_paid, get_invoice_id, paid_invoice_id,
+                                         unpaid_invoice_id)
 from starlette.responses import JSONResponse
-
 from schemas.employee.bathroom import CreateBathroom
 from schemas.uk.apartments import ApartmentSchemasCreate
 from schemas.uk.add_tenant import AddTenant
@@ -40,15 +43,46 @@ async def get_apartments_employee(user: Annotated[dict, Depends(get_firebase_use
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
-@router.post("/apartments/create_apartment", response_model=ApartmentSchemasCreate)
+@router.post("/apartments/create_apartment")
 async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                                    apartment_data: ApartmentSchemasCreate,
+                                    apartment_name: str = Form(...),
+                                    area: str = Form(...),
+                                    key_holder: str = Form(...),
+                                    internet_speed: int = Form(...),
+                                    internet_fee: float = Form(...),
+                                    internet_operator: str = Form(...),
+                                    photo: UploadFile = File(...),
                                     session: AsyncSession = Depends(get_session)):
     try:
 
-        data = await create_apartment(session, user, apartment_data)
+        photo.filename = photo.filename.lower()
+        path = f'static/photo/apartments/{photo.filename}'
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=data)
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+
+        employee = user['uid']
+
+        object_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
+
+        if not object_id:
+            return "Employee not found"
+
+        new_apartment = ApartmentProfile(
+            apartment_name=apartment_name,
+            area=float(area),
+            key_holder=key_holder,
+            internet_speed=internet_speed,
+            internet_fee=internet_fee,
+            photo_path=f"http://217.25.95.113:8000/{path}",
+            internet_operator=internet_operator,
+            object_id=object_id.object_id
+        )
+
+        session.add(new_apartment)
+        await session.commit()
+
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_apartment.to_dict())
 
     except Exception as e:
 

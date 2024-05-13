@@ -77,12 +77,13 @@ class ApartmentProfile(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     apartment_name = Column(String, nullable=False)
     area = Column(Float, nullable=False)
-    garden = Column(Boolean)
-    pool = Column(Boolean)
-    internet_operator = Column(String)
-    internet_speed = Column(Integer)
+    garden = Column(Boolean, default=False)
+    pool = Column(Boolean, default=False)
+    internet_operator = Column(String, default=None)
+    internet_speed = Column(Integer, default=None)
     internet_fee = Column(Float)
     key_holder = Column(String)
+    photo_path = Column(String, default=None)
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
     object = relationship('Object', back_populates='apartments')
 
@@ -100,6 +101,7 @@ class ApartmentProfile(Base):
             "area": self.area,
             "garden": self.garden,
             "pool": self.pool,
+            "photo_path": self.photo_path,
             "internet_operator": self.internet_operator,
             "internet_speed": str(self.internet_speed),
             "internet_fee": str(self.internet_fee),
