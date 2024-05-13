@@ -46,7 +46,7 @@ async def get_apartments_employee(user: Annotated[dict, Depends(get_firebase_use
 @router.post("/apartments/create_apartment")
 async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                     apartment_name: str = Form(...),
-                                    area: str = Form(...),
+                                    area: float = Form(...),
                                     key_holder: str = Form(...),
                                     internet_speed: int = Form(...),
                                     internet_fee: float = Form(...),
@@ -69,10 +69,10 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
 
         new_apartment = ApartmentProfile(
             apartment_name=apartment_name,
-            area=float(area),
+            area=area,
             key_holder=key_holder,
             internet_speed=internet_speed,
-            internet_fee=float(internet_fee),
+            internet_fee=internet_fee,
             photo_path=f"http://217.25.95.113:8000/{path}",
             internet_operator=internet_operator,
             object_id=object_id.object_id
