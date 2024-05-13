@@ -54,7 +54,6 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
                                     photo: UploadFile = File(...),
                                     session: AsyncSession = Depends(get_session)):
     try:
-
         photo.filename = photo.filename.lower()
         path = f'static/photo/apartments/{photo.filename}'
 
@@ -73,7 +72,7 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
             area=float(area),
             key_holder=key_holder,
             internet_speed=internet_speed,
-            internet_fee=internet_fee,
+            internet_fee=float(internet_fee),
             photo_path=f"http://217.25.95.113:8000/{path}",
             internet_operator=internet_operator,
             object_id=object_id.object_id

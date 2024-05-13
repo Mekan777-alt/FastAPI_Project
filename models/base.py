@@ -262,6 +262,7 @@ class Order(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
+    is_view = Column(Boolean, default=False)
     selected_service_id = Column(Integer, ForeignKey('services.id'))
 
     apartments = relationship("ApartmentProfile", back_populates="orders")

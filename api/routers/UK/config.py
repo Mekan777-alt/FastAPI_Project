@@ -60,35 +60,6 @@ async def get_objects_from_uk(session, staff):
         return e
 
 
-async def create_object_to_db(session, user, data):
-    try:
-
-        staff_id = user['uid']
-
-        uk_id = await session.scalar(select(UK).where(UK.uuid == staff_id))
-        create_obj = Object(
-            object_name=data.object_name,
-            address=data.object_address,
-            uk_id=uk_id.id
-        )
-
-        session.add(create_obj)
-        await session.commit()
-
-        new_data = {
-            "id": create_obj.id,
-            "object_name": create_obj.object_name,
-            "address": create_obj.address,
-            "uid_id": create_obj.uk_id
-        }
-
-        return new_data
-
-    except Exception as e:
-
-        return e
-
-
 async def get_staff_uk(session, user):
     try:
 

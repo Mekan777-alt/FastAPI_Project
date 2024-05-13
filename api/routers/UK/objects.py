@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, Request, Form, File, UploadFile
+from fastapi import APIRouter, Depends, Form, File, UploadFile
 from typing import Annotated
-
 from sqlalchemy import select
 from starlette.responses import JSONResponse
 from config import get_session
@@ -9,9 +8,9 @@ import shutil
 from models.base import Object as ObjectModels, UK
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.routers.UK.config import (get_objects_from_uk, create_object_to_db, get_object_id, get_apartments_from_object,
+from api.routers.UK.config import (get_objects_from_uk, get_object_id, get_apartments_from_object,
                                    create_apartment_for_object, get_staff_object, get_staff_id_object)
-from schemas.uk.object import ObjectSchemas, ObjectCreateSchema, Object
+from schemas.uk.object import ObjectSchemas, Object
 from schemas.uk.apartments import ApartmentsList, ApartmentSchemasCreate
 
 router = APIRouter()
