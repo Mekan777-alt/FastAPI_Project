@@ -64,12 +64,21 @@ class Object(Base):
     address = Column(String, nullable=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     uk = relationship('UK', back_populates='objects')
-    photo_path = Column(String)
+    photo_path = Column(String, default=None)
 
     apartments = relationship('ApartmentProfile', back_populates='object')
     news = relationship('News', back_populates='object')
     employees = relationship('EmployeeUK', back_populates='object')
     service_list_object = relationship('ServiceObjectList', back_populates='object')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "object_name": self.object_name,
+            "address": self.address,
+            "uk_id": self.uk_id,
+            "photo_path": self.photo_path
+        }
 
 
 class ApartmentProfile(Base):

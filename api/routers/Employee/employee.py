@@ -37,7 +37,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
     try:
 
         photo.filename = photo.filename.lower()
-        path = f'media/{photo.filename}'
+        path = f'static/photo/employee/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -49,7 +49,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
         employee.photo_path = path
         await session.commit()
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": employee.photo_path})
 
     except Exception as e:
 

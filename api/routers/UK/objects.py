@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Form, File, UploadFile
 from typing import Annotated
+
+from sqlalchemy import select
 from starlette.responses import JSONResponse
 from config import get_session
 from starlette import status
+import shutil
+from models.base import Object as ObjectModels, UK
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.UK.config import (get_objects_from_uk, create_object_to_db, get_object_id, get_apartments_from_object,
@@ -28,15 +32,34 @@ async def get_objects(user: Annotated[dict, Depends(get_firebase_user_from_token
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
-@router.post("/create_object", response_model=ObjectCreateSchema)
+@router.post("/create_object")
 async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                        object_data: ObjectCreateSchema, session: AsyncSession = Depends(get_session)):
+                        object_name: str = Form(...),
+                        object_address: str = Form(...),
+                        photo: UploadFile = File(...),
+                        session: AsyncSession = Depends(get_session)):
 
     try:
+        photo.filename = photo.filename.lower()
+        path = f'static/photo/object/{photo.filename}'
 
-        data = await create_object_to_db(session, user, object_data)
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
 
-        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+        staff_id = user['uid']
+
+        uk_id = await session.scalar(select(UK).where(UK.uuid == staff_id))
+        create_obj = ObjectModels(
+            object_name=object_name,
+            address=object_address,
+            photo_path=f"http://217.25.95.113:8000/{path}",
+            uk_id=uk_id.id
+        )
+
+        session.add(create_obj)
+        await session.commit()
+
+        return JSONResponse(content=create_obj.to_dict(), status_code=status.HTTP_201_CREATED)
 
     except Exception as e:
 
