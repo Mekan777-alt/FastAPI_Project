@@ -18,8 +18,8 @@ async def get_employee_profile(session, data_from_firebase, object_id):
         object_name = await session.scalar(select(Object).where(Object.id == object_id))
 
         data = {
-            "firstname": data_from_firebase['firstname'],
-            "lastname": data_from_firebase['lastname'],
+            "first_name": data_from_firebase['first_name'],
+            "last_name": data_from_firebase['last_name'],
             "object_name": object_name.object_name
         }
         return data
