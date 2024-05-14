@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from config import get_session
 from starlette import status
 import shutil
-from models.base import Object as ObjectModels, UK
+from models.base import Object as ObjectModels, UK, ApartmentProfile
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.UK.config import (get_objects_from_uk, get_object_id, get_apartments_from_object,
@@ -19,7 +19,6 @@ router = APIRouter()
 @router.get("/get_objects_uk", response_model=ObjectSchemas)
 async def get_objects(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                       session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await get_objects_from_uk(session, user)
@@ -37,7 +36,6 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
                         object_address: str = Form(...),
                         photo: UploadFile = File(...),
                         session: AsyncSession = Depends(get_session)):
-
     try:
         photo.filename = photo.filename.lower()
         path = f'static/photo/object/{photo.filename}'
@@ -67,7 +65,6 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
 @router.get("/get_objects_uk/{object_id}", response_model=Object)
 async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await get_object_id(session, object_id)
@@ -81,7 +78,6 @@ async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_s
 
 @router.get("/get_objects_uk/{object_id}/apartment_list", response_model=ApartmentsList)
 async def get_apartment_list(object_id: int, session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await get_apartments_from_object(session, object_id)
@@ -94,23 +90,48 @@ async def get_apartment_list(object_id: int, session: AsyncSession = Depends(get
 
 
 @router.post("/get_objects_uk/{object_id}/create_apartment")
-async def create_apartment(object_id: int, apartment_data: ApartmentSchemasCreate,
-                           session: AsyncSession = Depends(get_session)):
+async def create_apartment_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                              object_id: int,
+                              apartment_name: str = Form(...),
+                              area: float = Form(...),
+                              key_holder: str = Form(...),
+                              internet_speed: int = Form(...),
+                              internet_fee: float = Form(...),
+                              internet_operator: str = Form(...),
+                              photo: UploadFile = File(...),
+                              session: AsyncSession = Depends(get_session)):
     try:
+        photo.filename = photo.filename.lower()
+        path = f'static/photo/apartments/{photo.filename}'
 
-        data = await create_apartment_for_object(session, object_id, apartment_data)
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
 
-        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+        if not object_id:
+            return "Employee not found"
 
+        new_apartment = ApartmentProfile(
+            apartment_name=apartment_name,
+            area=area,
+            key_holder=key_holder,
+            internet_speed=internet_speed,
+            internet_fee=internet_fee,
+            photo_path=f"http://217.25.95.113:8000/{path}",
+            internet_operator=internet_operator,
+            object_id=object_id
+        )
+
+        session.add(new_apartment)
+        await session.commit()
+
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_apartment.to_dict())
     except Exception as e:
-
-        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/get_objects_uk/{object_id}/get_staff_object")
 async def get_object_id_uk(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                            session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await get_staff_object(session, object_id)
@@ -125,7 +146,6 @@ async def get_object_id_uk(object_id: int, user: Annotated[dict, Depends(get_fir
 @router.get("/get_objects_uk/{object_id}/get_staff_object/{staff_id}")
 async def get_object_id_uk(object_id: int, staff_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                            session: AsyncSession = Depends(get_session)):
-
     try:
 
         data = await get_staff_id_object(session, object_id, staff_id)
