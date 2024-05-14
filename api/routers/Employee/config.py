@@ -953,6 +953,14 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
         )
 
         invoice.status = 'paid'
+
+        apartment_info = await session.scalar(select(TenantApartments)
+                                              .where(TenantApartments.apartment_id == apartment_id))
+
+        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == apartment_info.tenant_id))
+
+        tenant_info.balance -= invoice.amount
+
         await session.commit()
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
@@ -997,6 +1005,14 @@ async def unpaid_invoice_id(session, apartment_id, invoice_id):
         )
 
         invoice.status = 'unpaid'
+
+        apartment_info = await session.scalar(select(TenantApartments)
+                                              .where(TenantApartments.apartment_id == apartment_id))
+
+        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == apartment_info.tenant_id))
+
+        tenant_info.balance += invoice.amount
+
         await session.commit()
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
