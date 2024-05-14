@@ -11,14 +11,14 @@ from schemas.uk.get_staff import StaffList, StaffInfo, StaffDeleteList
 router = APIRouter()
 
 
-@router.get("/get_staff_uk", response_model=StaffList)
+@router.get("/get_staff_uk", status_code=status.HTTP_200_OK)
 async def get_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                     session: AsyncSession = Depends(get_session)):
     try:
 
         data = await get_staff_uk(session, user)
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+        return data
 
     except Exception as e:
 
