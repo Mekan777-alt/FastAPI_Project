@@ -81,11 +81,7 @@ async def get_staff_uk(session, user):
 
             staff_list.append(staff)
 
-        data = {
-            "staff_uk": staff_list
-        }
-
-        return data
+        return staff_list
 
     except Exception as e:
 
