@@ -9,7 +9,7 @@ from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
 from datetime import date, timedelta
-from sqlalchemy import delete, and_
+from sqlalchemy import delete, func
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -65,13 +65,13 @@ async def get_apartment_list(session, user):
 
 async def get_apartments_info(session, apartment_id, user):
     try:
+        active_orders_count = await session.scalar(
+            select(func.count())
+            .where((Order.apartment_id == apartment_id) & (Order.status == 'new'))
+        )
 
-        # employee = user['uid']
-        #
-        # check_employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee))
-
-        # if not check_employee:
-        #     return "Employee not found"
+        if active_orders_count == 0:
+            active_orders_count = None
 
         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
@@ -82,13 +82,15 @@ async def get_apartments_info(session, apartment_id, user):
             select(BathroomApartment).where(BathroomApartment.apartment_id == apartment_id))
 
         if not bathrooms:
-
-            return apartment.to_dict()
+            data = apartment.to_dict()
+            data['active_order_count'] = active_orders_count
+            return data
 
         else:
 
             data = apartment.to_dict()
             data['bathrooms'] = []
+            data['active_order_count'] = active_orders_count
 
             for bathroom in bathrooms:
                 data['bathrooms'].append({"id": bathroom.id,
@@ -257,6 +259,7 @@ async def get_new_order(session, apartment_id: int):
                 "apartment_name": order.apartments.apartment_name,
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
                 "status": order.status,
+                "is_view": order.is_view,
                 "additional_info": {
                     "additional_service_list": service_data
                 }
@@ -299,6 +302,9 @@ async def get_new_order_id(session, apartment_id, order_id):
                                                            additional_service_id))
                 service_data.append(service_name.name)
             if order.id not in order_dict:
+                order.is_view = True
+                await session.commit()
+
                 order_dict[order.id] = {
                     "order_id": order.id,
                     "icon_path": icon_path.big_icons_path if icon_path else None,
@@ -307,6 +313,7 @@ async def get_new_order_id(session, apartment_id, order_id):
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
                     "completion_date": order.completion_date,
                     "completed_at": order.completion_time,
+                    "is_view": order.is_view,
                     "status": order.status,
                     "additional_info": {
                         "additional_service_list": service_data
@@ -562,10 +569,10 @@ async def create_invoice(session, apartment_id, invoice_data, user):
             session.add(new_invoice)
             await session.commit()
 
-            tenant_info = await session.scalar(select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
+            tenant_info = await session.scalar(
+                select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
 
             if tenant_info:
-
                 tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_info.tenant_id))
 
                 tenant.balance += invoice_data.amount
@@ -708,7 +715,6 @@ async def get_in_progress_order_id(session, order_id, apartment_id):
                     "executor": executor_data
                 }
 
-
         return order_dict
 
 
@@ -717,7 +723,6 @@ async def get_in_progress_order_id(session, order_id, apartment_id):
 
 
 async def get_in_progress_order_id_completed(session, order_id, apartment_id):
-
     try:
 
         order = await session.scalar(
@@ -728,7 +733,6 @@ async def get_in_progress_order_id_completed(session, order_id, apartment_id):
         order.status = 'completed'
         await session.execute(delete(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
         await session.commit()
-
 
         return order.to_dict()
 
@@ -839,7 +843,6 @@ async def get_payment_history_apartment(session, apartment_id):
                 "amount": history.amount,
             }
 
-
             if not data_list or data_list[-1]['name'] != name:
                 data_list.append({'name': name, 'services': []})
 
@@ -869,7 +872,8 @@ async def get_payment_history_to_paid(session, apartment_id):
 
             elif history.meter_service_id:
 
-                service_info = await session.scalar(select(MeterService).where(MeterService.id == history.meter_service_id))
+                service_info = await session.scalar(
+                    select(MeterService).where(MeterService.id == history.meter_service_id))
 
                 icon_path += service_info.mini_icons_path
 
@@ -892,7 +896,6 @@ async def get_payment_history_to_paid(session, apartment_id):
                 "status": history.status,
                 "amount": history.amount,
             }
-
 
             if not data_list or data_list[-1]['name'] != name:
                 data_list.append({'name': name, 'services': []})
