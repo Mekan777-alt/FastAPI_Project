@@ -61,6 +61,7 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
         order = await session.scalar(select(Order).where(Order.id == order_id))
         icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
         service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == order.apartment_id))
 
         service_data = []
         additional_services = await session.scalars(select(AdditionalService)
@@ -91,6 +92,7 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
             "service_name": service.name,
             "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
             "completion_date": order.completion_date,
+            "apartment_name": apartment_info.apartment_name,
             "completed_at": order.completion_time,
             "status": order.status,
             "additional_info": {
