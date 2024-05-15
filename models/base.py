@@ -111,7 +111,8 @@ class ApartmentProfile(Base):
             "area": self.area,
             "garden": self.garden,
             "pool": self.pool,
-            "photo_path": self.photo_path,
+            "photo_path": self.photo_path if self.photo_path
+            else "http://217.25.95.113:8000/static/icons/big/object_main.jpg",
             "internet_operator": self.internet_operator,
             "internet_speed": str(self.internet_speed),
             "internet_fee": str(self.internet_fee),

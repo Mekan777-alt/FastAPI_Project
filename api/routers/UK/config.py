@@ -361,6 +361,9 @@ async def get_all_news(session, uk):
 
         uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
+        if not uk_info:
+            return "company not found"
+
         news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
 
         news_list = []
