@@ -18,6 +18,7 @@ class UK(Base):
     employees = relationship('EmployeeUK', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
     objects = relationship('Object', back_populates='uk')
+    news = relationship('News', back_populates='uk')
 
 
 class EmployeeUK(Base):
@@ -102,6 +103,7 @@ class ApartmentProfile(Base):
     meters = relationship("Meters", back_populates="apartment")
     invoice_history = relationship("InvoiceHistory", back_populates="apartment")
     guest_pass = relationship("GuestPass", back_populates="apartment")
+    news_apartments = relationship('NewsApartments', back_populates='apartments')
 
     def to_dict(self):
         return {
@@ -319,7 +321,10 @@ class News(Base):
     description = Column(String)
     photo_path = Column(String, default=None)
     created_at = Column(DATE, default=date.today())
+    uk_id = Column(Integer, ForeignKey(UK.id))
 
+    uk = relationship('UK', back_populates="news")
+    news_apartments = relationship('NewsApartments', back_populates='news')
 
     def to_dict(self):
         return {
@@ -328,6 +333,17 @@ class News(Base):
             "description": self.description,
             "created_at": self.created_at.strftime('%d %B %Y')
         }
+
+
+class NewsApartments(Base):
+    __tablename__ = 'news_apartments'
+
+    id = Column(Integer, primary_key=True)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    news_id = Column(Integer, ForeignKey(News.id))
+
+    apartments = relationship('ApartmentProfile', back_populates='news_apartments')
+    news = relationship('News', back_populates='news_apartments')
 
 
 class ExecutorOrders(Base):

@@ -28,6 +28,7 @@ async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)
                 order_data = {
                     "order_id": order.id,
                     "status": order.status,
+                    "icon_path": order.selected_service.big_icons_path if order.selected_service.big_icons_path else None,
                     "name": f"Service on {order.created_at.strftime('%d.%m.%Y')} at {order.created_at.strftime('%H:%M')}",
                     "created_at": order.created_at.strftime('%d %h %Y'),
                     "selected_services": order.selected_service.name if order.selected_service.name else None,

@@ -8,6 +8,7 @@ from typing import Annotated
 from sqlalchemy import select
 from models.base import UK, ApartmentProfile, Object
 from .config import get_all_news, get_news_id
+from schemas.uk.news import NewsSchema
 
 router = APIRouter()
 
@@ -45,7 +46,7 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
 @router.post('/add-news')
 async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                           session: AsyncSession = Depends(get_session)):
+                           request: NewsSchema, session: AsyncSession = Depends(get_session)):
     try:
 
         pass
