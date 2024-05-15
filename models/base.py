@@ -14,9 +14,11 @@ class UK(Base):
     uuid = Column(String, unique=True)
     photo_path = Column(String, nullable=True, default=None)
     name = Column(String)
+
     employees = relationship('EmployeeUK', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
     objects = relationship('Object', back_populates='uk')
+    news = relationship('News', back_populates='uk')
 
 
 class EmployeeUK(Base):
@@ -67,7 +69,6 @@ class Object(Base):
     photo_path = Column(String, default=None)
 
     apartments = relationship('ApartmentProfile', back_populates='object')
-    news = relationship('News', back_populates='object')
     employees = relationship('EmployeeUK', back_populates='object')
     service_list_object = relationship('ServiceObjectList', back_populates='object')
 
@@ -317,9 +318,17 @@ class News(Base):
     name = Column(String, unique=True)
     description = Column(String)
     created_at = Column(DATE, default=date.today())
-    object_id = Column(Integer, ForeignKey(Object.id))
+    uk_id = Column(Integer, ForeignKey(UK.id))
 
-    object = relationship('Object', back_populates="news")
+    uk = relationship('UK', back_populates="news")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "created_at": self.created_at.strftime('%d %B %Y')
+        }
 
 
 class ExecutorOrders(Base):

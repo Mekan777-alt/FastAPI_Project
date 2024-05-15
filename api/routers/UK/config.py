@@ -1,7 +1,7 @@
 import firebase_admin.auth
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service
+from models.base import UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service, News
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
 from firebase_admin import auth, firestore
@@ -10,6 +10,7 @@ from firebase_admin import auth, firestore
 async def get_uk_profile(session, uk_id):
     uk = await session.scalar(select(UK).where(UK.id == uk_id))
     payment_details = await session.scalar(select(PaymentDetails).where(PaymentDetails.uk_id == uk_id))
+    news = await session.scalars(select(News).where(News.uk_id == uk_id))
     if not payment_details:
         requisites = {}
     else:
@@ -26,8 +27,11 @@ async def get_uk_profile(session, uk_id):
     data = {
         "uk_name": uk.name,
         "photo_path": uk.photo_path,
-        "requisites": requisites
+        "requisites": requisites,
+        "news": []
     }
+    for n in news:
+        data['news'].append(n.to_dict())
     return data
 
 
@@ -347,4 +351,39 @@ async def get_staff_id_object(session, object_id, staff_id):
 
         return staff_data
     except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
+        raise e
+
+
+async def get_all_news(session, uk):
+    try:
+
+        uk_uid = uk['uid']
+
+        uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+
+        news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
+
+        news_list = []
+
+        for n in news:
+            news_list.append(n.to_dict())
+        return news_list
+    except Exception as e:
+        raise e
+
+
+async def get_news_id(session, uk, news_id):
+    try:
+
+        uk_uid = uk['uid']
+        uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+
+        news = await session.scalar(select(News)
+                                    .where((News.uk_id == uk_info.id) & (News.id == news_id)))
+
+        if not news:
+            return "News not found"
+
+        return news.to_dict()
+    except Exception as e:
         raise e

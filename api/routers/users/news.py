@@ -1,36 +1,57 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from typing import Annotated
+from firebase.config import get_firebase_user_from_token
 from starlette.responses import JSONResponse
 from config import get_session
-from schemas.user.news import News as NewsSchemas
-from models.base import News
+from models.base import News, TenantProfile, TenantApartments, Object, UK, ApartmentProfile
 
 router = APIRouter()
 
 
-@router.get('/news', response_model=NewsSchemas)
-async def get_news(session: AsyncSession = Depends(get_session)):
+@router.get('/all-news')
+async def get_news(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                   session: AsyncSession = Depends(get_session)):
     try:
 
-        query = await session.execute(select(News))
+        user_uid = user['uid']
 
-        news = query.scalars()
+        user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
 
+        if not user_info:
+            return JSONResponse(content="User not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        apartment_tenant = await session.scalar(select(TenantApartments).
+                                                where(TenantApartments.tenant_id == user_info.id))
+
+        apartment_info = await session.scalar(select(ApartmentProfile)
+                                              .where(ApartmentProfile.id == apartment_tenant.apartment_id))
+
+        object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
+
+        uk_info = await session.scalar(select(UK).where(UK.id == object_info.uk_id))
+
+        news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
         news_list = []
 
         for n in news:
-            schemas = NewsSchemas(
-                id=n.id,
-                name=n.name,
-                description=n.description,
-                created_at=str(n.created_at)
-            )
-
-            news_list.append(schemas.dict())
-
+            news_list.append(n.to_dict())
         return JSONResponse(content=news_list, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 
         raise HTTPException(detail={'detail': str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get('/all-news/{news_id}')
+async def get_news_id(user: Annotated[dict, Depends(get_firebase_user_from_token)], news_id: int,
+                      session: AsyncSession = Depends(get_session)):
+    try:
+
+        news = await session.scalar(select(News).where(News.id == news_id))
+
+        return JSONResponse(content=news.to_dict(), status_code=status.HTTP_200_OK)
+
+    except HTTPException as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
