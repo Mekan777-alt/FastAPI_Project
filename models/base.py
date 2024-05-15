@@ -393,7 +393,9 @@ class Meters(Base):
             "apartment_id": self.apartment_id,
             "meter_service_id": self.meter_service_id,
             "bill_number": self.bill_number,
-            "status": self.status
+            "status": self.status,
+            "comment": self.comment if self.comment else None,
+            "meter_readings": self.meter_readings
         }
 
 
