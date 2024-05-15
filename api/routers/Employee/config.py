@@ -307,7 +307,7 @@ async def get_new_order_id(session, apartment_id, order_id):
 
                 order_dict[order.id] = {
                     "order_id": order.id,
-                    "icon_path": icon_path.big_icons_path if icon_path else None,
+                    "icon_path": icon_path.big_icons_path if icon_path.big_icons_path else None,
                     "apartment_name": order.apartments.apartment_name,
                     "service_name": service.name,
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
@@ -956,6 +956,7 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
         )
 
         invoice.status = 'paid'
+        invoice.photo_path = "http://217.25.95.113:8000/static/icons/mini/done_invoice.jpg"
 
         apartment_info = await session.scalar(select(TenantApartments)
                                               .where(TenantApartments.apartment_id == apartment_id))
@@ -1008,6 +1009,7 @@ async def unpaid_invoice_id(session, apartment_id, invoice_id):
         )
 
         invoice.status = 'unpaid'
+        invoice.photo_path = "http://217.25.95.113:8000/static/icons/mini/invoice.jpg"
 
         apartment_info = await session.scalar(select(TenantApartments)
                                               .where(TenantApartments.apartment_id == apartment_id))

@@ -241,7 +241,9 @@ async def get_finance_from_user(session, user):
         from_firebase['object_name'] = object_info.object_name
         from_firebase['invoice_history'] = []
 
-        invoice_info = await session.scalars(select(InvoiceHistory).where(InvoiceHistory.apartment_id == apartment_info.id))
+        invoice_info = await session.scalars(select(InvoiceHistory)
+                                             .where((InvoiceHistory.apartment_id == apartment_info.id) &
+                                                    (InvoiceHistory.status == 'unpaid')))
 
         for invoice in invoice_info:
 

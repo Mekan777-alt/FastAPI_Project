@@ -94,17 +94,17 @@ try:
 
         conn.commit()
 
-        cursor.execute("""INSERT INTO news (name, description, object_id, created_at) VALUES (%s, %s, %s, %s)""",
+        cursor.execute("""INSERT INTO news (name, description, uk_id, created_at) VALUES (%s, %s, %s, %s)""",
                        ("Next to the playground, Comfort Services staff have added granite pathways...",
                         "Dear property owners and tenants!", 1, datetime.date.today()))
-        cursor.execute("""INSERT INTO news (name, description, object_id, created_at) VALUES (%s, %s, %s, %s)""",
+        cursor.execute("""INSERT INTO news (name, description, uk_id, created_at) VALUES (%s, %s, %s, %s)""",
                        ("Hot water supply shutdown",
                         "Good day, dear owners and tenants of Berzarina 12 clubhouse!...", 1, datetime.date.today()))
-        cursor.execute("""INSERT INTO news (name, description, object_id, created_at) VALUES (%s, %s, %s, %s)""",
+        cursor.execute("""INSERT INTO news (name, description, uk_id, created_at) VALUES (%s, %s, %s, %s)""",
                        ("New cleaning service from a trusted partner",
                         "Dear residents of Berzarina House 12! A new service is now available to you - apartment "
                         "cleaning...", 1, datetime.date.today()))
-        cursor.execute("""INSERT INTO news (name, description, object_id, created_at) VALUES (%s, %s, %s, %s)""",
+        cursor.execute("""INSERT INTO news (name, description, uk_id, created_at) VALUES (%s, %s, %s, %s)""",
                        ("Updating pedestrian pathways",
                         "Next to the playground, Comfort Services staff have added granite pathways...", 1,
                         datetime.date.today()))
