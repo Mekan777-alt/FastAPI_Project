@@ -78,7 +78,8 @@ class Object(Base):
             "object_name": self.object_name,
             "address": self.address,
             "uk_id": self.uk_id,
-            "photo_path": self.photo_path
+            "photo_path": self.photo_path if self.photo_path
+            else "http://217.25.95.113:8000/static/icons/big/object_main.jpg"
         }
 
 

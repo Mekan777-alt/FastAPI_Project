@@ -1,17 +1,18 @@
 from fastapi import APIRouter, Depends, Form, File, UploadFile
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy import select
 from starlette.responses import JSONResponse
 from config import get_session
 from starlette import status
 import shutil
-from models.base import Object as ObjectModels, UK, ApartmentProfile
+from models.base import Object as ObjectModels, UK, ApartmentProfile, Service, ServiceObjectList
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.UK.config import (get_objects_from_uk, get_object_id, get_apartments_from_object,
                                    create_apartment_for_object, get_staff_object, get_staff_id_object)
 from schemas.uk.object import ObjectSchemas, Object
-from schemas.uk.apartments import ApartmentsList, ApartmentSchemasCreate
+from schemas.uk.apartments import ApartmentsList
+from schemas.uk.add_additional import Additionaly
 
 router = APIRouter()
 
@@ -73,6 +74,63 @@ async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_s
 
     except Exception as e:
 
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/get_objects_uk/{object_id}/list-service")
+async def get_list_service_to_object(object_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
+
+        if not object_info:
+            return "Object not found"
+
+        services = await session.scalars(select(Service))
+
+        service_list = []
+        for service in services:
+            data = {
+                "id": service.id,
+                "service_name": service.name
+            }
+            service_list.append(data)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=service_list)
+    except Exception as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post("/get_objects_uk/{object_id}/list-service")
+async def post_list_order_to_object(object_id: int,
+                                    request: List[Additionaly],
+                                    session: AsyncSession = Depends(get_session)):
+    try:
+
+        object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
+
+        if not object_info:
+            return "Object not found"
+
+        service_list = []
+        for service in request:
+            add_id = ServiceObjectList(
+               object_id=object_id,
+               service_id=service.id
+            )
+            session.add(add_id)
+
+            service_info = await session.scalar(select(Service).where(Service.id == service.id))
+
+            data = {
+                "id": service_info.id,
+                "name": service_info.name
+            }
+            service_list.append(data)
+        await session.commit()
+
+        return JSONResponse(content=service_list, status_code=status.HTTP_201_CREATED)
+    except Exception as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
