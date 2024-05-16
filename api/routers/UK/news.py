@@ -9,7 +9,6 @@ from typing import Annotated
 from sqlalchemy import select
 from models.base import UK, ApartmentProfile, Object, News, NewsApartments
 from .config import get_all_news, get_news_id
-from schemas.uk.news import NewsSchema
 import shutil
 
 router = APIRouter()
