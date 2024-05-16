@@ -46,12 +46,6 @@ async def get_user_profile(session, user_id, new_value=None):
         "balance": 0
     }
     for tenant_profile, apartment_profile, object_profile in result:
-        data = {
-            "object_address": object_profile.address,
-            "apartment_name": [],
-            "active_request": tenant_profiles.active_request,
-            "balance": tenant_profiles.balance
-        }
         apartment_data = {
             'id': apartment_profile.id,
             'name': apartment_profile.apartment_name

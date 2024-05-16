@@ -5,7 +5,7 @@ from typing import Annotated
 from firebase.config import get_firebase_user_from_token
 from starlette.responses import JSONResponse
 from config import get_session
-from models.base import News, TenantProfile, TenantApartments, Object, UK, ApartmentProfile
+from models.base import News, TenantProfile, TenantApartments, Object, UK, ApartmentProfile, NewsApartments
 
 router = APIRouter()
 
@@ -28,15 +28,15 @@ async def get_news(user: Annotated[dict, Depends(get_firebase_user_from_token)],
         apartment_info = await session.scalar(select(ApartmentProfile)
                                               .where(ApartmentProfile.id == apartment_tenant.apartment_id))
 
-        object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
+        news_apartment = await session.scalars(select(NewsApartments)
+                                               .where(NewsApartments.apartment_id == apartment_info.id))
 
-        uk_info = await session.scalar(select(UK).where(UK.id == object_info.uk_id))
-
-        news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
         news_list = []
+        for n in news_apartment:
+            news = await session.scalar(select(News).where(News.id == n.news_id))
 
-        for n in news:
-            news_list.append(n.to_dict())
+            news_list.append(news.to_dict())
+
         return JSONResponse(content=news_list, status_code=status.HTTP_200_OK)
 
     except Exception as e:

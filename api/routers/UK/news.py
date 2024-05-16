@@ -56,7 +56,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
                            name: str = Form(...),
                            description: str = Form(...),
                            photo: UploadFile = File(...),
-                           apartment_list: List = Form(...),
+                           apartment_id: int = Form(...),
                            session: AsyncSession = Depends(get_session)):
     try:
 
@@ -82,14 +82,37 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
         session.add(new_news)
         await session.commit()
 
-        for i in apartment_list[0]:
-            if i.isdigit():
-                news_apartment = NewsApartments(
-                    news_id=new_news.id,
-                    apartment_id=int(i)
-                )
-                session.add(news_apartment)
-        await session.commit()
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        if not apartment_info:
+
+            object_info = await session.scalars(select(Object).where(Object.uk_id == company_info.id))
+
+            for object in object_info:
+
+                apartments = await session.scalars(select(ApartmentProfile)
+                                                   .where(ApartmentProfile.object_id == object.id))
+
+                for apartment in apartments:
+
+                    check_apartment = await session.scalar(select(NewsApartments)
+                                                           .where(NewsApartments.apartment_id == apartment.id))
+
+                    if not check_apartment:
+                        new_news_ = NewsApartments(
+                            news_id=new_news.id,
+                            apartment_id=apartment.id
+                        )
+                        session.add(new_news_)
+                        await session.commit()
+        else:
+            new_apartment = NewsApartments(
+                apartment_id=apartment_id,
+                news_id=new_news.id
+            )
+            session.add(new_apartment)
+
+            await session.commit()
 
         return JSONResponse(content=new_news.to_dict(), status_code=status.HTTP_201_CREATED)
 

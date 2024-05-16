@@ -318,7 +318,7 @@ class News(Base):
     __tablename__ = 'news'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, unique=True)
+    name = Column(String, unique=False)
     description = Column(String)
     photo_path = Column(String, default=None)
     created_at = Column(DATE, default=date.today())
