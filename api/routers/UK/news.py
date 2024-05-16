@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from firebase.config import get_firebase_user_from_token
 from starlette import status
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 from config import get_session
 from typing import Annotated
 from sqlalchemy import select
-from models.base import UK, ApartmentProfile, Object
+from models.base import UK, ApartmentProfile, Object, News, NewsApartments
 from .config import get_all_news, get_news_id
 from schemas.uk.news import NewsSchema
+import shutil
 
 router = APIRouter()
 
@@ -28,9 +30,8 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
         for object in objects_info:
 
             apartment_info = await session.scalars(select(ApartmentProfile)
-                                                  .where(ApartmentProfile.object_id == object.id))
+                                                   .where(ApartmentProfile.object_id == object.id))
             for apartment in apartment_info:
-
                 data = {
                     "id": apartment.id,
                     "name": apartment.apartment_name
@@ -46,11 +47,45 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
 @router.post('/add-news')
 async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                           request: NewsSchema, session: AsyncSession = Depends(get_session)):
+                           name: str = Form(...),
+                           description: str = Form(...),
+                           photo: UploadFile = File(...),
+                           apartment_list: List = Form(...),
+                           session: AsyncSession = Depends(get_session)):
     try:
 
-        pass
+        uk_uid = user['uid']
 
+        company_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+
+        if not company_info:
+            return "Company not found"
+
+        photo.filename = photo.filename.lower()
+        path = f'static/photo/news/{photo.filename}'
+
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+
+        new_news = News(
+            name=name,
+            description=description,
+            photo_path=f"http://217.25.95.113:8000/{path}",
+            uk_id=company_info.id
+        )
+        session.add(new_news)
+        await session.commit()
+
+        for i in apartment_list[0]:
+            if i.isdigit():
+                news_apartment = NewsApartments(
+                    news_id=new_news.id,
+                    apartment_id=int(i)
+                )
+                session.add(news_apartment)
+        await session.commit()
+
+        return JSONResponse(content=new_news.to_dict(), status_code=status.HTTP_201_CREATED)
 
     except HTTPException as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))

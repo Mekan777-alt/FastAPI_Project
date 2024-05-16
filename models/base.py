@@ -331,6 +331,7 @@ class News(Base):
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "photo_path": self.photo_path if self.photo_path else None,
             "created_at": self.created_at.strftime('%d %B %Y')
         }
 
