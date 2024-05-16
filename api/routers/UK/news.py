@@ -38,11 +38,11 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
                 }
                 apartment_name.append(data)
                 count_id += 1
-            all_user = {
-                "id": count_id + 1,
-                "name": "All users"
-            }
-            apartment_name.append(all_user)
+        all_user = {
+            "id": count_id + 1,
+            "name": "All users"
+        }
+        apartment_name.append(all_user)
 
         return JSONResponse(content=apartment_name, status_code=status.HTTP_200_OK)
 
