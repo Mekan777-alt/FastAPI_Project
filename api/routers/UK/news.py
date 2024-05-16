@@ -26,6 +26,7 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
         objects_info = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
 
         apartment_name = []
+        count_id = 0
         for object in objects_info:
 
             apartment_info = await session.scalars(select(ApartmentProfile)
@@ -36,6 +37,12 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
                     "name": apartment.apartment_name
                 }
                 apartment_name.append(data)
+                count_id += 1
+            all_user = {
+                "id": count_id + 1,
+                "name": "All users"
+            }
+            apartment_name.append(all_user)
 
         return JSONResponse(content=apartment_name, status_code=status.HTTP_200_OK)
 
