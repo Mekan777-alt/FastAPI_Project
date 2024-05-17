@@ -35,7 +35,6 @@ router = APIRouter(
 async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      device_token: Annotated[str, Header(...)], session: AsyncSession = Depends(get_session)):
     user_role = await register_user(user, session, device_token)
-    print(device_token)
 
     try:
         if user_role["role"] == "client":

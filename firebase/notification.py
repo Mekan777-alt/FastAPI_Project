@@ -15,10 +15,11 @@ async def send_notification(tokens, title, body, image=None):
             tokens=tokens
         )
         messaging.send(message)
+        print("Отправил")
         return True
 
     except Exception as e:
-
+        print(e)
         return e
 
 
