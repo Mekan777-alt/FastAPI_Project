@@ -1,5 +1,5 @@
 from sqlalchemy.orm import joinedload
-
+from sqlalchemy import not_
 from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
 from fastapi import HTTPException, Depends
@@ -67,7 +67,7 @@ async def get_apartments_info(session, apartment_id, user):
     try:
         active_orders_count = await session.scalar(
             select(func.count())
-            .where((Order.apartment_id == apartment_id) & (Order.status == 'new'))
+            .where((Order.apartment_id == apartment_id) & (Order.status == 'new') & not_(Order.is_view))
         )
 
         if active_orders_count == 0:
