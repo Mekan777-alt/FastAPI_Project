@@ -121,6 +121,7 @@ async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_u
 
                 data['photo_path'] = profile.photo_path
                 data['balance'] = profile.balance
+                data['id'] = profile.id
                 del data['role']
 
                 tenant_list.append(data)
@@ -130,6 +131,24 @@ async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_u
     except Exception as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
+
+@router.get("/apartments/apartment_info/{apartment_id}/list_tenant/{tenant_id}")
+async def get_tenant_id(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                        apartment_id: int, tenant_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_id))
+
+        data = await get_staff_firebase(tenant.uuid)
+
+        data['photo_path'] = tenant.photo_path
+        data['balance'] = tenant.balance
+        data['id'] = tenant.id
+        del data['role']
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+    except HTTPException as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/unpaid")

@@ -215,7 +215,7 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
 
     except Exception as e:
 
-        return None
+        raise e
 
 
 async def get_new_order(session, apartment_id: int):
