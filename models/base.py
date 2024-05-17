@@ -32,6 +32,7 @@ class EmployeeUK(Base):
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
     device_token = Column(String)
+    is_archive = Column(Boolean, default=False)
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')

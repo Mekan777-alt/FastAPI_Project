@@ -71,7 +71,8 @@ async def get_staff_uk(session, user):
 
         uk_id_fromdb = await session.scalar(select(UK).where(UK.uuid == uk_id))
 
-        all_staff_uuid = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk_id_fromdb.id))
+        all_staff_uuid = await session.scalars(select(EmployeeUK).where((EmployeeUK.uk_id == uk_id_fromdb.id)
+                                                                        & (EmployeeUK.is_archive == False)))
 
         staff_list = []
         for staff_uk in all_staff_uuid:
@@ -117,9 +118,10 @@ async def get_staff_delete_list(session, user):
 
         staff_id = user['uid']
 
-        uk_id = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_id))
+        uk_id = await session.scalar(select(UK).where(UK.uuid == staff_id))
 
-        all_staff_uuid = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk_id.uk_id))
+        all_staff_uuid = await session.scalars(select(EmployeeUK).where((EmployeeUK.uk_id == uk_id.id) &
+                                                                        (EmployeeUK.is_archive == False)))
 
         staff_list_delete = []
         for staff_uk in all_staff_uuid:
@@ -132,11 +134,7 @@ async def get_staff_delete_list(session, user):
 
             staff_list_delete.append(staff)
 
-        data = {
-            "staff_uk": staff_list_delete
-        }
-
-        return data
+        return staff_list_delete
 
     except Exception as e:
 

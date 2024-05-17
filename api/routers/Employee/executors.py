@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Form, UploadFile, File
 from config import get_session
 from typing import Annotated
 from starlette.responses import JSONResponse
@@ -26,6 +26,33 @@ async def get_employee_executors(user: Annotated[dict, Depends(get_firebase_user
     except Exception as e:
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post("/employee/executors/add_executor")
+async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                       first_name: str = Form(...),
+                       last_name: str = Form(...),
+                       specialization: str = Form(...),
+                       phone_number: str = Form(...),
+                       email: str = Form(...),
+                       recipient_name: str = Form(...),
+                       account: str = Form(...),
+                       contact_number: str = Form(...),
+                       purpose_of_payment: str = Form(...),
+                       bic: str = Form(...),
+                       correspondent_account: str = Form(...),
+                       bank_name: str = Form(...),
+                       inn: str = Form(...),
+                       kpp: str = Form(...),
+                       session: AsyncSession = Depends(get_session)):
+    try:
+
+        pass
+
+
+    except Exception as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
 
 
 @router.get("/employee/executors/{executor_id}")
