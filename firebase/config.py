@@ -43,7 +43,7 @@ async def register_user(user, session, device_token):
                     photo_path='null',
                     active_request=0,
                     balance=0,
-                    device_token=device_token
+                    device_token=device_token[0]
                 )
 
                 session.add(user)
@@ -63,7 +63,7 @@ async def register_user(user, session, device_token):
                     uk_id=1,
                     photo_path='null',
                     object_id=1,
-                    device_token=device_token
+                    device_token=device_token[0]
                 )
 
                 session.add(employee)
@@ -82,7 +82,7 @@ async def register_user(user, session, device_token):
                     uuid=user['uid'],
                     photo_path='null',
                     name=data['name'],
-                    device_token=device_token
+                    device_token=device_token[0]
                 )
                 session.add(uk)
                 await session.commit()
@@ -100,7 +100,7 @@ async def register_user(user, session, device_token):
                     uuid=user['uid'],
                     photo_path='null',
                     specialization=data['specialization'],
-                    device_token=device_token
+                    device_token=device_token[0]
                 )
                 session.add(staff)
                 await session.commit()

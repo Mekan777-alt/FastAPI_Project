@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from sqlalchemy.future import select
@@ -33,8 +33,9 @@ router = APIRouter(
 
 @router.get("/login", include_in_schema=False)
 async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                     device_token: str, session: AsyncSession = Depends(get_session)):
+                     device_token: Annotated[str, Header(...)], session: AsyncSession = Depends(get_session)):
     user_role = await register_user(user, session, device_token)
+    print(device_token)
 
     try:
         if user_role["role"] == "client":
