@@ -1,19 +1,19 @@
 from firebase_admin import messaging
 
-# This registration token comes from the client FCM SDKs.
-registration_token = 'YOUR_REGISTRATION_TOKEN'
 
-# See documentation on defining a message payload.
-message = messaging.Message(
-    data={
-        'score': '850',
-        'time': '2:45',
-    },
-    token=registration_token,
-)
+async def send_notification(tokens, title, body, image=None):
+    try:
+        message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+                image=image
+            ),
+            tokens=tokens
+        )
+        messaging.send(message)
+        return True
 
-# Send a message to the device corresponding to the provided
-# registration token.
-response = messaging.send(message)
-# Response is a message ID string.
-print('Successfully sent message:', response)
+    except Exception as e:
+
+        return e

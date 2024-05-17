@@ -116,6 +116,7 @@ async def get_user_meters(session, user_id):
             raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
 
         apartment = await session.scalar(select(TenantApartments).where(TenantApartments.tenant_id == user_info.id))
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
 
         if not apartment:
 
@@ -140,7 +141,7 @@ async def get_user_meters(session, user_id):
                     "name": meter_service_info.name,
                     "amount": amount_info.amount,
                     "status": amount_info.status,
-                    "apartment_name": apartment.apartment_name,
+                    "apartment_name": apartment_info.apartment_name,
                 }
                 data.append(service_info)
         return data

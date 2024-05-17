@@ -28,7 +28,7 @@ def get_firebase_user_from_token(
         )
 
 
-async def register_user(user, session):
+async def register_user(user, session, device_token):
     try:
         db = firestore.client()
         docs = db.collection("users").document(f"{user['uid']}").get()
@@ -42,7 +42,8 @@ async def register_user(user, session):
                     uuid=user['uid'],
                     photo_path='null',
                     active_request=0,
-                    balance=0
+                    balance=0,
+                    device_token=device_token
                 )
 
                 session.add(user)
@@ -61,7 +62,8 @@ async def register_user(user, session):
                     uuid=user['uid'],
                     uk_id=1,
                     photo_path='null',
-                    object_id=1
+                    object_id=1,
+                    device_token=device_token
                 )
 
                 session.add(employee)
@@ -79,7 +81,8 @@ async def register_user(user, session):
                 uk = UK(
                     uuid=user['uid'],
                     photo_path='null',
-                    name=data['name']
+                    name=data['name'],
+                    device_token=device_token
                 )
                 session.add(uk)
                 await session.commit()
@@ -96,7 +99,8 @@ async def register_user(user, session):
                 staff = ExecutorsProfile(
                     uuid=user['uid'],
                     photo_path='null',
-                    specialization=data['specialization']
+                    specialization=data['specialization'],
+                    device_token=device_token
                 )
                 session.add(staff)
                 await session.commit()

@@ -52,3 +52,4 @@ async def check_user(tenant_id: str, session, apartment_id: int):
         raise e
     except HTTPException as e:
         raise e
+

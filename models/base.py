@@ -14,6 +14,7 @@ class UK(Base):
     uuid = Column(String, unique=True)
     photo_path = Column(String, nullable=True, default=None)
     name = Column(String)
+    device_token = Column(String)
 
     employees = relationship('EmployeeUK', back_populates='uk')
     payment_details = relationship('PaymentDetails', back_populates='uk')
@@ -30,6 +31,7 @@ class EmployeeUK(Base):
     is_admin = Column(Boolean, default=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    device_token = Column(String)
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
@@ -129,6 +131,7 @@ class ExecutorsProfile(Base):
     specialization = Column(String, nullable=False)
     photo_path = Column(String, nullable=True)
     bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))
+    device_token = Column(String)
 
     bank_details = relationship('BankDetailExecutors', back_populates='executors')
     executor_order = relationship('ExecutorOrders', back_populates='executor')
@@ -186,6 +189,7 @@ class TenantProfile(Base):
     photo_path = Column(String, nullable=True)
     active_request = Column(Integer, default=0)
     balance = Column(Float, default=0.0)
+    device_token = Column(String)
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant')
 
