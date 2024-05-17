@@ -103,7 +103,7 @@ async def get_list_service_to_object(object_id: int, session: AsyncSession = Dep
 
 @router.post("/get_objects_uk/{object_id}/list-service")
 async def post_list_order_to_object(object_id: int,
-                                    request: List[Additionaly],
+                                    request: Additionaly,
                                     session: AsyncSession = Depends(get_session)):
     try:
 
@@ -112,24 +112,21 @@ async def post_list_order_to_object(object_id: int,
         if not object_info:
             return "Object not found"
 
-        service_list = []
-        for service in request:
-            add_id = ServiceObjectList(
-               object_id=object_id,
-               service_id=service.id
-            )
-            session.add(add_id)
+        new_service = ServiceObjectList(
+            object_id=object_id,
+            service_id=request.id
+        )
+        session.add(new_service)
 
-            service_info = await session.scalar(select(Service).where(Service.id == service.id))
+        service_info = await session.scalar(select(Service).where(Service.id == request.id))
 
-            data = {
-                "id": service_info.id,
-                "name": service_info.name
-            }
-            service_list.append(data)
+        data = {
+            "id": service_info.id,
+            "name": service_info.name
+        }
         await session.commit()
 
-        return JSONResponse(content=service_list, status_code=status.HTTP_201_CREATED)
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
     except Exception as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
