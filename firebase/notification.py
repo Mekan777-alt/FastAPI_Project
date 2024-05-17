@@ -33,6 +33,7 @@ async def pred_send_notification(user, session, value=None):
 
             if value == 'order':
 
+                tokens = []
                 user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
 
                 user_apart = await session.scalar(select(TenantApartments)
@@ -44,16 +45,15 @@ async def pred_send_notification(user, session, value=None):
                 object_apart = await session.scalar(select(Object).where(Object.id == apartment.object_id))
 
                 uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
+                tokens.append(uk.device_token)
 
                 employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
                 for employee in employee_info:
 
-                    pass
+                    tokens.append(employee.device_token)
 
-
-
-
+                await send_notification(tokens, "Новый ордер", "Новый ордер")
 
             elif value == 'guest_pass':
 

@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token
 from .config import get_user_profile
 from config import get_session, check_user
-from firebase.notification import send_notification
+from firebase.notification import pred_send_notification
 from schemas.user.new_order import OrderCreateSchema
 from models.base import Order, AdditionalService, Document, Service, TenantProfile
 
@@ -99,6 +99,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         await session.execute(query)
         await session.commit()
 
+        await pred_send_notification(user, session, 'order')
         data = await get_user_profile(session, tenant_id)
         return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 
