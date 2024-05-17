@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy import select
-from firebase.config import get_firebase_user_from_token
+from firebase.config import get_firebase_user_from_token, get_staff_firebase
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from models.base import ApartmentProfile, EmployeeUK
+from models.base import ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
@@ -101,6 +101,35 @@ async def apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_to
     except Exception as e:
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.get("/apartments/apartment_info/{apartment_id}/list_tenant")
+async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
+                                    session: AsyncSession = Depends(get_session)):
+    try:
+
+        tenants = await session.scalars(select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
+
+        tenant_list = []
+        for tenant in tenants:
+
+            tenants_profile = await session.scalars(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
+
+            for profile in tenants_profile:
+
+                data = await get_staff_firebase(profile.uuid)
+
+                data['photo_path'] = profile.photo_path
+                data['balance'] = profile.balance
+                del data['role']
+
+                tenant_list.append(data)
+
+        return JSONResponse(content=tenant_list, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/unpaid")
