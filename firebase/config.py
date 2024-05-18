@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import firestore
 from firebase_admin.auth import verify_id_token
 from starlette import status
+from firebase_admin import auth
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
 from models.base import TenantProfile, EmployeeUK, UK, ExecutorsProfile
@@ -130,6 +131,8 @@ async def delete_staff_firebase(staff_uid):
     try:
         db = firestore.client()
         db.collection("users").document(f"{staff_uid}").delete()
+
+        auth.delete_user(staff_uid)
 
         return True
 

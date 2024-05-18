@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from starlette import status
 from models.base import ExecutorsProfile, EmployeeUK, BankDetailExecutors
 from sqlalchemy import select
-from firebase.config import get_firebase_user_from_token
+from firebase.config import get_firebase_user_from_token, delete_staff_firebase
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.Employee.config import get_executors_list, get_executors_detail
 from firebase_admin import auth, firestore
@@ -112,6 +112,32 @@ async def get_executor_id(executor_id: int, user: Annotated[dict, Depends(get_fi
 
         return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.delete("/employee/executors/{executor_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)], executor_id: int,
+                          session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        executor_data = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
+        if not executor_data:
+
+            return "Executor not found"
+
+        delete_db = await delete_staff_firebase(executor_data.uuid)
+
+        if delete_db:
+
+            await session.delete(executor_data)
+            await session.commit()
+
+            return "Deleted successfully"
+        else:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Not Found")
     except Exception as e:
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
