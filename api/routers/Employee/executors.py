@@ -9,6 +9,7 @@ from firebase.config import get_firebase_user_from_token, delete_staff_firebase
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.Employee.config import get_executors_list, get_executors_detail
 from firebase_admin import auth, firestore
+import shutil
 
 router = APIRouter(
     prefix='/api/v1'
@@ -116,6 +117,30 @@ async def get_executor_id(executor_id: int, user: Annotated[dict, Depends(get_fi
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
+
+@router.post("/employee/executors/{executor_id}/add_photo")
+async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                 executor_id: int,
+                                 photo: UploadFile = File(...),
+                                 session: AsyncSession = Depends(get_session)):
+
+    try:
+        photo.filename = photo.filename.lower()
+        path = f'static/photo/executor/{photo.filename}'
+
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+
+        executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
+
+        executor.photo_path = f"http://217.25.95.113:8000/{path}"
+        await session.commit()
+
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 @router.delete("/employee/executors/{executor_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)], executor_id: int,

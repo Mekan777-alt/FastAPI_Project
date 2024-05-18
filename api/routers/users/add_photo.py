@@ -33,8 +33,6 @@ async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)]
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
 
-
-
     except (FileNotFoundError) as e:
 
         return JSONResponse(
