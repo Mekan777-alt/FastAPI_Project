@@ -939,6 +939,7 @@ async def get_invoice_id(session, apartment_id, invoice_id):
             "icon_path": icon_path,
             "service_name": service_name,
             "amount": payment_history.amount,
+            "purpose_of_payment": payment_history.issue_date.strftime('%B %Y')
         }
 
         return data
@@ -992,6 +993,7 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
             "icon_path": icon_path,
             "service_name": service_name,
             "amount": invoice.amount,
+            "purpose_of_payment": invoice.issue_date.strftime('%B %Y'),
         }
 
         return data
@@ -1045,6 +1047,7 @@ async def unpaid_invoice_id(session, apartment_id, invoice_id):
             "icon_path": icon_path,
             "service_name": service_name,
             "amount": invoice.amount,
+            "purpose_of_payment": invoice.issue_date.strftime('%B %Y')
         }
 
         return data
