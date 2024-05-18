@@ -14,7 +14,7 @@ async def send_notification(tokens, title, body, image=None):
             ),
             tokens=tokens
         )
-        messaging.send(message)
+        messaging.send_multicast(message)
         print("Отправил")
         return True
 
@@ -50,9 +50,9 @@ async def pred_send_notification(user, session, value=None):
 
                 employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
-                for employee in employee_info:
-
-                    tokens.append(employee.device_token)
+                # for employee in employee_info:
+                #
+                #     tokens.append(employee.device_token)
 
                 await send_notification(tokens, "Новый ордер", "Новый ордер")
 
