@@ -203,7 +203,7 @@ async def get_object_id(session, object_id):
 
             service_id = await session.scalar(select(Service).where(Service.id == service.service_id))
 
-            data['list_services'].append(service_id.name)
+            data['list_services'].append({"id": service_id.id, "name": service_id.name})
 
         return data
 

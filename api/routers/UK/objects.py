@@ -112,21 +112,38 @@ async def post_list_order_to_object(object_id: int,
         if not object_info:
             return "Object not found"
 
+        check_service = await session.scalar(select(ServiceObjectList)
+                                             .where(ServiceObjectList.service_id == request.id))
+        if check_service:
+
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST,
+                                content=str("This service has already been added"))
+
         new_service = ServiceObjectList(
             object_id=object_id,
             service_id=request.id
         )
         session.add(new_service)
 
-        service_info = await session.scalar(select(Service).where(Service.id == request.id))
-
-        data = {
-            "id": service_info.id,
-            "name": service_info.name
-        }
         await session.commit()
 
-        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
+        return JSONResponse(content=request.to_dict(), status_code=status.HTTP_201_CREATED)
+    except Exception as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.delete("/get_objects_uk/{object_id}/list-service/{service_id}/delete",
+               status_code=status.HTTP_204_NO_CONTENT)
+async def delete_list_service_to_object(object_id: int, service_id: int,
+                                        user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                        session: AsyncSession = Depends(get_session)):
+    try:
+
+        service = await session.scalar(select(ServiceObjectList).where((ServiceObjectList.object_id == object_id) &
+                                                                       (ServiceObjectList.service_id == service_id)))
+        await session.delete(service)
+        await session.commit()
+
     except Exception as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
