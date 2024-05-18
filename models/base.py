@@ -20,6 +20,7 @@ class UK(Base):
     payment_details = relationship('PaymentDetails', back_populates='uk')
     objects = relationship('Object', back_populates='uk')
     news = relationship('News', back_populates='uk')
+    executors = relationship('ExecutorsProfile', back_populates='uk')
 
 
 class EmployeeUK(Base):
@@ -133,9 +134,21 @@ class ExecutorsProfile(Base):
     photo_path = Column(String, nullable=True)
     bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))
     device_token = Column(String)
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
 
     bank_details = relationship('BankDetailExecutors', back_populates='executors')
     executor_order = relationship('ExecutorOrders', back_populates='executor')
+    uk = relationship('UK', back_populates='executors')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "uuid": self.uuid,
+            "specialization": self.specialization,
+            "photo_path": self.photo_path if self.photo_path else None,
+            "device_token": self.device_token if self.device_token else None,
+            "bank_details_id": self.bank_details_id
+        }
 
 
 class BankDetailExecutors(Base):
