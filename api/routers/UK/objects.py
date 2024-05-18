@@ -113,7 +113,8 @@ async def post_list_order_to_object(object_id: int,
             return "Object not found"
 
         check_service = await session.scalar(select(ServiceObjectList)
-                                             .where(ServiceObjectList.service_id == request.id))
+                                             .where((ServiceObjectList.service_id == request.id)
+                                                    & (ServiceObjectList.object_id == object_id)))
         if check_service:
 
             return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST,
