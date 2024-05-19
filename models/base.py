@@ -1,6 +1,8 @@
 from datetime import datetime
 from datetime import date, time
 from enum import Enum
+
+from firebase_admin.tenant_mgt import Tenant
 from sqlalchemy import DateTime, Column, Float, Boolean, Integer, String, ForeignKey, VARCHAR, DATE, TIME
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
@@ -207,6 +209,7 @@ class TenantProfile(Base):
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant')
     orders_from_tenant = relationship("OrderFromTenant", back_populates="tenant")
+    notification_tenants = relationship('NotificationTenants', back_populates='tenant')
 
     def to_dict(self):
         return {
@@ -490,4 +493,26 @@ class GuestPassDocuments(Base):
             "mime_type": self.mime_type,
             "file_path": self.file_path,
             "guest_pass_id": self.guest_pass_id
+        }
+
+
+class NotificationTenants(Base):
+    __tablename__ = "tenant_notification"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    title = Column(String)
+    icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
+    description = Column(String)
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+
+    tenant = relationship("TenantProfile", back_populates="notification_tenants")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at.strftime('%B %d, %Y'),
+            "icon_path": self.icon_path,
+            "title": self.title,
+            "description": self.description
         }
