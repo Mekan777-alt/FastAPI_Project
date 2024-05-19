@@ -208,7 +208,8 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
             apartment_id=apartment_id
         )
 
-        session.add(new_tenant_for_db, tenant_profile)
+        session.add(new_tenant_for_db)
+        session.add(tenant_profile)
         await session.commit()
 
         return new_tenant_for_db.to_dict()
