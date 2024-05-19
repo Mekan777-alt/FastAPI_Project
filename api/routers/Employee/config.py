@@ -202,13 +202,14 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
             active_request=0,
             balance=0
         )
+        session.add(new_tenant_for_db)
+        await session.commit()
 
         tenant_profile = TenantApartments(
             tenant_id=new_tenant_for_db.id,
             apartment_id=apartment_id
         )
 
-        session.add(new_tenant_for_db)
         session.add(tenant_profile)
         await session.commit()
 
