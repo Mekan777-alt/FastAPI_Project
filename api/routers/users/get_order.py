@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from starlette import status
 from starlette.responses import JSONResponse
 from api.routers.users.config import get_user_id
@@ -32,53 +33,42 @@ async def get_orders_tenant(user: Annotated[dict, Depends(get_firebase_user_from
         if not orders_info:
             return JSONResponse(status_code=status.HTTP_200_OK, content=[])
 
-        for i in orders_info.order:
+        order_list = []
+        for order in orders_info:
 
-            pass
+            order_info = await session.scalar(select(Order).where(Order.id == order.order_id))
 
+            selected_service = await session.scalar(select(Service).where(Service.id == order_info.selected_service_id))
 
+            order_data = {
+                "order_id": order_info.id,
+                "status": order_info.status,
+                "icon_path": selected_service.big_icons_path if order_info.selected_service.big_icons_path else None,
+                "name": f"Service on {order_info.created_at.strftime('%d.%m.%Y')} at "
+                        f"{order_info.created_at.strftime('%H:%M')}",
+                "created_at": order_info.created_at.strftime('%d %h %Y'),
+                "selected_services": selected_service.name if order_info.selected_service.name else None,
+                "additional_services": [],
+            }
+            for additional_service in await session.scalars(
+                    select(AdditionalService)
+                            .where(AdditionalService.order_id == order_info.id)
+            ):
+                service_name = await session.scalar(select(AdditionalServiceList).where
+                                                    (AdditionalServiceList.id == additional_service.additional_service_id))
+                if service_name:
+                    additional_service_data = {
+                        "name": service_name.name if service_name.name else None,
+                        "quantity": additional_service.quantity if additional_service.quantity else 0,
+
+                    }
+                    order_data["additional_services"].append(additional_service_data)
+            order_list.append(order_data)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=order_list)
     except Exception as e:
 
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
-
-
-# @router.get("/get_orders")
-# async def get_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-#                      session: AsyncSession = Depends(get_session)):
-#     try:
-#         order_result = await get_user_id(session, user['uid'])
-#
-#         orders = []
-#         for order in order_result:
-#             for row in order:
-#                 order = row[0]
-#                 order_data = {
-#                     "order_id": order.id,
-#                     "status": order.status,
-#                     "icon_path": order.selected_service.big_icons_path if order.selected_service.big_icons_path else None,
-#                     "name": f"Service on {order.created_at.strftime('%d.%m.%Y')} at {order.created_at.strftime('%H:%M')}",
-#                     "created_at": order.created_at.strftime('%d %h %Y'),
-#                     "selected_services": order.selected_service.name if order.selected_service.name else None,
-#                     "additional_services": [],
-#                 }
-#                 for additional_service in await session.scalars(
-#                         select(AdditionalService)
-#                                 .where(AdditionalService.order_id == order.id)
-#                 ):
-#                     service_name = await session.scalar(select(AdditionalServiceList).where
-#                                                         (AdditionalServiceList.id == additional_service.additional_service_id))
-#                     if service_name:
-#                         additional_service_data = {
-#                             "name": service_name.name if service_name.name else None,
-#                             "quantity": additional_service.quantity if additional_service.quantity else 0,
-#
-#                         }
-#                         order_data["additional_services"].append(additional_service_data)
-#                 orders.append(order_data)
-#
-#         return {"orders": orders}
-#     except Exception as e:
-#         return JSONResponse(content=f"{e}", status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.get('/get_orders/{order_id}')
@@ -97,7 +87,7 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
 
         for additional_service in additional_services:
             service_name = await session.scalar(select(AdditionalServiceList)
-                                                .where(
+            .where(
                 AdditionalServiceList.id == additional_service.additional_service_id))
             service_data.append(service_name.name)
 
@@ -106,7 +96,6 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
         executor_data = []
 
         if executor_info:
-
             executor = await session.scalar(select(ExecutorsProfile)
                                             .where(ExecutorsProfile.id == executor_info.executor_id))
             from_firebase = await get_staff_firebase(executor.uuid)

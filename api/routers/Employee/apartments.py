@@ -259,7 +259,7 @@ async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)
         if data is None:
             return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"info": "Tenant already exists"})
 
-        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+        return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 
     except Exception as e:
 

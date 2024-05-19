@@ -289,7 +289,7 @@ class Order(Base):
     selected_service_id = Column(Integer, ForeignKey('services.id'))
 
     apartments = relationship("ApartmentProfile", back_populates="orders")
-    selected_service = relationship("Service", foreign_keys=[selected_service_id], back_populates="orders")
+    selected_service = relationship("Service", back_populates="orders")
     additional_services = relationship("AdditionalService", back_populates="order")
     documents = relationship("Document", back_populates="order")
     executor_order = relationship("ExecutorOrders", back_populates="order")

@@ -46,7 +46,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
 
         employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_id))
 
-        employee.photo_path = path
+        employee.photo_path = f"http://217.25.95.113:8000/{path}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": employee.photo_path})

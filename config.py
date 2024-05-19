@@ -41,7 +41,7 @@ async def check_user(tenant_id: str, session, apartment_id: int):
             raise HTTPException(status_code=404, detail="Apartment not found")
 
         tenant_model = await session.scalar(select(TenantApartments).where(
-            (TenantApartments.id == apartment_model.id)))
+            (TenantApartments.apartment_id == apartment_model.id)))
 
         if tenant_model:
             return tenant_model.tenant_id
