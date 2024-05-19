@@ -151,37 +151,37 @@ async def get_tenant_id(user: Annotated[dict, Depends(get_firebase_user_from_tok
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-# @router.delete("/apartments/apartment_info/{apartment_id}/list_tenant/{tenant_id}/delete")
-# async def delete_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-#                                        apartment_id: int, tenant_id: int, session: AsyncSession = Depends(get_session)):
-#
-#     try:
-#
-#         tenant_data = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_id))
-#         if not tenant_data:
-#             return "Tenant not found"
-#
-#         delete_db = await delete_staff_firebase(tenant_data.uuid)
-#
-#         if delete_db:
-#
-#             tenant_apart = await session.scalars(
-#                 select(TenantApartments).where(
-#                     (TenantApartments.apartment_id == apartment_id) & (TenantApartments.tenant_id == tenant_id)))
-#
-#             for apartment in tenant_apart:
-#                 await session.delete(apartment)
-#                 await session.commit()
-#
-#             await session.delete(tenant_data)
-#             await session.commit()
-#
-#             return "Deleted successfully"
-#         else:
-#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Not Found")
-#
-#     except Exception as e:
-#         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+@router.delete("/apartments/apartment_info/{apartment_id}/list_tenant/{tenant_id}/delete")
+async def delete_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                       apartment_id: int, tenant_id: int, session: AsyncSession = Depends(get_session)):
+
+    try:
+
+        tenant_data = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_id))
+        if not tenant_data:
+            return "Tenant not found"
+
+        delete_db = await delete_staff_firebase(tenant_data.uuid)
+
+        if delete_db:
+
+            tenant_apart = await session.scalars(
+                select(TenantApartments).where(
+                    (TenantApartments.apartment_id == apartment_id) & (TenantApartments.tenant_id == tenant_id)))
+
+            for apartment in tenant_apart:
+                await session.delete(apartment)
+                await session.commit()
+
+            await session.delete(tenant_data)
+            await session.commit()
+
+            return "Deleted successfully"
+        else:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Not Found")
+
+    except Exception as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/unpaid")

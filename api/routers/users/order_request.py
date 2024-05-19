@@ -10,7 +10,7 @@ from .config import get_user_profile
 from config import get_session, check_user
 from firebase.notification import pred_send_notification
 from schemas.user.new_order import OrderCreateSchema
-from models.base import Order, AdditionalService, Document, Service, TenantProfile
+from models.base import Order, AdditionalService, Document, Service, TenantProfile, OrderFromTenant
 
 models_map = {
     "Order": Order,
@@ -50,7 +50,6 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
     try:
         order = Order(
-            tenant_id=tenant_id,
             apartment_id=order_data.apartment_id,
             completion_date=order_data.completion_date,
             completion_time=order_data.completion_time,
@@ -59,6 +58,13 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
             selected_service_id=await get_model_id(session, "Service", order_data.selected_services),
         )
         session.add(order)
+        await session.commit()
+
+        relationship = OrderFromTenant(
+            tenant_id=tenant_id,
+            order_id=order.id,
+        )
+        session.add(relationship)
         await session.commit()
 
         if order_data.additional_services:
@@ -99,7 +105,6 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         await session.execute(query)
         await session.commit()
 
-        await pred_send_notification(user, session, 'order')
         data = await get_user_profile(session, tenant_id)
         return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 

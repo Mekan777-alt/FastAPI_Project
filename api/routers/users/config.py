@@ -11,6 +11,10 @@ async def get_user_id(session, user_uuid):
 
     query = await session.scalars(select(TenantProfile).where(TenantProfile.uuid == user_uuid))
 
+    if not query:
+
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+
     orders_data = []
 
     for i in query:

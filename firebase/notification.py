@@ -15,7 +15,6 @@ async def send_notification(tokens, title, body, image=None):
             tokens=tokens
         )
         messaging.send_multicast(message)
-        print("Отправил")
         return True
 
     except Exception as e:
@@ -50,9 +49,9 @@ async def pred_send_notification(user, session, value=None):
 
                 employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
-                # for employee in employee_info:
-                #
-                #     tokens.append(employee.device_token)
+                for employee in employee_info:
+
+                    tokens.append(employee.device_token)
 
                 await send_notification(tokens, "Новый ордер", "Новый ордер")
 
@@ -62,7 +61,12 @@ async def pred_send_notification(user, session, value=None):
 
         elif user_fb['role'] == 'Company':
 
-            pass
+            if value == 'new_news':
+
+                pass
+
+            elif value == '':
+                pass
 
         elif user_fb['role'] == 'Employee':
 

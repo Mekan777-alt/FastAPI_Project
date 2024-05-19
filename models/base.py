@@ -206,6 +206,7 @@ class TenantProfile(Base):
     device_token = Column(String)
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant')
+    orders_from_tenant = relationship("OrderFromTenant", back_populates="tenant")
 
     def to_dict(self):
         return {
@@ -224,6 +225,7 @@ class TenantApartments(Base):
 
     tenant = relationship('TenantProfile', back_populates='tenant_apartment')
     apartment = relationship('ApartmentProfile', back_populates='tenant_apartments')
+
 
 
 class Service(Base):
@@ -277,7 +279,6 @@ class Document(Base):
 class Order(Base):
     __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
-    tenant_id = Column(Integer, ForeignKey('tenant_profiles.id'))
     apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
     completion_date = Column(VARCHAR(20), nullable=False)
     completion_time = Column(VARCHAR(20), nullable=False)
@@ -292,11 +293,11 @@ class Order(Base):
     additional_services = relationship("AdditionalService", back_populates="order")
     documents = relationship("Document", back_populates="order")
     executor_order = relationship("ExecutorOrders", back_populates="order")
+    orders_from_tenant = relationship("OrderFromTenant", back_populates="order")
 
     def to_dict(self):
         return {
             "id": self.id,
-            "tenant_id": self.tenant_id,
             "apartment_id": self.apartment_id,
             "completed_date": self.completion_date,
             "completed_time": self.completion_time,
@@ -308,6 +309,17 @@ class Order(Base):
 
 AdditionalService.order = relationship("Order", back_populates="additional_services")
 Document.order = relationship("Order", back_populates="documents")
+
+
+class OrderFromTenant(Base):
+    __tablename__ = 'orders_from_tenant'
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey(Order.id))
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+
+    tenant = relationship("TenantProfile", back_populates="orders_from_tenant")
+    order = relationship("Order", back_populates="orders_from_tenant")
 
 
 class AdditionalServiceList(Base):

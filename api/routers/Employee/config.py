@@ -164,6 +164,7 @@ async def get_executors_detail(session, staff_id):
 
         del data['role']
         data['photo_path'] = executor.photo_path
+        data['id'] = executor.id
 
         return data
 
