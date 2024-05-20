@@ -131,7 +131,10 @@ class ApartmentProfile(Base):
 class ExecutorsProfile(Base):
     __tablename__ = 'executor_profiles'
     id = Column(Integer, primary_key=True)
-    uuid = Column(String(100), unique=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    phone_number = Column(String)
+    email = Column(String)
     specialization = Column(String, nullable=False)
     photo_path = Column(String, nullable=True)
     bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))

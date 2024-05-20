@@ -9,6 +9,7 @@ from firebase.config import get_firebase_user_from_token, delete_staff_firebase
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.Employee.config import get_executors_list, get_executors_detail
 from firebase_admin import auth, firestore
+from schemas.employee.add_executor import AddExecutor
 import shutil
 
 router = APIRouter(
@@ -31,22 +32,7 @@ async def get_employee_executors(user: Annotated[dict, Depends(get_firebase_user
 
 
 @router.post("/employee/executors/add_executor")
-async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                       first_name: str = Form(...),
-                       last_name: str = Form(...),
-                       specialization: str = Form(...),
-                       phone_number: str = Form(...),
-                       email: str = Form(...),
-                       password: str = Form(...),
-                       recipient_name: str = Form(...),
-                       account: str = Form(...),
-                       contact_number: str = Form(...),
-                       purpose_of_payment: str = Form(...),
-                       bic: str = Form(...),
-                       correspondent_account: str = Form(...),
-                       bank_name: str = Form(...),
-                       inn: str = Form(...),
-                       kpp: str = Form(...),
+async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)], request: AddExecutor,
                        session: AsyncSession = Depends(get_session)):
     try:
 
@@ -57,41 +43,26 @@ async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_toke
         if not employee_data:
             return "Employee not found"
 
-        new_executors = auth.create_user(
-            email=email,
-            password=password,
-        )
-        collection_path = "users"
-        db = firestore.client()
-
-        doc_ref = db.collection(collection_path).document(new_executors.uid)
-
-        doc_ref.set({
-            "email": email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "specialization": specialization,
-            "phone_number": phone_number,
-            "role": "staff",
-        })
-
         bank_detail_executors = BankDetailExecutors(
-            bank_name=bank_name,
-            inn=inn,
-            kpp=kpp,
-            contact_number=contact_number,
-            correspondent_account=correspondent_account,
-            purpose_of_payment=purpose_of_payment,
-            bic=bic,
-            recipient_name=recipient_name,
-            account=account
+            bank_name=request.bank_name,
+            inn=request.inn,
+            kpp=request.kpp,
+            contact_number=request.contact_number,
+            correspondent_account=request.correspondent_account,
+            purpose_of_payment=request.purpose_of_payment,
+            bic=request.bic,
+            recipient_name=request.recipient_name,
+            account=request.account
         )
         session.add(bank_detail_executors)
         await session.commit()
 
         new_employee_db = ExecutorsProfile(
-            uuid=new_executors.uid,
-            specialization=specialization,
+            first_name=request.first_name,
+            last_name=request.last_name,
+            email=request.email,
+            phone_number=request.phone_number,
+            specialization=request.specialization,
             uk_id=employee_data.uk_id,
             bank_details_id=bank_detail_executors.id
         )
@@ -123,7 +94,6 @@ async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user
                                  executor_id: int,
                                  photo: UploadFile = File(...),
                                  session: AsyncSession = Depends(get_session)):
-
     try:
         photo.filename = photo.filename.lower()
         path = f'static/photo/executor/{photo.filename}'
@@ -142,15 +112,14 @@ async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
+
 @router.delete("/employee/executors/{executor_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)], executor_id: int,
                           session: AsyncSession = Depends(get_session)):
-
     try:
 
         executor_data = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
         if not executor_data:
-
             return "Executor not found"
 
         delete_db = await delete_staff_firebase(executor_data.uuid)
