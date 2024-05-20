@@ -347,6 +347,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                                                            additional_service_id))
                 service_data.append(service_name.name)
             if order.id not in order_dict:
+                order.is_view = True
+                await session.commit()
                 order_dict[order.id] = {
                     "order_id": order.id,
                     "icon_path": icon_path.big_icons_path if icon_path else None,
@@ -355,6 +357,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
                     "completion_date": order.completion_date,
                     "completed_at": order.completion_time,
+                    "is_view": order.is_view,
                     "status": order.status,
                     "additional_info": {
                         "additional_service_list": service_data
