@@ -5,7 +5,7 @@ from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from models.base import (ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile, Order, ExecutorOrders,
-                         ExecutorsProfile)
+                         ExecutorsProfile, Service, AdditionalService, AdditionalServiceList)
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
@@ -313,22 +313,55 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
-        order = await session.scalar(select(Order).where(
-            (Order.apartment_id == apartment_id) & (Order.id == order_id)))
+        orders = await session.scalars(
+            select(Order)
+            .where((Order.apartment_id == apartment_id) & (Order.id == order_id))
+        )
 
-        order_dict = order.to_dict()
-
-        order_dict['executor'] = []
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
         executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
 
         if not executor_info:
 
-            return JSONResponse(content=order_dict, status_code=status.HTTP_200_OK)
+            executor_data = None
 
-        executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_info.executor_id))
+        else:
+            executor = await session.scalar(select(ExecutorsProfile)
+                                            .where(ExecutorsProfile.id == executor_info.executor_id))
 
-        order_dict['executor'] = [executor.to_dict()]
+            executor_data = executor.to_dict()
+
+        order_dict = {}
+        for order in orders:
+            icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+            service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+
+            service_data = []
+            additional_services = await session.scalars(select(AdditionalService)
+                                                        .where(AdditionalService.order_id == order.id))
+
+            for additional_service in additional_services:
+                service_name = await session.scalar(select(AdditionalServiceList)
+                                                    .where(AdditionalServiceList.id == additional_service.
+                                                           additional_service_id))
+                service_data.append(service_name.name)
+            if order.id not in order_dict:
+                order_dict[order.id] = {
+                    "order_id": order.id,
+                    "icon_path": icon_path.big_icons_path if icon_path else None,
+                    "apartment_name": order.apartments.apartment_name,
+                    "service_name": service.name,
+                    "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
+                    "completion_date": order.completion_date,
+                    "completed_at": order.completion_time,
+                    "status": order.status,
+                    "additional_info": {
+                        "additional_service_list": service_data
+                    },
+                    "executor": executor_data
+                }
+
         return JSONResponse(content=order_dict, status_code=status.HTTP_200_OK)
 
     except Exception as e:
