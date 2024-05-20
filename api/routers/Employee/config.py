@@ -149,13 +149,10 @@ async def get_executors_detail(session, staff_id):
 
         executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == staff_id))
 
-        data = await get_staff_firebase(executor.uuid)
+        if not executor:
+            return "Executor not found"
 
-        del data['role']
-        data['photo_path'] = executor.photo_path
-        data['id'] = executor.id
-
-        return data
+        return executor.to_dict()
 
     except Exception as e:
 

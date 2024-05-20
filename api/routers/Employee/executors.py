@@ -106,14 +106,14 @@ async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user
         executor.photo_path = f"http://217.25.95.113:8000/{path}"
         await session.commit()
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": path})
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": executor.photo_path})
 
     except Exception as e:
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
-@router.delete("/employee/executors/{executor_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/employee/executors/{executor_id}/delete")
 async def delete_executor(user: Annotated[dict, Depends(get_firebase_user_from_token)], executor_id: int,
                           session: AsyncSession = Depends(get_session)):
     try:
@@ -122,16 +122,11 @@ async def delete_executor(user: Annotated[dict, Depends(get_firebase_user_from_t
         if not executor_data:
             return "Executor not found"
 
-        delete_db = await delete_staff_firebase(executor_data.uuid)
+        await session.delete(executor_data)
+        await session.commit()
 
-        if delete_db:
+        return {"message": "Deleted successfully"}
 
-            await session.delete(executor_data)
-            await session.commit()
-
-            return "Deleted successfully"
-        else:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Not Found")
     except Exception as e:
 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
