@@ -306,6 +306,20 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
+@router.get("/apartments/apartment_info/{apartment_id}/service_order/completed")
+async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                      apartment_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await get_completed_orders(session, apartment_id)
+
+        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/{order_id}")
 async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
@@ -382,20 +396,6 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
     try:
 
         data = await get_in_progress_order_id_completed(session, order_id, apartment_id)
-
-        return JSONResponse(content=data, status_code=status.HTTP_200_OK)
-
-    except Exception as e:
-
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
-
-
-@router.get("/apartments/apartment_info/{apartment_id}/service_order/completed")
-async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                                      apartment_id: int, session: AsyncSession = Depends(get_session)):
-    try:
-
-        data = await get_completed_orders(session, apartment_id)
 
         return JSONResponse(content=data, status_code=status.HTTP_200_OK)
 
