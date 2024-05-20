@@ -117,7 +117,6 @@ async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_u
             tenants_profile = await session.scalars(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
             for profile in tenants_profile:
-
                 data = await get_staff_firebase(profile.uuid)
 
                 data['photo_path'] = profile.photo_path
@@ -155,7 +154,6 @@ async def get_tenant_id(user: Annotated[dict, Depends(get_firebase_user_from_tok
 @router.delete("/apartments/apartment_info/{apartment_id}/list_tenant/{tenant_id}/delete")
 async def delete_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                        apartment_id: int, tenant_id: int, session: AsyncSession = Depends(get_session)):
-
     try:
 
         tenant_data = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_id))
@@ -322,16 +320,15 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         executor_data = []
 
         if order.status == 'new':
-            executor_info = await session.scalars(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+            executor_info = await session.scalars(select(ExecutorsProfile))
 
             for executor in executor_info:
-
                 executor_data.append(executor.to_dict())
 
         elif order.status == 'in progress' or order.status == 'completed':
             active_executor = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
 
-            executor_info = await session.scalars(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+            executor_info = await session.scalars(select(ExecutorsProfile))
 
             for executor in executor_info:
                 if executor.id == active_executor.executor_id:
@@ -339,7 +336,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                     executor_dict = executor.to_dict()
                     executor_dict['active'] = True
                     executor_data.append(executor_dict)
-                executor_data.append(executor.to_dict())
+                else:
+                    executor_data.append(executor.to_dict())
 
         icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
         service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
@@ -353,7 +351,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                                   (select(AdditionalServiceList)
                                    .where(AdditionalServiceList.id == additional_service.additional_service_id)))
             service_data.append(service_name.name)
-
+        order.is_view = True
+        await session.commit()
         order_dict = {
             "order_id": order.id,
             "icon_path": icon_path.big_icons_path if icon_path else None,
@@ -426,8 +425,20 @@ async def get_service_order_new_id(user: Annotated[dict, Depends(get_firebase_us
 
         data = await select_executor(session, order_id, executor_id)
 
-        if data == "Данный исполнитель занят другим ордером":
-            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=data)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+    except HTTPException as e:
+
+        raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post("/apartments/apartment_info/{apartment_id}/service_order/progress/{order_id}/to_work/{executor_id}")
+async def get_service_order_progress_id(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                        apartment_id: int, order_id: int, executor_id: int,
+                                        session: AsyncSession = Depends(get_session)):
+    try:
+
+        data = await select_executor(session, order_id, executor_id)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 

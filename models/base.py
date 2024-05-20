@@ -395,7 +395,6 @@ class ExecutorOrders(Base):
     id = Column(Integer, primary_key=True)
     executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id), unique=True)
     order_id = Column(Integer, ForeignKey(Order.id), unique=True)
-    status = Column(String, default='progress')
 
     order = relationship("Order", back_populates="executor_order")
     executor = relationship("ExecutorsProfile", back_populates="executor_order")
