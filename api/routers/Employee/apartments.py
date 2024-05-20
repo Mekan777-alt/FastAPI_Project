@@ -316,14 +316,19 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         order = await session.scalar(select(Order).where(
             (Order.apartment_id == apartment_id) & (Order.id == order_id)))
 
+        order_dict = order.to_dict()
+
+        order_dict['executor'] = []
+
         executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+
+        if not executor_info:
+
+            return JSONResponse(content=order_dict, status_code=status.HTTP_200_OK)
 
         executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_info.executor_id))
 
-        order_dict = order.to_dict()
-
         order_dict['executor'] = [executor.to_dict()]
-
         return JSONResponse(content=order_dict, status_code=status.HTTP_200_OK)
 
     except Exception as e:
