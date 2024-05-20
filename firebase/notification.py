@@ -57,14 +57,21 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                 if notification:
 
-                    new_not = NotificationTenants(
+                    new_not_uk = NotificationUK(
                         title=title,
                         description=f"A new order for {body}",
-                        tenant_id=user_info.id,
+                        uk_id=uk.id,
                     )
-                    session.add(new_not)
+                    session.add(new_not_uk)
+                    new_not_employee = NotificationEmployee(
+                        title=title,
+                        description=f"A new order for {body}",
+                        object_id=object_apart.id,
+                    )
+                    session.add(new_not_employee)
                     await session.commit()
 
+                    return
             elif value == 'guest_pass':
 
                 notification = await send_notification(tokens, title, f"A new guest request for {body}")
@@ -80,8 +87,18 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     await session.commit()
 
         elif user_fb['role'] == 'Company':
-
+            tokens = []
             uk_info = await session.scalar(select(UK).where(UK.uuid == user_uid))
+
+            objects_uk = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
+
+            for object_uk in objects_uk:
+
+
+
+            if value == "add_news":
+
+                notification = await send_notification(tokens, title, f"A new company for {body}")
 
 
 

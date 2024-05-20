@@ -556,7 +556,7 @@ class NotificationEmployee(Base):
     title = Column(String)
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
-    employee_id = Column(Integer, ForeignKey(EmployeeUK.id))
+    object_id = Column(Integer, ForeignKey(EmployeeUK.id))
 
     employee = relationship("EmployeeUK", back_populates="notification_employee")
 
