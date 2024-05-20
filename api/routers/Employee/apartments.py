@@ -313,8 +313,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
-        order = await session.scalar(select(Order).where((Order.apartment_id == apartment_id) &
-                                                         Order.id == order_id))
+        order = await session.scalar(select(Order).where(
+            (Order.apartment_id == apartment_id) & (Order.id == order_id)))
 
         executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
 
