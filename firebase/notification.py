@@ -129,6 +129,10 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                     return
 
+                elif value == '':
+
+                    pass
+
         elif user_fb['role'] == 'Employee':
 
             pass
