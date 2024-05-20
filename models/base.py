@@ -393,7 +393,7 @@ class ExecutorOrders(Base):
     __tablename__ = 'orders_executors'
 
     id = Column(Integer, primary_key=True)
-    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id), unique=True)
+    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id))
     order_id = Column(Integer, ForeignKey(Order.id), unique=True)
 
     order = relationship("Order", back_populates="executor_order")
