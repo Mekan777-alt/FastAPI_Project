@@ -94,7 +94,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
             for object_uk in objects_uk:
 
-
+                pass
 
             if value == "add_news":
 
