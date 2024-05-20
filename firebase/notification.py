@@ -1,7 +1,8 @@
 from firebase_admin import messaging
 from firebase.config import get_staff_firebase
 from sqlalchemy import select
-from models.base import TenantProfile, TenantApartments, UK, EmployeeUK, ApartmentProfile, Object
+from models.base import (TenantProfile, TenantApartments, UK, EmployeeUK, ApartmentProfile, Object,
+                         NotificationUK, NotificationEmployee, NotificationTenants)
 
 
 async def send_notification(tokens, title, body, image=None):
@@ -22,7 +23,7 @@ async def send_notification(tokens, title, body, image=None):
         return e
 
 
-async def pred_send_notification(user, session, value=None):
+async def pred_send_notification(user, session, value=None, title=None, body=None, image=None):
     try:
 
         user_uid = user['uid']
@@ -31,35 +32,58 @@ async def pred_send_notification(user, session, value=None):
 
         if user_fb['role'] == 'client':
 
+            tokens = []
+            user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
+
+            user_apart = await session.scalar(select(TenantApartments)
+                                              .where(TenantApartments.tenant_id == user_info.id))
+
+            apartment = await session.scalar(select(ApartmentProfile)
+                                             .where(ApartmentProfile.id == user_apart.apartment_id))
+
+            object_apart = await session.scalar(select(Object).where(Object.id == apartment.object_id))
+
+            uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
+            tokens.append(uk.device_token)
+
+            employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
+
+            for employee in employee_info:
+                tokens.append(employee.device_token)
+
             if value == 'order':
 
-                tokens = []
-                user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
+                notification = await send_notification(tokens, title, f"A new order for {body}")
 
-                user_apart = await session.scalar(select(TenantApartments)
-                                                  .where(TenantApartments.tenant_id == user_info.id))
+                if notification:
 
-                apartment = await session.scalar(select(ApartmentProfile)
-                                                 .where(ApartmentProfile.id == user_apart.apartment_id))
-
-                object_apart = await session.scalar(select(Object).where(Object.id == apartment.object_id))
-
-                uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
-                tokens.append(uk.device_token)
-
-                employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
-
-                for employee in employee_info:
-
-                    tokens.append(employee.device_token)
-
-                await send_notification(tokens, "Новый ордер", "Новый ордер")
+                    new_not = NotificationTenants(
+                        title=title,
+                        description=f"A new order for {body}",
+                        tenant_id=user_info.id,
+                    )
+                    session.add(new_not)
+                    await session.commit()
 
             elif value == 'guest_pass':
 
-                pass
+                notification = await send_notification(tokens, title, f"A new guest request for {body}")
+
+                if notification:
+
+                    new_not = NotificationTenants(
+                        title=title,
+                        description=f"A new guest request for {body}",
+                        tenant_id=user_info.id,
+                    )
+                    session.add(new_not)
+                    await session.commit()
 
         elif user_fb['role'] == 'Company':
+
+            uk_info = await session.scalar(select(UK).where(UK.uuid == user_uid))
+
+
 
             if value == 'new_news':
 

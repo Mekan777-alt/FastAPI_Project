@@ -718,8 +718,17 @@ async def get_in_progress_order_id_completed(session, order_id, apartment_id):
         )
 
         order.status = 'completed'
-        await session.execute(delete(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+        executor_info = await session.scalar(select(ExecutorOrders).where((ExecutorOrders.order_id == order_id)
+                                                                          & (ExecutorOrders.status == 'progress')))
+        executor_info.status = 'completed'
         await session.commit()
+
+        executor = await session.scalar(
+            select(ExecutorsProfile).where(ExecutorsProfile.id == executor_info.executor_id))
+
+        order_dict = order.to_dict()
+
+        order_dict['executor'] = [executor.to_dict()]
 
         return order.to_dict()
 

@@ -4,7 +4,8 @@ from firebase.config import get_firebase_user_from_token, get_staff_firebase, de
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from models.base import ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile
+from models.base import (ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile, Order, ExecutorOrders,
+                         ExecutorsProfile)
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
@@ -301,6 +302,29 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         data = await get_in_progress_order_id(session, order_id, apartment_id)
 
         return JSONResponse(content=data, status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.get("/apartments/apartment_info/{apartment_id}/service_order/{order_id}")
+async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                        apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
+    try:
+
+        order = await session.scalar(select(Order).where((Order.apartment_id == apartment_id) &
+                                                         Order.id == order_id))
+
+        executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+
+        executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_info.executor_id))
+
+        order_dict = order.to_dict()
+
+        order_dict['executor'] = [executor.to_dict()]
+
+        return JSONResponse(content=order_dict, status_code=status.HTTP_200_OK)
 
     except Exception as e:
 
