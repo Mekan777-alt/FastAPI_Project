@@ -77,37 +77,57 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                 notification = await send_notification(tokens, title, f"A new guest request for {body}")
 
                 if notification:
-
-                    new_not = NotificationTenants(
+                    new_not_uk = NotificationUK(
                         title=title,
                         description=f"A new guest request for {body}",
-                        tenant_id=user_info.id,
+                        uk_id=uk.id,
                     )
-                    session.add(new_not)
+                    session.add(new_not_uk)
+                    new_not_employee = NotificationEmployee(
+                        title=title,
+                        description=f"A new guest request for {body}",
+                        object_id=object_apart.id,
+                    )
+                    session.add(new_not_employee)
                     await session.commit()
+
+                    return
 
         elif user_fb['role'] == 'Company':
             tokens = []
             uk_info = await session.scalar(select(UK).where(UK.uuid == user_uid))
+            tokens.append(uk_info.device_token)
 
             objects_uk = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
 
             for object_uk in objects_uk:
 
-                pass
+                employees = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_uk.id))
+
+                for employee in employees:
+
+                    tokens.append(employee.device_token)
 
             if value == "add_news":
 
-                notification = await send_notification(tokens, title, f"A new company for {body}")
+                notification = await send_notification(tokens, title, f"A new news created {body}")
 
+                if notification:
+                    new_not_uk = NotificationUK(
+                        title=title,
+                        description=f"A new guest request for {body}",
+                        uk_id=uk_info.id,
+                    )
+                    session.add(new_not_uk)
+                    new_not_employee = NotificationEmployee(
+                        title=title,
+                        description=f"A new guest request for {body}",
+                        object_id=objects_uk.id,
+                    )
+                    session.add(new_not_employee)
+                    await session.commit()
 
-
-            if value == 'new_news':
-
-                pass
-
-            elif value == '':
-                pass
+                    return
 
         elif user_fb['role'] == 'Employee':
 
