@@ -23,6 +23,7 @@ class UK(Base):
     objects = relationship('Object', back_populates='uk')
     news = relationship('News', back_populates='uk')
     executors = relationship('ExecutorsProfile', back_populates='uk')
+    notification_uk = relationship("NotificationUK", back_populates="uk")
 
 
 class EmployeeUK(Base):
@@ -39,6 +40,7 @@ class EmployeeUK(Base):
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
+    notification_employee = relationship("NotificationEmployee", back_populates="employee")
 
     def to_dict(self):
         return {
@@ -513,6 +515,50 @@ class NotificationTenants(Base):
     tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
 
     tenant = relationship("TenantProfile", back_populates="notification_tenants")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at.strftime('%B %d, %Y'),
+            "icon_path": self.icon_path,
+            "title": self.title,
+            "description": self.description
+        }
+
+
+class NotificationUK(Base):
+    __tablename__ = "uk_notification"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    title = Column(String)
+    icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
+    description = Column(String)
+    uk_id = Column(Integer, ForeignKey(UK.id))
+
+    uk = relationship("UK", back_populates="notification_uk")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at.strftime('%B %d, %Y'),
+            "icon_path": self.icon_path,
+            "title": self.title,
+            "description": self.description
+        }
+
+
+class NotificationEmployee(Base):
+    __tablename__ = "employee_notification"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    title = Column(String)
+    icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
+    description = Column(String)
+    employee_id = Column(Integer, ForeignKey(EmployeeUK.id))
+
+    employee = relationship("EmployeeUK", back_populates="notification_employee")
 
     def to_dict(self):
         return {
