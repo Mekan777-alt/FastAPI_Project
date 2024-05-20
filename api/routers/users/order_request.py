@@ -46,9 +46,15 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
 @router.post("/create_order")
 async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
-    tenant_id = await check_user(user["uid"], session, order_data.apartment_id)
 
     try:
+
+        tenant_uid = user['uid']
+
+        tenant_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == tenant_uid))
+        if not tenant_profile:
+            return "Tenant not found"
+
         order = Order(
             apartment_id=order_data.apartment_id,
             completion_date=order_data.completion_date,
@@ -61,7 +67,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         await session.commit()
 
         relationship = OrderFromTenant(
-            tenant_id=tenant_id,
+            tenant_id=tenant_profile.id,
             order_id=order.id,
         )
         session.add(relationship)
@@ -97,7 +103,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
         query = (
             update(TenantProfile)
             .where(
-                (TenantProfile.id == tenant_id)
+                (TenantProfile.id == tenant_profile.id)
             )
             .values({"active_request": TenantProfile.active_request + 1})
             .returning(TenantProfile.active_request)
@@ -110,7 +116,7 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
         await pred_send_notification(user, session, "order", title=order_data.selected_services,
                                      body=apartment_name.apartment_name)
-        data = await get_user_profile(session, tenant_id)
+        data = await get_user_profile(session, tenant_profile.id)
         return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 
     except Exception as e:
