@@ -733,6 +733,7 @@ async def get_in_progress_order_id_completed(session, order_id, apartment_id):
         )
 
         order.status = 'completed'
+        await session.commit()
         executor_info = await session.scalar(select(ExecutorOrders).where((ExecutorOrders.order_id == order_id)))
 
         executor = await session.scalar(
