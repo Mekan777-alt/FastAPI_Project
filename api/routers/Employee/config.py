@@ -134,21 +134,10 @@ async def get_executors_list(session):
         executors_list = []
 
         for executor in executors:
-            data = await get_staff_firebase(executor.uuid)
 
-            del data['role']
-            del data['phone_number']
-            del data['email']
-            data['id'] = executor.id
-            data['photo_path'] = executor.photo_path
+            executors_list.append(executor.to_dict())
 
-            executors_list.append(data)
-
-        data = {
-            'executors': executors_list
-        }
-
-        return data
+        return executors_list
 
     except Exception as e:
 
