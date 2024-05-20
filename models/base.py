@@ -148,7 +148,10 @@ class ExecutorsProfile(Base):
     def to_dict(self):
         return {
             "id": self.id,
-            "uuid": self.uuid,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "phone_number": self.phone_number,
+            "email": self.email,
             "specialization": self.specialization,
             "photo_path": self.photo_path if self.photo_path else None,
             "device_token": self.device_token if self.device_token else None,
