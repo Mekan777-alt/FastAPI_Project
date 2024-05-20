@@ -314,8 +314,7 @@ async def get_new_order_id(session, apartment_id, order_id):
                 check_executor = await session.scalar(
                     select(ExecutorOrders).where(ExecutorOrders.executor_id == executor.id))
                 if not check_executor:
-                    data = await get_staff_firebase(executor.uuid)
-                    data["id"] = executor.id
+                    data = executor.to_dict()
                     order_dict[order.id]["executors"].append(data)
 
         return order_dict
@@ -671,8 +670,7 @@ async def get_in_progress_order_id(session, order_id, apartment_id):
         executor = await session.scalar(select(ExecutorsProfile)
                                         .where(ExecutorsProfile.id == executor_info.executor_id))
 
-        executor_data = await get_staff_firebase(executor.uuid)
-        executor_data["id"] = executor.id
+        executor_data = executor.to_dict()
 
         order_dict = {}
         for order in orders:
