@@ -48,7 +48,10 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
             employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
+            objects_id = []
+
             for employee in employee_info:
+                objects_id.append(employee.object_id)
                 if employee.device_token:
                     tokens.append(employee.device_token)
 
@@ -65,14 +68,16 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         uk_id=uk.id,
                     )
                     session.add(new_not_uk)
-                    new_not_employee = NotificationEmployee(
-                        title=title,
-                        description=f"A new order for {body}",
-                        type=value,
-                        object_id=object_apart.id,
-                    )
-                    session.add(new_not_employee)
                     await session.commit()
+                    for object_id in objects_id:
+                        new_not_employee = NotificationEmployee(
+                            title=title,
+                            description=f"A new order for {body}",
+                            type=value,
+                            object_id=object_id,
+                        )
+                        session.add(new_not_employee)
+                        await session.commit()
 
                     return
             elif value == 'guest_pass':
