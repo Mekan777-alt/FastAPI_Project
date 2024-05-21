@@ -78,6 +78,11 @@ async def register_user(user, session, device_token):
 
             query = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
+            if not query.device_token or device_token != query.device_token:
+
+                query.device_token = device_token
+                await session.commit()
+
             if not query:
                 uk = UK(
                     uuid=user['uid'],
