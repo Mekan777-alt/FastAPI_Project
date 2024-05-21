@@ -1,6 +1,4 @@
 from firebase_admin import messaging
-from sqlalchemy.exc import IntegrityError
-
 from firebase.config import get_staff_firebase
 from sqlalchemy import select
 from models.base import (TenantProfile, TenantApartments, UK, EmployeeUK, ApartmentProfile, Object,
@@ -48,7 +46,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
             tokens.append(uk.device_token)
 
-            employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
+            employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk.id))
 
             objects_id = []
 
@@ -72,22 +70,14 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     session.add(new_not_uk)
                     await session.commit()
                     for object_id in objects_id:
-                        check_object = await session.scalar(select(EmployeeUK).where(EmployeeUK.object_id == object_id))
-                        if check_object:
-                            new_not_employee = NotificationEmployee(
-                                title=title,
-                                description=f"A new order for {body}",
-                                type=value,
-                                object_id=object_id,
-                            )
-                            session.add(new_not_employee)
-                            try:
-                                await session.commit()
-                            except IntegrityError as e:
-                                await session.rollback()
-                                raise e
-                        else:
-                            print(f"Employee with object_id {object_id} does not exist in uk_employees")
+                        new_not_employee = NotificationEmployee(
+                            title=title,
+                            description=f"A new order for {body}",
+                            type=value,
+                            object_id=object_id,
+                        )
+                        session.add(new_not_employee)
+                        await session.commit()
 
                     return
             elif value == 'guest_pass':
