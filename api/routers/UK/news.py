@@ -10,6 +10,7 @@ from sqlalchemy import select
 from models.base import UK, ApartmentProfile, Object, News, NewsApartments
 from .config import get_all_news, get_news_id
 import shutil
+from firebase.notification import pred_send_notification
 
 router = APIRouter()
 
@@ -92,19 +93,19 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
 
                 apartments = await session.scalars(select(ApartmentProfile)
                                                    .where(ApartmentProfile.object_id == object.id))
-
+                apartments_list = []
                 for apartment in apartments:
-
-                    check_apartment = await session.scalar(select(NewsApartments)
-                                                           .where(NewsApartments.apartment_id == apartment.id))
-
-                    if not check_apartment:
-                        new_news_ = NewsApartments(
-                            news_id=new_news.id,
-                            apartment_id=apartment.id
-                        )
-                        session.add(new_news_)
-                        await session.commit()
+                    new_news_ = NewsApartments(
+                        news_id=new_news.id,
+                        apartment_id=apartment.id
+                    )
+                    session.add(new_news_)
+                    await session.commit()
+                    apartments_list.append(apartment.id)
+                    await pred_send_notification(user, session, value='news',
+                                                 title='News', body=description,
+                                                 image=new_news.photo_path,
+                                                 order_id=new_news.id, apartment_id=apartments_list)
         else:
             new_apartment = NewsApartments(
                 apartment_id=apartment_id,
@@ -113,6 +114,9 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
             session.add(new_apartment)
 
             await session.commit()
+            await pred_send_notification(user, session, value='news',
+                                         title='News', body=description, image=new_news.photo_path,
+                                         order_id=new_news.id, apartment_id=apartment_id)
 
         return JSONResponse(content=new_news.to_dict(), status_code=status.HTTP_201_CREATED)
 

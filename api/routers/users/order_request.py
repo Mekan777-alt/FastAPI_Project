@@ -113,9 +113,11 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
         apartment_name = await session.scalar(select(ApartmentProfile)
                                               .where(ApartmentProfile.id == order_data.apartment_id))
-
+        service_id = await get_model_id(session, "Service", order_data.selected_services)
+        icon = await session.scalar(select(Service).where(Service.id == service_id))
         await pred_send_notification(user, session, "order", title=order_data.selected_services,
-                                     body=apartment_name.apartment_name)
+                                     body=apartment_name.apartment_name, order_id=order.id,
+                                     apartment_id=order_data.apartment_id, image=icon.big_icons_path)
         data = await get_user_profile(session, tenant_profile.id)
         return JSONResponse(content=data, status_code=status.HTTP_201_CREATED)
 

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from api.routers.users.config import get_guest_pass, post_guest_pass
 from schemas.user.guest_pass import GuestPassModel
+from firebase.notification import pred_send_notification
 
 
 router = APIRouter()
@@ -34,7 +35,9 @@ async def gust_pass_post(user: Annotated[dict, Depends(get_firebase_user_from_to
     try:
 
         data = await post_guest_pass(session, user['uid'], request)
-
+        await pred_send_notification(user, session, value='guest_pass',
+                                     title="Guest pass", body=f"{data[0]['visit_date']} - {data[0]['visit_time']} "
+                                                              f"- {data[0]['full_name']}")
         return data
 
     except Exception as e:

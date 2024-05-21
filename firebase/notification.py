@@ -5,17 +5,24 @@ from models.base import (TenantProfile, TenantApartments, UK, EmployeeUK, Apartm
                          NotificationUK, NotificationEmployee, NotificationTenants)
 
 
-async def send_notification(tokens, title, body, image=None):
+async def send_notification(tokens, title, body, role, image=None, content_id=None, apartment_id=None, screen=None):
     try:
+        data = {}
+        if screen == 'order':
+            data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen, "role": role}
+        elif screen == 'news':
+            data = {"id": content_id,  "screen": screen, "role": role}
         message = messaging.MulticastMessage(
+            tokens=tokens,
+            data={key: str(value) for key, value in data.items()},
             notification=messaging.Notification(
                 title=title,
                 body=body,
-                image=image
-            ),
-            tokens=tokens
+                image=image,
+            )
         )
-        messaging.send_multicast(message)
+        send = messaging.send_multicast(message)
+        print(f"Send notification - {send.success_count}")
         return True
 
     except Exception as e:
@@ -23,7 +30,8 @@ async def send_notification(tokens, title, body, image=None):
         return e
 
 
-async def pred_send_notification(user, session, value=None, title=None, body=None, image=None):
+async def pred_send_notification(user, session, value=None, title=None, body=None, image=None,
+                                 order_id=None, apartment_id=None):
     try:
 
         user_uid = user['uid']
@@ -58,7 +66,9 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     tokens.append(employee.device_token)
 
             if value == 'order':
-                notification = await send_notification(tokens, title, f"A new order for {body}")
+                notification = await send_notification(tokens, title, body=f"A new order for {body}",
+                                                       role=user_fb['role'], content_id=order_id,
+                                                       apartment_id=apartment_id, screen=value, image=image)
 
                 if notification:
 
@@ -82,7 +92,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                     return
             elif value == 'guest_pass':
-
                 notification = await send_notification(tokens, title, f"A new guest request for {body}")
 
                 if notification:
@@ -116,12 +125,30 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                 employees = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_uk.id))
 
                 for employee in employees:
+                    if employee.device_token:
+                        tokens.append(employee.device_token)
 
-                    tokens.append(employee.device_token)
+            if len(apartment_id) == 1:
+                tenant = await session.scalar(select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
 
-            if value == "add_news":
+                tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.id))
 
-                notification = await send_notification(tokens, title, f"A new news created {body}")
+                if tenant_token.device_token:
+                    tokens.append(tenant_token.device_token)
+            elif len(apartment_id) > 1:
+                for apart_id in apartment_id:
+                    tenants = await session.scalars(select(TenantApartments)
+                                                    .where(TenantApartments.apartment_id == apart_id))
+
+                    for tenant in tenants:
+                        tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.id))
+                        if tenant_token.device_token:
+                            tokens.append(tenant_token.device_token)
+            if value == "news":
+
+                notification = await send_notification(tokens, title,
+                                                       body=f"A new news created {body}", role=user_fb['role'],
+                                                       image=image, content_id=order_id, screen=value)
 
                 if notification:
                     new_not_uk = NotificationUK(
@@ -140,9 +167,9 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                     return
 
-                elif value == '':
+            elif value == '':
 
-                    pass
+                pass
 
         elif user_fb['role'] == 'Employee':
 
