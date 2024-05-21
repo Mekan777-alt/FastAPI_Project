@@ -58,7 +58,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     tokens.append(employee.device_token)
 
             if value == 'order':
-                print(objects_id)
                 notification = await send_notification(tokens, title, f"A new order for {body}")
 
                 if notification:
@@ -72,7 +71,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     session.add(new_not_uk)
                     await session.commit()
                     for object_id in objects_id:
-                        print(objects_id)
                         new_not_employee = NotificationEmployee(
                             title=title,
                             description=f"A new order for {body}",
