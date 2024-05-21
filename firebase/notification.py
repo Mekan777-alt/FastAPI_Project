@@ -44,9 +44,10 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             object_apart = await session.scalar(select(Object).where(Object.id == apartment.object_id))
 
             uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
-            tokens.append(uk.device_token)
+            if uk.device_token:
+                tokens.append(uk.device_token)
 
-            employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.uk_id == uk.id))
+            employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
             objects_id = []
 
@@ -70,6 +71,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     session.add(new_not_uk)
                     await session.commit()
                     for object_id in objects_id:
+                        print(objects_id)
+                        print(object_id)
                         new_not_employee = NotificationEmployee(
                             title=title,
                             description=f"A new order for {body}",
