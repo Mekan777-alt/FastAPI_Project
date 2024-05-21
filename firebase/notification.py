@@ -52,7 +52,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             objects_id = []
 
             for employee in employee_info:
-                objects_id.append(employee.object_id)
+                if employee.object_id not in objects_id:
+                    objects_id.append(employee.object_id)
                 if employee.device_token:
                     tokens.append(employee.device_token)
 
@@ -71,8 +72,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     session.add(new_not_uk)
                     await session.commit()
                     for object_id in objects_id:
-                        print(objects_id)
-                        print(object_id)
                         new_not_employee = NotificationEmployee(
                             title=title,
                             description=f"A new order for {body}",
