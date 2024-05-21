@@ -40,7 +40,6 @@ class EmployeeUK(Base):
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
-    notification_employee = relationship("NotificationEmployee", back_populates="employee")
 
     def to_dict(self):
         return {
@@ -79,6 +78,7 @@ class Object(Base):
     apartments = relationship('ApartmentProfile', back_populates='object')
     employees = relationship('EmployeeUK', back_populates='object')
     service_list_object = relationship('ServiceObjectList', back_populates='object')
+    notification_employee = relationship('NotificationEmployee', back_populates='object')
 
     def to_dict(self):
         return {
@@ -568,7 +568,7 @@ class NotificationEmployee(Base):
     type = Column(String)
     is_view = Column(Boolean, default=False)
 
-    employee = relationship("EmployeeUK", back_populates="notification_employee")
+    object = relationship("Object", back_populates="notification_employee")
 
     def to_dict(self):
         return {
