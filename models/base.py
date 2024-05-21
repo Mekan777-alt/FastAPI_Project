@@ -513,6 +513,8 @@ class NotificationTenants(Base):
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
     tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+    type = Column(String)
+    is_view = Column(Boolean, default=False)
 
     tenant = relationship("TenantProfile", back_populates="notification_tenants")
 
@@ -522,7 +524,9 @@ class NotificationTenants(Base):
             "created_at": self.created_at.strftime('%B %d, %Y'),
             "icon_path": self.icon_path,
             "title": self.title,
-            "description": self.description
+            "description": self.description,
+            "type": self.type,
+            "is_view": self.is_view,
         }
 
 
@@ -535,6 +539,8 @@ class NotificationUK(Base):
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
     uk_id = Column(Integer, ForeignKey(UK.id))
+    type = Column(String)
+    is_view = Column(Boolean, default=False)
 
     uk = relationship("UK", back_populates="notification_uk")
 
@@ -544,7 +550,9 @@ class NotificationUK(Base):
             "created_at": self.created_at.strftime('%B %d, %Y'),
             "icon_path": self.icon_path,
             "title": self.title,
-            "description": self.description
+            "description": self.description,
+            "is_view": self.is_view,
+            "type": self.type
         }
 
 
@@ -557,6 +565,8 @@ class NotificationEmployee(Base):
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
     object_id = Column(Integer, ForeignKey(EmployeeUK.id))
+    type = Column(String)
+    is_view = Column(Boolean, default=False)
 
     employee = relationship("EmployeeUK", back_populates="notification_employee")
 
@@ -566,5 +576,7 @@ class NotificationEmployee(Base):
             "created_at": self.created_at.strftime('%B %d, %Y'),
             "icon_path": self.icon_path,
             "title": self.title,
-            "description": self.description
+            "description": self.description,
+            "is_view": self.is_view,
+            "type": self.type
         }

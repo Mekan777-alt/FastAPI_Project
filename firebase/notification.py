@@ -49,9 +49,10 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
             for employee in employee_info:
-                tokens.append(employee.device_token)
+                if employee.device_token:
+                    tokens.append(employee.device_token)
 
-            if value == 'new_order':
+            if value == 'order':
 
                 notification = await send_notification(tokens, title, f"A new order for {body}")
 
@@ -60,12 +61,14 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     new_not_uk = NotificationUK(
                         title=title,
                         description=f"A new order for {body}",
+                        type=value,
                         uk_id=uk.id,
                     )
                     session.add(new_not_uk)
                     new_not_employee = NotificationEmployee(
                         title=title,
                         description=f"A new order for {body}",
+                        type=value,
                         object_id=object_apart.id,
                     )
                     session.add(new_not_employee)
@@ -80,12 +83,14 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     new_not_uk = NotificationUK(
                         title=title,
                         description=f"A new guest request for {body}",
+                        type=value,
                         uk_id=uk.id,
                     )
                     session.add(new_not_uk)
                     new_not_employee = NotificationEmployee(
                         title=title,
                         description=f"A new guest request for {body}",
+                        type=value,
                         object_id=object_apart.id,
                     )
                     session.add(new_not_employee)
