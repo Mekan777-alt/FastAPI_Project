@@ -51,7 +51,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             for employee in employee_info:
                 tokens.append(employee.device_token)
 
-            if value == 'order':
+            if value == 'new_order':
 
                 notification = await send_notification(tokens, title, f"A new order for {body}")
 

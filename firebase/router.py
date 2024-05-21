@@ -67,5 +67,3 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
     except Exception as e:
         return HTTPException(detail={'message': f'{e}'}, status_code=400)
-
-
