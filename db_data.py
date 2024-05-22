@@ -8,7 +8,7 @@ try:
 
     if conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name) VALUES (%s, %s, %s)",
+        cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name, device_token) VALUES (%s, %s, %s, %s)",
                            ('HtDEKpB94SYlSBnszZfDG3Vj2Gs2', 'null', 'UK_NAME'))
         conn.commit()
         cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
@@ -55,8 +55,8 @@ try:
 
         conn.commit()
 
-        cursor.execute("""INSERT INTO tenant_profiles (uuid, photo_path, active_request, balance) 
-        VALUES (%s, %s, %s, %s)""", ("7q70xZDv0Nci8GeVEt7kWFR6QyJ2", 'null', 0, 3696.13))
+        cursor.execute("""INSERT INTO tenant_profiles (uuid, photo_path, active_request, balance, device_token) 
+        VALUES (%s, %s, %s, %s, %s)""", ("7q70xZDv0Nci8GeVEt7kWFR6QyJ2", 'null', 0, 0))
 
         conn.commit()
 
@@ -111,6 +111,23 @@ try:
 
         conn.commit()
 
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (1, 1))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (1, 2))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (1, 3))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (1, 4))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (2, 1))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (2, 2))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (2, 3))
+        cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
+                       (2, 4))
+        conn.commit()
         cursor.execute("""INSERT INTO payment_details_uk (recipient_name, inn, kpp, account, bic, correspondent_account, 
         okpo, bank_name, uk_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                        ("Recipient", "5250000000", "525000000", "000000000000000000", "000000000000", "00000000000000000000000000",
