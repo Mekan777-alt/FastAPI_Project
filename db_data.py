@@ -9,19 +9,19 @@ try:
     if conn:
         cursor = conn.cursor()
         cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name, device_token) VALUES (%s, %s, %s, %s)",
-                           ('HtDEKpB94SYlSBnszZfDG3Vj2Gs2', 'null', 'UK_NAME'))
+                           ('HtDEKpB94SYlSBnszZfDG3Vj2Gs2', 'null', 'UK_NAME', "dpqmvMwUST-gOWVf3KkG8P:APA91bFd8JXPRWf_VUlI7QFNBBTtdLX0_Tkbls_63csq9pbu-JAHDQBV2d6OTldOatfCAeLPxPDe1-7Byaw1gY9X7NUQG26shoU7WL_mh8HcNRmvAnbAY6b8LgYborGsSJv1NtXxXHmi"))
         conn.commit()
-        cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
-                       ('uJd4bz7tRdaYq126edLI4aqLR9I3', 'Cleaning', 'null'))
-        cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
-                       ('uajcF2r45nZE6lGZVQsk515zgXE3', 'Electrician', 'null'))
-        cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
-                       ('BBEfkzQZVqcMwtiAvViEtdotyNj1', 'Roofer', 'null'))
-        cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
-                       ('CTNhKAndVTOXE45KUrzCGMOGDos2', 'Painter', 'null'))
-        cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
-                       ('Pyd59B6pARao3ewSFVf2Y1Ov1Co1', 'Plumber', 'null'))
-        conn.commit()
+        # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
+        #                ('uJd4bz7tRdaYq126edLI4aqLR9I3', 'Cleaning', 'null'))
+        # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
+        #                ('uajcF2r45nZE6lGZVQsk515zgXE3', 'Electrician', 'null'))
+        # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
+        #                ('BBEfkzQZVqcMwtiAvViEtdotyNj1', 'Roofer', 'null'))
+        # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
+        #                ('CTNhKAndVTOXE45KUrzCGMOGDos2', 'Painter', 'null'))
+        # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
+        #                ('Pyd59B6pARao3ewSFVf2Y1Ov1Co1', 'Plumber', 'null'))
+        # conn.commit()
         cursor.execute("INSERT INTO object_profiles (address, uk_id, object_name, photo_path) VALUES (%s, %s, %s, %s)", ('Object address', 1, 'Object name', 'http://217.25.95.113:8000/static/icons/big/object_main.jpg'))
         conn.commit()
         cursor.execute("INSERT INTO apartment_profiles (apartment_name, area, garden, "
@@ -42,21 +42,21 @@ try:
                        ('122-Floor-2nd floor, Smart, 120', 913.0, True, True, 'mts', 2500, 300.0, 'not', 1))
 
         conn.commit()
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Unified Contact Center', 'Unified Contact Center', '+7 (495) 150-08-02', 'smart17@sminex.com'))
-
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Offers and Feedback', 'If you have any comments or suggestions regarding the quality of '
-                                               'our services, please write to us', 'null', 'maintenance@sminex.com'))
-
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Mobile Application Technical Support', 'Mobile Application Technical Support',
-                        '+7 (495) 726-67-91', 'support@livenice.com'))
-
-        conn.commit()
+        # cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
+        #                ('Unified Contact Center', 'Unified Contact Center', '+7 (495) 150-08-02', 'smart17@sminex.com'))
+        #
+        # cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
+        #                ('Offers and Feedback', 'If you have any comments or suggestions regarding the quality of '
+        #                                        'our services, please write to us', 'null', 'maintenance@sminex.com'))
+        #
+        # cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
+        #                ('Mobile Application Technical Support', 'Mobile Application Technical Support',
+        #                 '+7 (495) 726-67-91', 'support@livenice.com'))
+        #
+        # conn.commit()
 
         cursor.execute("""INSERT INTO tenant_profiles (uuid, photo_path, active_request, balance, device_token) 
-        VALUES (%s, %s, %s, %s, %s)""", ("7q70xZDv0Nci8GeVEt7kWFR6QyJ2", 'null', 0, 0))
+        VALUES (%s, %s, %s, %s, %s)""", ("7A9ipzCF4EUVGZeruLCsOXL35j12", 'null', 0, 0, "dpqmvMwUST-gOWVf3KkG8P:APA91bFd8JXPRWf_VUlI7QFNBBTtdLX0_Tkbls_63csq9pbu-JAHDQBV2d6OTldOatfCAeLPxPDe1-7Byaw1gY9X7NUQG26shoU7WL_mh8HcNRmvAnbAY6b8LgYborGsSJv1NtXxXHmi"))
 
         conn.commit()
 
