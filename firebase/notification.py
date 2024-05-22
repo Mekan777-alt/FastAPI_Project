@@ -10,17 +10,16 @@ async def send_notification(tokens, title, body, role, image=None, content_id=No
         data = {}
         if screen == 'order':
             data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK"}
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image}
         elif screen == 'news':
             data = {"id": content_id,  "screen": screen,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK"}
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image}
         message = messaging.MulticastMessage(
             tokens=tokens,
             data={key: str(value) for key, value in data.items()},
             notification=messaging.Notification(
                 title=title,
                 body=body,
-                image=image,
             )
         )
         send = messaging.send_multicast(message)
