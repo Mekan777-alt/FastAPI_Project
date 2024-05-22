@@ -9,10 +9,11 @@ async def send_notification(tokens, title, body, role, image=None, content_id=No
     try:
         data = {}
         if screen == 'order':
-            data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen, "role": role,
+            data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen,
                     "click_action": "FLUTTER_NOTIFICATION_CLICK"}
         elif screen == 'news':
-            data = {"id": content_id,  "screen": screen, "role": role, "click_action": "FLUTTER_NOTIFICATION_CLICK"}
+            data = {"id": content_id,  "screen": screen,
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK"}
         message = messaging.MulticastMessage(
             tokens=tokens,
             data={key: str(value) for key, value in data.items()},
@@ -129,7 +130,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     if employee.device_token:
                         tokens.append(employee.device_token)
 
-            if len(apartment_id) == 1:
+            if apartment_id:
                 tenant = await session.scalar(select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
 
                 tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.id))

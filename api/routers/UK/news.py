@@ -101,7 +101,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
                     )
                     session.add(new_news_)
                     await session.commit()
-                    apartments_list.append(apartment.id)
+                    apartments_list.append(new_news_.id)
                     await pred_send_notification(user, session, value='news',
                                                  title='News', body=description,
                                                  image=new_news.photo_path,
