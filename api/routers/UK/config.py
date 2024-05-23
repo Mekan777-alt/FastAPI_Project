@@ -28,10 +28,10 @@ async def get_uk_profile(session, uk_id):
         "uk_name": uk.name,
         "photo_path": uk.photo_path,
         "requisites": requisites,
-        "news": []
+        # "news": []
     }
-    for n in news:
-        data['news'].append(n.to_dict())
+    # for n in news:
+    #     data['news'].append(n.to_dict())
     return data
 
 

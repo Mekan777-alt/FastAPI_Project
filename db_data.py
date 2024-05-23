@@ -132,10 +132,8 @@ try:
         # cursor.execute("""INSERT INTO news_apartments (apartment_id, news_id) VALUES (%s, %s)""",
         #                (2, 4))
         # conn.commit()
-        cursor.execute("""INSERT INTO payment_details_uk (recipient_name, inn, kpp, account, bic, correspondent_account, 
-        okpo, bank_name, uk_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                       ("Recipient", "5250000000", "525000000", "000000000000000000", "000000000000", "00000000000000000000000000",
-                        "0000000000", "Bank name", 1))
+        cursor.execute("""INSERT INTO payment_details_uk (recipient_name, inn, kpp, account, bic, correspondent_account, okpo, bank_name, uk_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                       ('Recipient', '5250000000', '525000000', '000000000000000000', '000000000000', '00000000000000000000000000', '0000000000', 'Bank name', 1))
 
         cursor.execute("""INSERT INTO payment_details_uk (recipient_name, inn, kpp, account, bic, correspondent_account, 
                 okpo, bank_name, uk_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
