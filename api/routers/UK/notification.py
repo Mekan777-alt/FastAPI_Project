@@ -35,20 +35,3 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
 
     except HTTPException as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
-
-
-@router.get('/notifications/{notification_id}')
-async def get_notification_id(notification_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                              session: AsyncSession = Depends(get_session)):
-
-    try:
-        notification = await session.scalar(select(NotificationUK).where(NotificationUK.id == notification_id))
-
-        if not notification:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Notification not found')
-
-        return notification.to_dict()
-
-    except HTTPException as e:
-
-        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)

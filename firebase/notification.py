@@ -24,7 +24,6 @@ async def send_notification(tokens, title, body, role=None, image=None, content_
             notification=messaging.Notification(
                 title=title,
                 body=body,
-                image=image,
             )
         )
         send = messaging.send_multicast(message)
@@ -81,6 +80,9 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         description=f"A new order for {body}",
                         type=value,
                         uk_id=uk.id,
+                        content_id=order_id,
+                        apartment_id=apartment_id,
+                        image=image,
                     )
                     session.add(new_not_uk)
                     await session.commit()
@@ -90,6 +92,9 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             description=f"A new order for {body}",
                             type=value,
                             object_id=object_id,
+                            content_id=order_id,
+                            apartment_id=apartment_id,
+                            image=image,
                         )
                         session.add(new_not_employee)
                         await session.commit()
@@ -153,6 +158,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                     title=title,
                                     description=f"A new news created {body}",
                                     tenant_id=tenant.id,
+                                    content_id=order_id,
+                                    image=image,
                                 )
                                 session.add(new_not_tenant)
                                 await session.commit()
@@ -167,6 +174,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         title=title,
                         description=f"A new news created {body}",
                         object_id=objects_uk.id,
+                        content_id=order_id,
+                        image=image,
                     )
                     session.add(new_not_employee)
                     await session.commit()

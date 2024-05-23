@@ -515,6 +515,8 @@ class NotificationTenants(Base):
     tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
     type = Column(String)
     is_view = Column(Boolean, default=False)
+    content_id = Column(Integer)
+    image = Column(String)
 
     tenant = relationship("TenantProfile", back_populates="notification_tenants")
 
@@ -527,6 +529,8 @@ class NotificationTenants(Base):
             "description": self.description,
             "type": self.type,
             "is_view": self.is_view,
+            "content_id": self.content_id,
+            "image": self.image,
         }
 
 
@@ -541,6 +545,9 @@ class NotificationUK(Base):
     uk_id = Column(Integer, ForeignKey(UK.id))
     type = Column(String)
     is_view = Column(Boolean, default=False)
+    content_id = Column(Integer)
+    apartment_id = Column(Integer)
+    image = Column(String)
 
     uk = relationship("UK", back_populates="notification_uk")
 
@@ -552,7 +559,10 @@ class NotificationUK(Base):
             "title": self.title,
             "description": self.description,
             "is_view": self.is_view,
-            "type": self.type
+            "type": self.type,
+            "content_id": self.content_id,
+            "image": self.image,
+            "apartment_id": self.apartment_id,
         }
 
 
@@ -567,6 +577,9 @@ class NotificationEmployee(Base):
     object_id = Column(Integer, ForeignKey(Object.id))
     type = Column(String)
     is_view = Column(Boolean, default=False)
+    content_id = Column(Integer)
+    apartment_id = Column(Integer)
+    image = Column(String)
 
     object = relationship("Object", back_populates="notification_employee")
 
@@ -578,5 +591,8 @@ class NotificationEmployee(Base):
             "title": self.title,
             "description": self.description,
             "is_view": self.is_view,
-            "type": self.type
+            "type": self.type,
+            "content_id": self.content_id,
+            "apartment_id": self.apartment_id,
+            "image": self.image,
         }
