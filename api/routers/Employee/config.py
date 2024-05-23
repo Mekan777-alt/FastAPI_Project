@@ -10,6 +10,7 @@ from firebase_admin import auth, firestore
 from starlette import status
 from datetime import date, timedelta
 from sqlalchemy import delete, func
+from firebase.notification import pred_send_notification
 
 
 async def get_employee_profile(session, data_from_firebase, object_id):
@@ -324,14 +325,15 @@ async def get_new_order_id(session, apartment_id, order_id):
         raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-async def select_executor(session, order_id, executor_id):
+async def select_executor(user, session, order_id, executor_id):
     try:
         check_order = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
         if check_order:
             if check_order.executor_id != executor_id:
                 check_order.executor_id = executor_id
                 await session.commit()
-
+                await pred_send_notification(user, session, order_id=order_id, apartment_id=executor_id,
+                                             value='replacing_executor')
                 return {"executor_id": executor_id, "order_id": order_id}
         else:
             executor = ExecutorOrders(
@@ -485,7 +487,8 @@ async def new_meters(session, meter_data, apartment_id, user):
         session.add(readings)
         await session.commit()
 
-        return readings
+        await pred_send_notification(user=user, apartment_id=apartment_id, )
+        return readings.to_dict()
     except HTTPException as e:
         return e
 
@@ -570,6 +573,9 @@ async def create_invoice(session, apartment_id, invoice_data, user):
                 tenant.balance += invoice_data.amount
                 await session.commit()
 
+            await pred_send_notification(user, session, value='invoice', apartment_id=apartment_id,
+                                         image=service.big_icons_path, order_id=service.id)
+
             return new_invoice
 
         if meter_service.name == service_name:
@@ -593,6 +599,9 @@ async def create_invoice(session, apartment_id, invoice_data, user):
 
                 tenant.balance += invoice_data.amount
                 await session.commit()
+
+            await pred_send_notification(user, session, value='invoice', apartment_id=apartment_id,
+                                         image=service.big_icons_path, order_id=service.id)
 
             return new_invoice
 
