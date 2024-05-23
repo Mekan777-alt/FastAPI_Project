@@ -238,35 +238,35 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                 if value == 'replacing_executor':
                     new_not_tenant = NotificationTenants(
-                        title=title,
+                        title="Order",
                         description=f"Replacing executor, new executor - {executor_info.first_name} "
                                     f"{executor_info.last_name}",
                         tenant_id=tenant_info.id,
-                        type=value,
+                        type='order',
                         content_id=order_id,
                         image=image,
                     )
                     session.add(new_not_tenant)
                     await session.commit()
-                    await send_notification(tokens=tokens, title=f"New replacing executor",
+                    await send_notification(tokens=tokens, title=f"Order",
                                             body=f'Replacing executor, new executor - '
-                                                 f'{executor_info.first_name} {executor_info.last_name}', screen=value,
+                                                 f'{executor_info.first_name} {executor_info.last_name}', screen='order',
                                             content_id=order_id)
                 elif value == 'send in progress order':
                     new_not_tenant = NotificationTenants(
-                        title=title,
+                        title="Order",
                         description=f"I've got the order to work - {executor_info.first_name} {executor_info.last_name}"
                                     f"{executor_info.last_name}",
                         tenant_id=tenant_info.id,
-                        type=value,
+                        type='order',
                         content_id=order_id,
                         image=image,
                     )
                     session.add(new_not_tenant)
                     await session.commit()
-                    await send_notification(tokens=tokens, title=f"Order № {order_id}",
+                    await send_notification(tokens=tokens, title=f"Order",
                                             body=f"I've got the order to work - "
-                                                 f"{executor_info.first_name} {executor_info.last_name}", screen=value,
+                                                 f"{executor_info.first_name} {executor_info.last_name}", screen='order',
                                             content_id=order_id)
 
             elif value == '':
