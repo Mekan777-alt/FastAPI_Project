@@ -213,6 +213,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             title=title,
                             description=f"A new invoice for {apartment_info.apartment_name}",
                             tenant_id=tenant.id,
+                            content_id=order_id,
+                            image=image,
                         )
                         session.add(new_not_tenant)
                         await session.commit()
@@ -222,7 +224,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                         image=image,
                                         content_id=order_id, screen=value)
 
-            elif value == 'replacing_executor':
+            elif value == 'replacing_executor' or value == 'send in progress order':
                 tokens = []
                 executor_info = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == apartment_id))
 
@@ -231,16 +233,44 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                                    .where(TenantProfile.id == tenant_order.tenant_id))
 
                 if tenant_info.device_token:
+
                     tokens.append(tenant_info.device_token)
 
-                await send_notification(tokens=tokens, title=f"New replacing executor",
-                                        body=f'Replacing executor, new executor - '
-                                             f'{executor_info.first_name} {executor_info.last_name}', screen=value,
-                                        content_id=order_id)
+                if value == 'replacing_executor':
+                    new_not_tenant = NotificationTenants(
+                        title=title,
+                        description=f"Replacing executor, new executor - {executor_info.first_name} "
+                                    f"{executor_info.last_name}",
+                        tenant_id=tenant_info.id,
+                        type=value,
+                        content_id=order_id,
+                        image=image,
+                    )
+                    session.add(new_not_tenant)
+                    await session.commit()
+                    await send_notification(tokens=tokens, title=f"New replacing executor",
+                                            body=f'Replacing executor, new executor - '
+                                                 f'{executor_info.first_name} {executor_info.last_name}', screen=value,
+                                            content_id=order_id)
+                elif value == 'send in progress order':
+                    new_not_tenant = NotificationTenants(
+                        title=title,
+                        description=f"I've got the order to work - {executor_info.first_name} {executor_info.last_name}"
+                                    f"{executor_info.last_name}",
+                        tenant_id=tenant_info.id,
+                        type=value,
+                        content_id=order_id,
+                        image=image,
+                    )
+                    session.add(new_not_tenant)
+                    await session.commit()
+                    await send_notification(tokens=tokens, title=f"Order № {order_id}",
+                                            body=f"I've got the order to work - "
+                                                 f"{executor_info.first_name} {executor_info.last_name}", screen=value,
+                                            content_id=order_id)
 
-            elif value == 'meters':
+            elif value == '':
                 pass
-
 
     except Exception as e:
 
