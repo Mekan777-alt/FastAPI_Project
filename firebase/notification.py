@@ -28,6 +28,8 @@ async def send_notification(tokens, title, body, image=None, content_id=None, ap
         )
         send = messaging.send_multicast(message)
         print(f"Send notification - {send.success_count}")
+        print(f"Not send notify count - {send.failure_count}")
+        print(f"Responses {send.responses}")
         return True
 
     except Exception as e:
@@ -74,7 +76,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                                        apartment_id=apartment_id, screen=value, image=image,
                                                        user_id=user_uid)
 
-                if notification:
+                if notification is True:
 
                     new_not_uk = NotificationUK(
                         title=title,

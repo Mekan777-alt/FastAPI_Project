@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from firebase_admin import firestore
 from sqlalchemy import select
 from firebase.config import get_firebase_user_from_token, get_staff_firebase, delete_staff_firebase
 from config import get_session
@@ -353,7 +354,6 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                 else:
                     executor_data.append(executor.to_dict())
 
-        icon_path = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
         service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
 
         service_data = []
@@ -367,9 +367,10 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
             service_data.append(service_name.name)
         order.is_view = True
         await session.commit()
+
         order_dict = {
             "order_id": order.id,
-            "icon_path": icon_path.big_icons_path if icon_path else None,
+            "icon_path": service.big_icons_path if service else None,
             "apartment_name": order.apartments.apartment_name,
             "service_name": service.name,
             "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
