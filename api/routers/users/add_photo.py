@@ -18,7 +18,7 @@ async def add_photo(user: Annotated[dict, Depends(get_firebase_user_from_token)]
 
     try:
         photo.filename = photo.filename.lower()
-        path = f'static/photo/user/{photo.filename}'
+        path = f'static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)

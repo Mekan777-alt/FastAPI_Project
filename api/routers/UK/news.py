@@ -69,7 +69,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
             return "Company not found"
 
         photo.filename = photo.filename.lower()
-        path = f'static/photo/news/{photo.filename}'
+        path = f'static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
