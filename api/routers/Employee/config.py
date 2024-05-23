@@ -120,6 +120,7 @@ async def get_employee_info(session, user):
 
         del firestore['role']
         firestore['photo_path'] = check_employee.photo_path
+        firestore['object_id'] = check_employee.object_id
 
         return firestore
     except Exception as e:
