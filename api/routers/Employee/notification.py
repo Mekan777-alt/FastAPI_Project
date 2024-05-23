@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
-    prefix='/api/v1'
+    prefix='/api/v1/employee'
 )
 
 
