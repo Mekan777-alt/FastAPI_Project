@@ -144,6 +144,15 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.id))
 
                     if tenant_token.device_token:
+                        new_not_tenant = NotificationTenants(
+                            title=title,
+                            description=f"A new news created {body}",
+                            tenant_id=tenant.id,
+                            content_id=order_id,
+                            image=image,
+                        )
+                        session.add(new_not_tenant)
+                        await session.commit()
                         tokens.append(tenant_token.device_token)
                 elif len(apartment_id) > 1:
                     for apart_id in apartment_id:
