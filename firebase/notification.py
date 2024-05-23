@@ -7,12 +7,12 @@ from models.base import (TenantProfile, TenantApartments, UK, EmployeeUK, Apartm
 
 
 async def send_notification(tokens, title, body, image=None, content_id=None, apartment_id=None,
-                            screen=None):
+                            screen=None, user_id=None):
     try:
         data = {}
         if screen == 'order':
             data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image}
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image, "user_id": user_id}
         elif screen == 'news':
             data = {"id": content_id, "screen": screen,
                     "click_action": "FLUTTER_NOTIFICATION_CLICK", "imageUrl": image}
@@ -71,7 +71,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         tokens.append(employee.device_token)
                 notification = await send_notification(tokens, title, body=f"A new order for {body}",
                                                        content_id=order_id,
-                                                       apartment_id=apartment_id, screen=value, image=image)
+                                                       apartment_id=apartment_id, screen=value, image=image,
+                                                       user_id=user_uid)
 
                 if notification:
 
