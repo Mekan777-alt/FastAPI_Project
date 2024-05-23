@@ -38,6 +38,11 @@ async def register_user(user, session, device_token):
         if data['role'] == 'client':
             query = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
 
+            if not query.device_token or device_token != query.device_token:
+
+                query.device_token = device_token
+                await session.commit()
+
             if not query:
                 user = TenantProfile(
                     uuid=user['uid'],
@@ -57,6 +62,11 @@ async def register_user(user, session, device_token):
         elif data['role'] == 'Employee':
 
             query = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+
+            if not query.device_token or device_token != query.device_token:
+
+                query.device_token = device_token
+                await session.commit()
 
             if not query:
                 employee = EmployeeUK(
