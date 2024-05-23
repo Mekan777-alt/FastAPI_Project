@@ -9,12 +9,12 @@ try:
     if conn:
         cursor = conn.cursor()
         cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name, device_token) VALUES (%s, %s, %s, %s)",
-                           ('HtDEKpB94SYlSBnszZfDG3Vj2Gs2', 'null', 'UK_NAME', "dpqmvMwUST-gOWVf3KkG8P:APA91bFd8JXPRWf_VUlI7QFNBBTtdLX0_Tkbls_63csq9pbu-JAHDQBV2d6OTldOatfCAeLPxPDe1-7Byaw1gY9X7NUQG26shoU7WL_mh8HcNRmvAnbAY6b8LgYborGsSJv1NtXxXHmi"))
-
-        cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name, device_token) VALUES (%s, %s, %s, %s)",
-                       ('hnBiZATbISeH4k9vTtTmX4sA1LK2', 'null', 'UK_NAME - 2',
-                        "dpqmvMwUST-gOWVf3KkG8P:APA91bFd8JXPRWf_VUlI7QFNBBTtdLX0_Tkbls_63csq9pbu-JAHDQBV2d6OTldOatfCAeLPxPDe1-7Byaw1gY9X7NUQG26shoU7WL_mh8HcNRmvAnbAY6b8LgYborGsSJv1NtXxXHmi"))
+                           ('GHMBxjGo4TUMxFgSnw773qOyYdO2', None, 'AdriaApart', None))
         conn.commit()
+        # cursor.execute("INSERT INTO uk_profiles (uuid, photo_path, name, device_token) VALUES (%s, %s, %s, %s)",
+        #                ('hnBiZATbISeH4k9vTtTmX4sA1LK2', 'null', 'UK_NAME - 2',
+        #                 "dpqmvMwUST-gOWVf3KkG8P:APA91bFd8JXPRWf_VUlI7QFNBBTtdLX0_Tkbls_63csq9pbu-JAHDQBV2d6OTldOatfCAeLPxPDe1-7Byaw1gY9X7NUQG26shoU7WL_mh8HcNRmvAnbAY6b8LgYborGsSJv1NtXxXHmi"))
+        # conn.commit()
         # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
         #                ('uJd4bz7tRdaYq126edLI4aqLR9I3', 'Cleaning', 'null'))
         # cursor.execute("INSERT INTO executor_profiles (uuid, specialization, photo_path) VALUES (%s, %s, %s)",
