@@ -70,7 +70,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     if employee.device_token:
                         tokens.append(employee.device_token)
                 notification = await send_notification(tokens, title, body=f"A new order for {body}",
-                                                       role=user_fb['role'], content_id=order_id,
+                                                       content_id=order_id,
                                                        apartment_id=apartment_id, screen=value, image=image)
 
                 if notification:
