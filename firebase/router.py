@@ -17,18 +17,18 @@ router = APIRouter(
 )
 
 
-# @router.post("/login")
-# async def login_user(request: Request):
-#     req_json = await request.json()
-#     email = req_json["email"]
-#     password = req_json["password"]
-#     try:
-#         user = pb.auth().sign_in_with_email_and_password(email, password)
-#         access_token = user['idToken']
-#         refresh_token = user['refreshToken']
-#         return JSONResponse(content={"access_token": access_token, "refresh_token": refresh_token}, status_code=200)
-#     except:
-#         return HTTPException(detail={'message': 'There was an error logging in'}, status_code=400)
+@router.post("/login", include_in_schema=False)
+async def login_user(request: Request):
+    req_json = await request.json()
+    email = req_json["email"]
+    password = req_json["password"]
+    try:
+        user = pb.auth().sign_in_with_email_and_password(email, password)
+        access_token = user['idToken']
+        refresh_token = user['refreshToken']
+        return JSONResponse(content={"access_token": access_token, "refresh_token": refresh_token}, status_code=200)
+    except:
+        return HTTPException(detail={'message': 'There was an error logging in'}, status_code=400)
 
 
 @router.get("/login", include_in_schema=False)

@@ -4,7 +4,7 @@ from config import DB_HOST, DB_NAME, DB_PORT, DB_USER, DB_PASSWORD
 import psycopg2
 
 try:
-    conn = psycopg2.connect(dbname="fastAPI", user=DB_USER, password=DB_PASSWORD, host='db', port=DB_PORT)
+    conn = psycopg2.connect(dbname="fastAPI", user=DB_USER, password=DB_PASSWORD, host='localhost', port=DB_PORT)
 
     if conn:
         cursor = conn.cursor()
