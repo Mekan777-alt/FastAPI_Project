@@ -8,7 +8,9 @@ from models.base import NotificationEmployee, EmployeeUK
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/api/v1'
+)
 
 
 @router.get('/notifications')
