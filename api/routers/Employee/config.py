@@ -324,7 +324,7 @@ async def get_new_order_id(session, apartment_id, order_id):
         raise HTTPException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-async def select_executor(user, session, order_id, executor_id):
+async def select_executor(user, session, order_id, executor_id, apartment_id):
     try:
         check_order = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
         order = await session.scalar(select(Order).where(Order.id == order_id))
@@ -333,7 +333,8 @@ async def select_executor(user, session, order_id, executor_id):
             if check_order.executor_id != executor_id:
                 check_order.executor_id = executor_id
                 await session.commit()
-                await pred_send_notification(user, session, order_id=order_id, apartment_id=executor_id,
+                await pred_send_notification(user, session, order_id=order_id, apartment_id=apartment_id,
+                                             executor_id=executor_id,
                                              value='replacing_executor', image=service.big_icons_path
                     if service.big_icons_path else service.mini_icons_path)
                 return {"executor_id": executor_id, "order_id": order_id}
@@ -345,7 +346,8 @@ async def select_executor(user, session, order_id, executor_id):
             session.add(executor)
             order.status = 'in progress'
             await session.commit()
-            await pred_send_notification(user, session, order_id=order_id, apartment_id=executor_id,
+            await pred_send_notification(user, session, order_id=order_id, apartment_id=apartment_id,
+                                         executor_id=executor_id,
                                          value='send in progress order', image=service.big_icons_path
                     if service.big_icons_path else service.mini_icons_path)
             return {"executor_id": executor.executor_id, "order_id": executor.order_id}

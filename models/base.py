@@ -238,7 +238,6 @@ class TenantApartments(Base):
     apartment = relationship('ApartmentProfile', back_populates='tenant_apartments')
 
 
-
 class Service(Base):
     __tablename__ = 'services'
     id = Column(Integer, primary_key=True)
@@ -494,7 +493,6 @@ class GuestPassDocuments(Base):
     guest_pass_doc = relationship("GuestPass", back_populates="guest_pass")
 
     def to_dict(self):
-
         return {
             "id": self.id,
             "file_name": self.file_name,

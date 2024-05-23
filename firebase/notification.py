@@ -6,7 +6,7 @@ from models.base import (TenantProfile, TenantApartments, UK, EmployeeUK, Apartm
                          OrderFromTenant, ExecutorsProfile)
 
 
-async def send_notification(tokens, title, body, role=None, image=None, content_id=None, apartment_id=None,
+async def send_notification(tokens, title, body, image=None, content_id=None, apartment_id=None,
                             screen=None):
     try:
         data = {}
@@ -36,7 +36,7 @@ async def send_notification(tokens, title, body, role=None, image=None, content_
 
 
 async def pred_send_notification(user, session, value=None, title=None, body=None, image=None,
-                                 order_id=None, apartment_id=None):
+                                 order_id=None, apartment_id=None, executor_id=None):
     try:
 
         user_uid = user['uid']
@@ -177,7 +177,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                 tokens.append(tenant_token.device_token)
 
                 notification = await send_notification(tokens, title,
-                                                       body=f"A new news created {body}", role=user_fb['role'],
+                                                       body=f"A new news created {body}",
                                                        image=image, content_id=order_id, screen=value)
 
                 if notification:
@@ -226,7 +226,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
             elif value == 'replacing_executor' or value == 'send in progress order':
                 tokens = []
-                executor_info = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == apartment_id))
+                executor_info = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
 
                 tenant_order = await session.scalar(select(OrderFromTenant).where(OrderFromTenant.order_id == order_id))
                 tenant_info = await session.scalar(select(TenantProfile)
@@ -251,7 +251,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     await send_notification(tokens=tokens, title=f"Order",
                                             body=f'Replacing executor, new executor - '
                                                  f'{executor_info.first_name} {executor_info.last_name}', screen='order',
-                                            content_id=order_id)
+                                            content_id=order_id, )
                 elif value == 'send in progress order':
                     new_not_tenant = NotificationTenants(
                         title="Order",
@@ -267,7 +267,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     await send_notification(tokens=tokens, title=f"Order",
                                             body=f"I've got the order to work - "
                                                  f"{executor_info.first_name} {executor_info.last_name}", screen='order',
-                                            content_id=order_id)
+                                            content_id=order_id, apartment_id=apartment_id)
 
             elif value == '':
                 pass
