@@ -4,7 +4,7 @@ from firebase.config import get_firebase_user_from_token
 from typing import Annotated
 from starlette.responses import JSONResponse
 from starlette import status
-from models.base import NotificationUK, UK
+from models.base import NotificationEmployee, EmployeeUK
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,15 +16,15 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
                             session: AsyncSession = Depends(get_session)):
     try:
 
-        company_uid = user['uid']
+        employee_uid = user['uid']
 
-        company_info = await session.scalar(select(UK).where(UK.uuid == company_uid))
+        employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
 
-        if not company_info:
-
+        if not employee_info:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
 
-        notifications = await session.scalars(select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
+        notifications = await session.scalars(select(NotificationEmployee)
+                                              .where(NotificationEmployee.object_id == employee_info.object_id))
 
         notification_list = []
 
@@ -40,9 +40,9 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
 @router.get('/notifications/{notification_id}')
 async def get_notification_id(notification_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                               session: AsyncSession = Depends(get_session)):
-
     try:
-        notification = await session.scalar(select(NotificationUK).where(NotificationUK.id == notification_id))
+        notification = await session.scalar(select(NotificationEmployee)
+                                            .where(NotificationEmployee.id == notification_id))
 
         if not notification:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Notification not found')
