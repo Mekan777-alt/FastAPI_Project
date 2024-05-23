@@ -147,6 +147,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         new_not_tenant = NotificationTenants(
                             title=title,
                             description=f"A new news created {body}",
+                            type=value,
                             tenant_id=tenant.id,
                             content_id=order_id,
                             image=image,
@@ -167,6 +168,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                     title=title,
                                     description=f"A new news created {body}",
                                     tenant_id=tenant.id,
+                                    type=value,
                                     content_id=order_id,
                                     image=image,
                                 )
