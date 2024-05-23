@@ -15,7 +15,7 @@ async def send_notification(tokens, title, body, role=None, image=None, content_
                     "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image}
         elif screen == 'news':
             data = {"id": content_id, "screen": screen,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image}
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "imageUrl": image}
         elif screen == 'invoice':
             data = {"id": content_id, "screen": screen, "image": image, "click_action": "FLUTTER_NOTIFICATION_CLICK"}
         message = messaging.MulticastMessage(
