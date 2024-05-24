@@ -57,7 +57,7 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
                                     session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'static/photo/apartments/{photo.filename}'
+        path = f'static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
