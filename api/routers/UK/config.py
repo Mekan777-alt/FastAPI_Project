@@ -1,7 +1,8 @@
 import firebase_admin.auth
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from models.base import UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service, News
+from models.base import (UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service, News,
+                         NotificationEmployee, NotificationUK)
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
 from firebase_admin import auth, firestore
@@ -76,7 +77,6 @@ async def get_staff_uk(session, user):
 
         staff_list = []
         for staff_uk in all_staff_uuid:
-
             staff = await get_staff_firebase(staff_uk.uuid)
 
             del staff['role']
@@ -165,7 +165,6 @@ async def get_staff_delete(session, staff_id):
 
 
 async def get_profile_uk(session, user):
-
     try:
 
         uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
@@ -184,7 +183,6 @@ async def get_profile_uk(session, user):
 
 
 async def get_object_id(session, object_id):
-
     try:
 
         object = await session.scalar(select(Object).where(Object.id == object_id))
@@ -200,7 +198,6 @@ async def get_object_id(session, object_id):
         services = await session.scalars(select(ServiceObjectList).where(ServiceObjectList.object_id == object.id))
 
         for service in services:
-
             service_id = await session.scalar(select(Service).where(Service.id == service.service_id))
 
             data['list_services'].append({"id": service_id.id, "service_name": service_id.name})
@@ -213,7 +210,6 @@ async def get_object_id(session, object_id):
 
 
 async def get_apartments_from_object(session, object_id):
-
     try:
 
         apartments = await session.scalars(select(ApartmentProfile).where(ApartmentProfile.object_id == object_id))
@@ -238,7 +234,6 @@ async def get_apartments_from_object(session, object_id):
 
 
 async def create_apartment_for_object(session, object_id, apartment_data):
-
     try:
 
         apartment = ApartmentProfile(
@@ -305,7 +300,6 @@ async def create_employee(session, employee_data, user):
 
 
 async def get_staff_object(session, object_id):
-
     try:
 
         staff_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_id))
@@ -313,7 +307,6 @@ async def get_staff_object(session, object_id):
         data = []
 
         for employee in staff_info:
-
             employee_data = await get_staff_firebase(employee.uuid)
             del employee_data['role']
             del employee_data['email']
@@ -328,14 +321,12 @@ async def get_staff_object(session, object_id):
 
 
 async def get_staff_id_object(session, object_id, staff_id):
-
     try:
 
         staff_info = await session.scalar(select(EmployeeUK).where(
             (EmployeeUK.id == staff_id) & (EmployeeUK.object_id == object_id)))
 
         if staff_info is None:
-
             return "Staff ID not found"
 
         object_info = await session.scalar(select(Object).where(Object.id == staff_info.object_id))
@@ -375,16 +366,73 @@ async def get_all_news(session, uk):
 
 async def get_news_id(session, uk, news_id):
     try:
+        if uk['role'] == 'Company':
+            uk_uid = uk['uid']
+            uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
-        uk_uid = uk['uid']
-        uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+            if uk_info is not None:
+                news = await session.scalar(select(News)
+                                            .where((News.uk_id == uk_info.id) & (News.id == news_id)))
 
-        news = await session.scalar(select(News)
-                                    .where((News.uk_id == uk_info.id) & (News.id == news_id)))
+                if not news:
+                    return "News not found"
 
-        if not news:
-            return "News not found"
+                db = firestore.client()
+                query = db.collection('notifications').where('id', '==', f'{news_id}')
 
-        return news.to_dict()
+                result = query.stream()
+
+                for doc in result:
+
+                    data = doc.to_dict()
+
+                    if data['screen'] == 'news':
+                        view = data['is_view']['company']
+                        db.collection("notifications").document(doc.id).update({f'{view}': True})
+                local_notify = await session.scalar(select(NotificationUK).where(
+                    (NotificationUK.content_id == news_id) & (NotificationUK.type == 'news')))
+
+                if not local_notify:
+                    print("Notification not found")
+
+                local_notify.is_view = True
+                await session.commit()
+
+                return news.to_dict()
+
+        elif uk['role'] == 'Employee':
+            employee_uid = uk['uid']
+            employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
+
+            if employee_info is not None:
+                news = await session.scalar(select(News).where((News.id == news_id)
+                                                               & (News.uk_id == employee_info.uk_id)))
+
+                if not news:
+                    return "News not found"
+
+                db = firestore.client()
+                query = db.collection('notifications').where('id', '==', f'{news_id}')
+
+                result = query.stream()
+
+                for doc in result:
+
+                    data = doc.to_dict()
+
+                    if data['screen'] == 'news':
+                        view = data['is_view']['employee']
+                        db.collection("notifications").document(doc.id).update({f'{view}': True})
+
+                local_notify = await session.scalar(select(NotificationEmployee)
+                                                    .where((NotificationEmployee.content_id == news_id) &
+                                                           (NotificationEmployee.type == 'news')))
+                if not local_notify:
+                    print("Notification not found")
+
+                local_notify.is_view = True
+                await session.commit()
+
+                return news.to_dict()
     except Exception as e:
         raise e
