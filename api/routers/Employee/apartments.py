@@ -326,7 +326,6 @@ async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase
 async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
-
         order = await session.scalar(
             select(Order)
             .where(Order.id == order_id)
@@ -379,8 +378,9 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
             data = doc.to_dict()
 
             if data['screen'] == 'order':
+                user_fb = await get_staff_firebase(user['uid'])
 
-                if user['role'] == "Employee":
+                if user_fb['role'] == "Employee":
                     db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
 
                     employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
@@ -391,14 +391,15 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
                     employee_notify.is_view = True
                     await session.commit()
-                db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
+                elif user_fb['role'] == "Company":
+                    db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
 
-                company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+                    company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
-                company_notify = await session.scalar(select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
+                    company_notify = await session.scalar(select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
 
-                company_notify.is_view = True
-                await session.commit()
+                    company_notify.is_view = True
+                    await session.commit()
 
         order_dict = {
             "order_id": order.id,

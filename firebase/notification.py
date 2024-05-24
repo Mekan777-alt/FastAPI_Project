@@ -128,7 +128,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
             if value == "news":
                 tokens = []
                 uk_info = await session.scalar(select(UK).where(UK.uuid == user_uid))
-                tokens.append(uk_info.device_token)
 
                 objects_uk = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
 
