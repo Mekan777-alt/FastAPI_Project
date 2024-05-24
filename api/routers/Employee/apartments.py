@@ -6,7 +6,8 @@ from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from models.base import (ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile, Order, ExecutorOrders,
-                         ExecutorsProfile, Service, AdditionalService, AdditionalServiceList)
+                         ExecutorsProfile, Service, AdditionalService, AdditionalServiceList,
+                         NotificationUK, NotificationEmployee, UK)
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
@@ -23,8 +24,6 @@ from api.routers.Employee.config import (get_apartment_list, get_apartments_info
 from starlette.responses import JSONResponse
 from schemas.employee.bathroom import CreateBathroom
 from schemas.uk.add_tenant import AddTenant
-# from google.cloud import firestore
-from google.cloud.firestore_v1.base_query import FieldFilter
 
 router = APIRouter(
     prefix="/api/v1/employee"
@@ -384,7 +383,22 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                 if user['role'] == "Employee":
                     db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
 
+                    employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+
+                    employee_notify = await session.scalar(select(NotificationEmployee)
+                                                        .where(
+                        NotificationEmployee.object_id == employee_info.object_id))
+
+                    employee_notify.is_view = True
+                    await session.commit()
                 db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
+
+                company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+
+                company_notify = await session.scalar(select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
+
+                company_notify.is_view = True
+                await session.commit()
 
         order_dict = {
             "order_id": order.id,
