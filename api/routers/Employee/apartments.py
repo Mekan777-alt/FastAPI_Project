@@ -382,11 +382,9 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
             if data['screen'] == 'order':
 
                 if user['role'] == "Employee":
-                    view = data['is_view']['employee']
-                    db.collection("notifications").document(doc.id).update({f'{view}': True})
+                    db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
 
-                view = data['is_view']['company']
-                db.collection("notifications").document(doc.id).update({f'{view}': True})
+                db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
 
         order_dict = {
             "order_id": order.id,

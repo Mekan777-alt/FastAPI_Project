@@ -387,8 +387,7 @@ async def get_news_id(session, uk, news_id):
                     data = doc.to_dict()
 
                     if data['screen'] == 'news':
-                        view = data['is_view']['company']
-                        db.collection("notifications").document(doc.id).update({f'{view}': True})
+                        db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
                 local_notify = await session.scalar(select(NotificationUK).where(
                     (NotificationUK.content_id == news_id) & (NotificationUK.type == 'news')))
 
@@ -421,8 +420,7 @@ async def get_news_id(session, uk, news_id):
                     data = doc.to_dict()
 
                     if data['screen'] == 'news':
-                        view = data['is_view']['employee']
-                        db.collection("notifications").document(doc.id).update({f'{view}': True})
+                        db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
 
                 local_notify = await session.scalar(select(NotificationEmployee)
                                                     .where((NotificationEmployee.content_id == news_id) &

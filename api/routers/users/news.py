@@ -50,15 +50,6 @@ async def get_news_id(user: Annotated[dict, Depends(get_firebase_user_from_token
                       session: AsyncSession = Depends(get_session)):
     try:
 
-        tenant_uid = user['uid']
-
-        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == tenant_uid))
-
-        if not tenant_info:
-            return JSONResponse(content="User not found", status_code=status.HTTP_404_NOT_FOUND)
-
-        news = await session.scalar(select(News).where(News.id == news_id))
-
         db = firestore.client()
         query = db.collection('notifications').where('id', '==', f'{news_id}')
 
@@ -69,8 +60,29 @@ async def get_news_id(user: Annotated[dict, Depends(get_firebase_user_from_token
             data = doc.to_dict()
 
             if data['screen'] == 'news':
-                view = data['is_view']['client']
-                db.collection("notifications").document(doc.id).update({f'{view}': True})
+                db.collection("notifications").document(doc.id).set({"is_view": {"client": True}}, merge=True)
+
+        tenant_uid = user['uid']
+
+        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == tenant_uid))
+
+        if not tenant_info:
+            return JSONResponse(content="User not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        news = await session.scalar(select(News).where(News.id == news_id))
+
+        # db = firestore.client()
+        # query = db.collection('notifications').where('id', '==', f'{news_id}')
+        #
+        # result = query.stream()
+        #
+        # for doc in result:
+        #
+        #     data = doc.to_dict()
+        #
+        #     if data['screen'] == 'news':
+        #         view = data['is_view']['client']
+        #         db.collection("notifications").document(doc.id).update({f'{view}': True})
 
         local_notify = await session.scalar(select(NotificationTenants)
                                             .where(NotificationTenants.content_id == news_id))
