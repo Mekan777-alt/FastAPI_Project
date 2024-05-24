@@ -12,7 +12,7 @@ async def send_notification(tokens, title, body, image=None, content_id=None, ap
         data = {}
         if screen == 'order':
             data = {"order_id": content_id, "apartment_id": apartment_id, "screen": screen,
-                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "image": image, "user_id": user_id}
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK", "imageUrl": image, "user_id": user_id}
         elif screen == 'news':
             data = {"id": content_id, "screen": screen,
                     "click_action": "FLUTTER_NOTIFICATION_CLICK", "imageUrl": image}
