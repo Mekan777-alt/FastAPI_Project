@@ -185,6 +185,17 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
         }
         user_doc.set(user_data)
 
+        rooms_collection = db.collection("rooms")
+        query = rooms_collection.where("apartmentId", "==", apartment_id)
+
+        documents = query.stream()
+
+        for document in documents:
+
+            document_ref = document.reference
+
+            document_ref.update({"user_id": firestore.firestore.ArrayUnion([new_tenant.uid])})
+
         new_tenant_for_db = TenantProfile(
             uuid=new_tenant.uid,
             photo_path='null',
