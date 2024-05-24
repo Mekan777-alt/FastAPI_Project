@@ -118,9 +118,10 @@ async def get_employee_info(session, user):
         if not firestore:
             return "Employee not found from firestore"
 
+        object_info = await session.scalar(select(Object).where(Object.id == check_employee.object_id))
         del firestore['role']
         firestore['photo_path'] = check_employee.photo_path
-        firestore['object_id'] = check_employee.object_id
+        firestore['object_name'] = object_info.object_name
 
         return firestore
     except Exception as e:

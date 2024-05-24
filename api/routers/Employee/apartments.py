@@ -23,6 +23,8 @@ from api.routers.Employee.config import (get_apartment_list, get_apartments_info
 from starlette.responses import JSONResponse
 from schemas.employee.bathroom import CreateBathroom
 from schemas.uk.add_tenant import AddTenant
+# from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 router = APIRouter(
     prefix="/api/v1/employee"
@@ -367,6 +369,19 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
             service_data.append(service_name.name)
         order.is_view = True
         await session.commit()
+
+        db = firestore.client()
+        query = db.collection('notifications').where('id', '==', f'{order_id}')
+
+        result = query.stream()
+
+        for doc in result:
+
+            data = doc.to_dict()
+
+            if data['screen'] == 'order':
+
+                db.collection("notifications").document(doc.id).update({'is_view': True})
 
         order_dict = {
             "order_id": order.id,
