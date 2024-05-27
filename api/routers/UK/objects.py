@@ -39,7 +39,7 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
                         session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
+        path = f'static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -175,7 +175,7 @@ async def create_apartment_uk(user: Annotated[dict, Depends(get_firebase_user_fr
                               session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
+        path = f'static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
