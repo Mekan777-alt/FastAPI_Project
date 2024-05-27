@@ -547,7 +547,7 @@ async def apartment_info_enter_meters_pose(user: Annotated[dict, Depends(get_fir
 
         data = await new_meters(session, meter_data, apartment_id, user)
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=data.to_dict())
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=data)
 
     except Exception as e:
 
