@@ -494,7 +494,7 @@ async def new_meters(session, meter_data, apartment_id, user):
     try:
 
         readings = Meters(
-            apartment_id=meter_data.apartment_id,
+            apartment_id=apartment_id,
             meter_service_id=meter_data.meter_id,
             bill_number=meter_data.bill_number,
             meters_for=meter_data.month_year,

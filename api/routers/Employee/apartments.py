@@ -472,7 +472,7 @@ async def get_service_order_progress_id(user: Annotated[dict, Depends(get_fireba
                                         session: AsyncSession = Depends(get_session)):
     try:
 
-        data = await select_executor(user, session, order_id, executor_id)
+        data = await select_executor(user, session, order_id, executor_id, apartment_id)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
