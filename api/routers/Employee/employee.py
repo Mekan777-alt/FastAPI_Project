@@ -37,7 +37,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
     try:
 
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
+        path = f'/FastAPI_Project/static/photo/'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -46,7 +46,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
 
         employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_id))
 
-        employee.photo_path = f"http://217.25.95.113:8000/{path}"
+        employee.photo_path = f"http://217.25.95.113:8000/static/photo/{path}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": employee.photo_path})
