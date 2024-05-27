@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - ./static/photo:/FastAPI_Project/static/photo/
+      - /root/FastAPI_Project/static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"
     depends_on:
