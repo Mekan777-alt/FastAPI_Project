@@ -46,7 +46,6 @@ async def register_user(user, session, device_token):
             if not query:
                 user = TenantProfile(
                     uuid=user['uid'],
-                    photo_path='null',
                     active_request=0,
                     balance=0,
                     device_token=device_token
@@ -72,7 +71,6 @@ async def register_user(user, session, device_token):
                 employee = EmployeeUK(
                     uuid=user['uid'],
                     uk_id=1,
-                    photo_path='null',
                     object_id=1,
                     device_token=device_token
                 )
@@ -96,7 +94,6 @@ async def register_user(user, session, device_token):
             if not query:
                 uk = UK(
                     uuid=user['uid'],
-                    photo_path='null',
                     name=data['name'],
                     device_token=device_token
                 )

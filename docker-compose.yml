@@ -19,8 +19,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - .:/FastAPI_Project
-      - static_photos:/FastAPI_Project/static/photo
+      - ./static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"
     depends_on:
@@ -34,4 +33,3 @@ networks:
 
 volumes:
   postgres_data:
-  static_photos:

@@ -14,7 +14,7 @@ class UK(Base):
     __tablename__ = 'uk_profiles'
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String, unique=True)
-    photo_path = Column(String, nullable=True, default=None)
+    photo_path = Column(String, default=None)
     name = Column(String)
     device_token = Column(String)
 
@@ -31,7 +31,7 @@ class EmployeeUK(Base):
 
     id = Column(Integer, primary_key=True)
     uuid = Column(String, unique=True)
-    photo_path = Column(String, nullable=True, default=None)
+    photo_path = Column(String, default=None)
     is_admin = Column(Boolean, default=False)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
@@ -210,7 +210,7 @@ class TenantProfile(Base):
     __tablename__ = 'tenant_profiles'
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(VARCHAR(100))
-    photo_path = Column(String, nullable=True)
+    photo_path = Column(String, default=None)
     active_request = Column(Integer, default=0)
     balance = Column(Float, default=0.0)
     device_token = Column(String)
