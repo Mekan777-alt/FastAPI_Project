@@ -39,7 +39,7 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
                         session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -50,7 +50,7 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
         create_obj = ObjectModels(
             object_name=object_name,
             address=object_address,
-            photo_path=f"http://217.25.95.113:8000/{path}",
+            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}",
             uk_id=uk_id.id
         )
 
@@ -175,7 +175,7 @@ async def create_apartment_uk(user: Annotated[dict, Depends(get_firebase_user_fr
                               session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -189,7 +189,7 @@ async def create_apartment_uk(user: Annotated[dict, Depends(get_firebase_user_fr
             key_holder=key_holder,
             internet_speed=internet_speed,
             internet_fee=internet_fee,
-            photo_path=f"http://217.25.95.113:8000/{path}",
+            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}",
             internet_operator=internet_operator,
             object_id=object_id
         )

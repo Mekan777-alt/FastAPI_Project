@@ -96,14 +96,14 @@ async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user
                                  session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
 
         executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
 
-        executor.photo_path = f"http://217.25.95.113:8000/{path}"
+        executor.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": executor.photo_path})
