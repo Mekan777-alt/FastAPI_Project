@@ -366,7 +366,8 @@ async def get_all_news(session, uk):
 
 async def get_news_id(session, uk, news_id):
     try:
-        if uk['role'] == 'Company':
+        uk_info = await get_staff_firebase(uk['uid'])
+        if uk_info['role'] == 'Company':
             uk_uid = uk['uid']
             uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
@@ -399,7 +400,7 @@ async def get_news_id(session, uk, news_id):
 
                 return news.to_dict()
 
-        elif uk['role'] == 'Employee':
+        elif uk_info['role'] == 'Employee':
             employee_uid = uk['uid']
             employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
 
