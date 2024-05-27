@@ -37,7 +37,7 @@ async def add_photo_employee(user: Annotated[dict, Depends(get_firebase_user_fro
     try:
 
         photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/'
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
