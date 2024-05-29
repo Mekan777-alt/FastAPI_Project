@@ -109,7 +109,7 @@ async def new_password_enter_code(request: EnterCode, session: AsyncSession = De
 
             auth.update_user(
                 uid=user_uid,
-                password=request.password,
+                password=request.new_password,
             )
             return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Password entered successfully"})
 

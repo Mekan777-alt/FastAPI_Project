@@ -47,7 +47,6 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
         return JSONResponse(content=apartment_name, status_code=status.HTTP_200_OK)
 
-
     except HTTPException as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
