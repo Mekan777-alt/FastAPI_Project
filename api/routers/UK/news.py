@@ -69,7 +69,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
             return "Company not found"
 
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
         with open(path, "wb+") as buffer:
             shutil.copyfileobj(photo.file, buffer)
@@ -77,7 +77,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
         new_news = News(
             name=name,
             description=description,
-            photo_path=f"http://217.25.95.113:8000/{path}",
+            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}",
             uk_id=company_info.id
         )
         session.add(new_news)

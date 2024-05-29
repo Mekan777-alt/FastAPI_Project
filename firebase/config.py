@@ -1,3 +1,4 @@
+import os
 from typing import Annotated, Optional
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -8,6 +9,11 @@ from firebase_admin import auth
 from sqlalchemy.future import select
 from starlette.responses import JSONResponse
 from models.base import TenantProfile, EmployeeUK, UK, ExecutorsProfile
+import smtplib
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -151,3 +157,30 @@ async def delete_staff_firebase(staff_uid):
     except Exception as e:
 
         return e
+
+
+async def send_mail(email_to, reset_link):
+    password = os.getenv('SMTP_PASSWORD')
+
+    smtp_server = 'smtp.mail.ru'
+    smtp_port = 465
+    smtp_username = 'testov1112@mail.ru'
+    smtp_password = password
+
+    msg = MIMEText(f"Click the link to reset your password:\n {reset_link}")
+    msg['Subject'] = 'Reset your password'
+    msg['From'] = smtp_username
+    msg['To'] = email_to
+
+    try:
+
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+
+        server.login(smtp_username, smtp_password)
+        server.sendmail(smtp_username, email_to, msg.as_string())
+        server.quit()
+
+        return True
+
+    except Exception as e:
+        return False, e

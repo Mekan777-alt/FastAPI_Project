@@ -75,7 +75,7 @@ async def get_news_id(user: Annotated[dict, Depends(get_firebase_user_from_token
                                             .where(NotificationTenants.content_id == news_id))
         if not local_notify:
 
-            print("Notification not found")
+            print(f"Notification not found")
 
         local_notify.is_view = True
         await session.commit()

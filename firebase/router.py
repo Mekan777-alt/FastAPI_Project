@@ -5,11 +5,13 @@ from starlette import status
 from sqlalchemy.future import select
 from models.base import TenantProfile, EmployeeUK, UK
 from starlette.responses import JSONResponse
-from firebase.config import get_firebase_user_from_token, register_user
+from firebase.config import get_firebase_user_from_token, register_user, send_mail
 from api.routers.UK.config import get_uk_profile
 from api.routers.users.config import get_user_profile
 from config import pb, get_session
 from api.routers.Employee.config import get_employee_profile
+from schemas.forgot_password.schemas import ForgotPassword
+from firebase_admin import auth
 
 router = APIRouter(
     prefix="/api/v1",
@@ -66,4 +68,19 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
             return JSONResponse(status_code=status.HTTP_200_OK, content=user_role)
 
     except Exception as e:
+        return HTTPException(detail={'message': f'{e}'}, status_code=400)
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPassword):
+    try:
+
+        reset_link = auth.generate_password_reset_link(request.email)
+
+        await send_mail(request.email, reset_link)
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Password reset sent"})
+
+    except Exception as e:
+
         return HTTPException(detail={'message': f'{e}'}, status_code=400)

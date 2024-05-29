@@ -18,12 +18,12 @@ class UK(Base):
     name = Column(String)
     device_token = Column(String)
 
-    employees = relationship('EmployeeUK', back_populates='uk')
-    payment_details = relationship('PaymentDetails', back_populates='uk')
-    objects = relationship('Object', back_populates='uk')
-    news = relationship('News', back_populates='uk')
-    executors = relationship('ExecutorsProfile', back_populates='uk')
-    notification_uk = relationship("NotificationUK", back_populates="uk")
+    employees = relationship('EmployeeUK', back_populates='uk', cascade="all, delete, delete-orphan")
+    payment_details = relationship('PaymentDetails', back_populates='uk', cascade="all, delete, delete-orphan")
+    objects = relationship('Object', back_populates='uk', cascade="all, delete, delete-orphan")
+    news = relationship('News', back_populates='uk', cascade="all, delete, delete-orphan")
+    executors = relationship('ExecutorsProfile', back_populates='uk', cascade="all, delete, delete-orphan")
+    notification_uk = relationship("NotificationUK", back_populates="uk", cascade="all, delete, delete-orphan")
 
 
 class EmployeeUK(Base):
@@ -75,10 +75,10 @@ class Object(Base):
     uk = relationship('UK', back_populates='objects')
     photo_path = Column(String, default=None)
 
-    apartments = relationship('ApartmentProfile', back_populates='object')
-    employees = relationship('EmployeeUK', back_populates='object')
-    service_list_object = relationship('ServiceObjectList', back_populates='object')
-    notification_employee = relationship('NotificationEmployee', back_populates='object')
+    apartments = relationship('ApartmentProfile', back_populates='object', cascade="all, delete, delete-orphan")
+    employees = relationship('EmployeeUK', back_populates='object', cascade="all, delete, delete-orphan")
+    service_list_object = relationship('ServiceObjectList', back_populates='object', cascade="all, delete, delete-orphan")
+    notification_employee = relationship('NotificationEmployee', back_populates='object', cascade="all, delete, delete-orphan")
 
     def to_dict(self):
         return {
@@ -215,9 +215,10 @@ class TenantProfile(Base):
     balance = Column(Float, default=0.0)
     device_token = Column(String)
 
-    tenant_apartment = relationship('TenantApartments', back_populates='tenant')
-    orders_from_tenant = relationship("OrderFromTenant", back_populates="tenant")
-    notification_tenants = relationship('NotificationTenants', back_populates='tenant')
+    tenant_apartment = relationship('TenantApartments', back_populates='tenant', cascade="all, delete, delete-orphan")
+    orders_from_tenant = relationship("OrderFromTenant", back_populates="tenant", cascade="all, delete, delete-orphan")
+    notification_tenants = relationship('NotificationTenants', back_populates='tenant', cascade="all, delete, "
+                                                                                                "delete-orphan")
 
     def to_dict(self):
         return {
