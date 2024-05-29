@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from firebase.config import get_firebase_user_from_token
 from starlette import status
-from typing import List
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 from config import get_session
@@ -27,20 +27,18 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
         objects_info = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
 
         apartment_name = []
-        count_id = 0
         for object in objects_info:
 
             apartment_info = await session.scalars(select(ApartmentProfile)
                                                    .where(ApartmentProfile.object_id == object.id))
             for apartment in apartment_info:
                 data = {
-                    "id": apartment.id,
+                    "id": str(apartment.id),
                     "name": apartment.apartment_name
                 }
                 apartment_name.append(data)
-                count_id += 1
         all_user = {
-            "id": count_id + 1,
+            "id": 'all',
             "name": "All users"
         }
         apartment_name.append(all_user)
@@ -55,8 +53,8 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
 async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                            name: str = Form(...),
                            description: str = Form(...),
-                           photo: UploadFile = File(...),
-                           apartment_id: int = Form(...),
+                           photo: UploadFile = File(None),
+                           apartment: str = Form(...),
                            session: AsyncSession = Depends(get_session)):
     try:
 
@@ -67,24 +65,24 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
         if not company_info:
             return "Company not found"
 
-        photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
+        if photo:
 
-        with open(path, "wb+") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
+            photo.filename = photo.filename.lower()
+            path = f'/FastAPI_Project/static/photo/{photo.filename}'
+
+            with open(path, "wb+") as buffer:
+                shutil.copyfileobj(photo.file, buffer)
 
         new_news = News(
             name=name,
             description=description,
-            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}",
+            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}" if photo else None,
             uk_id=company_info.id
         )
         session.add(new_news)
         await session.commit()
 
-        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
-
-        if not apartment_info:
+        if apartment == 'all':
 
             object_info = await session.scalars(select(Object).where(Object.uk_id == company_info.id))
 
@@ -93,10 +91,10 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
                 apartments = await session.scalars(select(ApartmentProfile)
                                                    .where(ApartmentProfile.object_id == object.id))
                 apartments_list = []
-                for apartment in apartments:
+                for apart in apartments:
                     new_news_ = NewsApartments(
                         news_id=new_news.id,
-                        apartment_id=apartment.id
+                        apartment_id=apart.id
                     )
                     session.add(new_news_)
                     await session.commit()
@@ -107,7 +105,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
                                                  order_id=new_news.id, apartment_id=apartments_list)
         else:
             new_apartment = NewsApartments(
-                apartment_id=apartment_id,
+                apartment_id=int(apartment),
                 news_id=new_news.id
             )
             session.add(new_apartment)
@@ -115,7 +113,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
             await session.commit()
             await pred_send_notification(user, session, value='news',
                                          title='News', body=description, image=new_news.photo_path,
-                                         order_id=new_news.id, apartment_id=apartment_id)
+                                         order_id=new_news.id, apartment_id=int(apartment))
 
         return JSONResponse(content=new_news.to_dict(), status_code=status.HTTP_201_CREATED)
 
