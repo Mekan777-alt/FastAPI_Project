@@ -36,29 +36,40 @@ async def get_user_id(session, user_uuid):
 
 
 async def get_user_profile(session, user_id, new_value=None):
-    apartment_id = await session.execute(select(TenantApartments, ApartmentProfile, Object).
-                                         join(ApartmentProfile).join(Object).select_from(TenantApartments)
-                                         .where(TenantProfile.id == user_id))
-    tenant_profiles = await session.scalar(select(TenantProfile).where
-                                           (TenantProfile.id == user_id))
 
-    result = apartment_id.fetchall()
-    data_to_return = {
-        "object_address": "",
-        "apartment_name": [],
-        "active_request": 0,
-        "balance": 0
-    }
-    for tenant_profile, apartment_profile, object_profile in result:
-        apartment_data = {
-            'id': apartment_profile.id,
-            'name': apartment_profile.apartment_name
+    try:
+        data_to_return = {
+            "object_address": "",
+            "apartment_name": [],
+            "active_request": 0,
+            "balance": 0
         }
-        data_to_return["apartment_name"].append(apartment_data)
-        data_to_return["object_address"] = object_profile.address
-        data_to_return["active_request"] = tenant_profiles.active_request
-        data_to_return["balance"] = tenant_profiles.balance
-    return [data_to_return]
+
+        apartments = await session.scalars(select(TenantApartments).where(TenantApartments.tenant_id == user_id))
+
+        for apartment in apartments:
+
+            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
+
+            if not data_to_return['object_address']:
+                object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
+
+                data_to_return['object_address'] = object_info.address
+            apartment_data = {
+                    'id': apartment_info.id,
+                    'name': apartment_info.apartment_name
+                }
+            data_to_return['apartment_name'].append(apartment_data)
+
+        tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == user_id))
+
+        data_to_return['balance'] = tenant.balance
+        data_to_return['active_request'] = tenant.active_request
+
+        return [data_to_return]
+
+    except Exception as e:
+        return HTTPException(status_code=status.HTTP_400_NOT_FOUND, detail=str(e))
 
 
 async def get_contacts_from_db(session):
