@@ -42,6 +42,7 @@ class EmployeeUK(Base):
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
+    notification_employee = relationship("NotificationEmployee", back_populates="employee")
 
     def to_dict(self):
         return {
@@ -577,6 +578,7 @@ class NotificationEmployee(Base):
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
     object_id = Column(Integer, ForeignKey(Object.id))
+    employee_id = Column(Integer, ForeignKey(EmployeeUK.id))
     type = Column(String)
     is_view = Column(Boolean, default=False)
     content_id = Column(Integer)
@@ -584,6 +586,7 @@ class NotificationEmployee(Base):
     image = Column(String)
 
     object = relationship("Object", back_populates="notification_employee")
+    employee = relationship("EmployeeUK", back_populates="notification_employee")
 
     def to_dict(self):
         return {

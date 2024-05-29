@@ -425,7 +425,8 @@ async def get_news_id(session, uk, news_id):
 
                 local_notify = await session.scalar(select(NotificationEmployee)
                                                     .where((NotificationEmployee.content_id == news_id) &
-                                                           (NotificationEmployee.type == 'news')))
+                                                           (NotificationEmployee.type == 'news') &
+                                                           (NotificationEmployee.employee_id == employee_info.id)))
                 if not local_notify:
                     print("Notification not found")
 

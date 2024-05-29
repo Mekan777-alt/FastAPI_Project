@@ -137,6 +137,17 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                     for employee in employees:
                         if employee.device_token:
+                            new_not_employee = NotificationEmployee(
+                                title=title,
+                                description=f"A new news created {body}",
+                                employee_id=employee.id,
+                                type=value,
+                                object_id=employee.object_id,
+                                content_id=order_id,
+                                image=image,
+                            )
+                            session.add(new_not_employee)
+                            await session.commit()
                             tokens.append(employee.device_token)
 
                 if apartment_id:
@@ -150,7 +161,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             title=title,
                             description=f"A new news created {body}",
                             type=value,
-                            tenant_id=tenant.id,
+                            tenant_id=tenant_token.id,
                             content_id=order_id,
                             image=image,
                         )
@@ -169,7 +180,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                 new_not_tenant = NotificationTenants(
                                     title=title,
                                     description=f"A new news created {body}",
-                                    tenant_id=tenant.id,
+                                    tenant_id=tenant_token.id,
                                     type=value,
                                     content_id=order_id,
                                     image=image,
@@ -178,22 +189,10 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                 await session.commit()
                                 tokens.append(tenant_token.device_token)
 
-                notification = await send_notification(tokens, title,
-                                                       body=f"A new news created {body}",
-                                                       image=image, content_id=order_id, screen=value)
+                await send_notification(tokens, title, body=f"A new news created {body}",
+                                        image=image, content_id=order_id, screen=value)
 
-                if notification:
-                    new_not_employee = NotificationEmployee(
-                        title=title,
-                        description=f"A new news created {body}",
-                        object_id=objects_uk.id,
-                        content_id=order_id,
-                        image=image,
-                    )
-                    session.add(new_not_employee)
-                    await session.commit()
-
-                    return
+                return
 
             elif value == '':
 
@@ -235,7 +234,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                                    .where(TenantProfile.id == tenant_order.tenant_id))
 
                 if tenant_info.device_token:
-
                     tokens.append(tenant_info.device_token)
 
                 if value == 'replacing_executor':
@@ -252,7 +250,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     await session.commit()
                     await send_notification(tokens=tokens, title=f"Order",
                                             body=f'Replacing executor, new executor - '
-                                                 f'{executor_info.first_name} {executor_info.last_name}', screen='order',
+                                                 f'{executor_info.first_name} {executor_info.last_name}',
+                                            screen='order',
                                             content_id=order_id, )
                 elif value == 'send in progress order':
                     new_not_tenant = NotificationTenants(
@@ -268,7 +267,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     await session.commit()
                     await send_notification(tokens=tokens, title=f"Order",
                                             body=f"I've got the order to work - "
-                                                 f"{executor_info.first_name} {executor_info.last_name}", screen='order',
+                                                 f"{executor_info.first_name} {executor_info.last_name}",
+                                            screen='order',
                                             content_id=order_id, apartment_id=apartment_id)
 
             elif value == '':
