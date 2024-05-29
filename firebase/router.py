@@ -5,13 +5,14 @@ from starlette import status
 from sqlalchemy.future import select
 from models.base import TenantProfile, EmployeeUK, UK
 from starlette.responses import JSONResponse
-from firebase.config import get_firebase_user_from_token, register_user, send_mail
+from firebase.config import get_firebase_user_from_token, register_user, send_mail, save_code_for_db, search_user
 from api.routers.UK.config import get_uk_profile
 from api.routers.users.config import get_user_profile
 from config import pb, get_session
 from api.routers.Employee.config import get_employee_profile
-from schemas.forgot_password.schemas import ForgotPassword
+from schemas.forgot_password.schemas import ForgotPassword, EnterCode
 from firebase_admin import auth
+import random
 
 router = APIRouter(
     prefix="/api/v1",
@@ -72,14 +73,45 @@ async def get_userid(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: ForgotPassword):
+async def forgot_password(request: ForgotPassword, session: AsyncSession = Depends(get_session)):
     try:
 
-        reset_link = auth.generate_password_reset_link(request.email)
+        user = auth.get_user_by_email(request.email)
 
-        await send_mail(request.email, reset_link)
+        reset_code = str(random.randint(100000, 999999))
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Password reset sent"})
+        save_code = await save_code_for_db(session, user.uid, reset_code)
+
+        if save_code is True:
+
+            send_mail_to_user = await send_mail(user.email, reset_code)
+
+            if send_mail_to_user is True:
+
+                return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Password reset sent"})
+
+        return JSONResponse(content="Error user not found from db", status_code=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+
+        return HTTPException(detail={'message': f'{e}'}, status_code=200)
+
+
+@router.post("/enter-code")
+async def new_password_enter_code(request: EnterCode, session: AsyncSession = Depends(get_session)):
+    try:
+
+        code = request.code
+
+        user_uid = await search_user(session, code)
+
+        if user_uid is not None and user_uid is not False:
+
+            auth.update_user(
+                uid=user_uid,
+                password=request.password,
+            )
+            return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Password entered successfully"})
 
     except Exception as e:
 

@@ -159,7 +159,7 @@ async def delete_staff_firebase(staff_uid):
         return e
 
 
-async def send_mail(email_to, reset_link):
+async def send_mail(email_to, reset_code):
     password = os.getenv('SMTP_PASSWORD')
 
     smtp_server = 'smtp.mail.ru'
@@ -167,7 +167,7 @@ async def send_mail(email_to, reset_link):
     smtp_username = 'testov1112@mail.ru'
     smtp_password = password
 
-    msg = MIMEText(f"Click the link to reset your password:\n {reset_link}")
+    msg = MIMEText(f"Reset code: {reset_code}")
     msg['Subject'] = 'Reset your password'
     msg['From'] = smtp_username
     msg['To'] = email_to
@@ -184,3 +184,71 @@ async def send_mail(email_to, reset_link):
 
     except Exception as e:
         return False, e
+
+
+async def save_code_for_db(session, uid, code):
+    try:
+
+        client = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == uid))
+
+        if client is not None:
+
+            client.reset_code = code
+            await session.commit()
+
+            return True
+
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == uid))
+
+        if employee is not None:
+
+            employee.reset_code = code
+            await session.commit()
+
+            return True
+
+        uk = await session.scalar(select(UK).where(UK.uuid == uid))
+
+        if uk is not None:
+
+            uk.reset_code = code
+            await session.commit()
+
+            return True
+
+        return False
+    except Exception as e:
+        return e
+
+
+async def search_user(session, code):
+    try:
+
+        client = await session.scalar(select(TenantProfile).where(TenantProfile.reset_code == code))
+
+        if client is not None:
+            client.reset_code = None
+            await session.commit()
+
+            return client.uuid
+
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.reset_code == code))
+
+        if employee is not None:
+            employee.reset_code = None
+            await session.commit()
+
+            return employee.uuid
+
+        uk = await session.scalar(select(UK).where(UK.reset_code == code))
+
+        if uk is not None:
+            uk.reset_code = None
+            await session.commit()
+
+            return uk.uuid
+
+        return False
+
+    except Exception as e:
+        return e

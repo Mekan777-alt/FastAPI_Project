@@ -17,6 +17,7 @@ class UK(Base):
     photo_path = Column(String, default=None)
     name = Column(String)
     device_token = Column(String)
+    reset_code = Column(String, default=None)
 
     employees = relationship('EmployeeUK', back_populates='uk', cascade="all, delete, delete-orphan")
     payment_details = relationship('PaymentDetails', back_populates='uk', cascade="all, delete, delete-orphan")
@@ -37,6 +38,7 @@ class EmployeeUK(Base):
     object_id = Column(Integer, ForeignKey('object_profiles.id'))
     device_token = Column(String)
     is_archive = Column(Boolean, default=False)
+    reset_code = Column(String, default=None)
 
     uk = relationship('UK', back_populates='employees')
     object = relationship('Object', back_populates='employees')
@@ -214,6 +216,7 @@ class TenantProfile(Base):
     active_request = Column(Integer, default=0)
     balance = Column(Float, default=0.0)
     device_token = Column(String)
+    reset_code = Column(String, default=None)
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant', cascade="all, delete, delete-orphan")
     orders_from_tenant = relationship("OrderFromTenant", back_populates="tenant", cascade="all, delete, delete-orphan")
