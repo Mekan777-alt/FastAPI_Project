@@ -6,7 +6,7 @@ from typing import Annotated
 from config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models.base import TenantProfile, UK, EmployeeUK, PaymentDetails
+from models.base import TenantProfile, UK, EmployeeUK, PaymentDetails, ExecutorsProfile
 from schemas.updateProfiles.schemas import UpdateProfiles
 from firebase_admin import firestore, auth
 

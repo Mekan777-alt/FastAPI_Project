@@ -52,7 +52,7 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
                                     internet_speed: int = Form(...),
                                     internet_fee: float = Form(...),
                                     internet_operator: str = Form(...),
-                                    photo: UploadFile = File(...),
+                                    photo: UploadFile = File(None),
                                     session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
@@ -103,6 +103,36 @@ async def apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_to
 
     except Exception as e:
 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.put("/apartments/apartment_info/{apartment_id}/update-info")
+async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                apartment_id: int,
+                                session: AsyncSession = Depends(get_session),
+                                apartment_name: str = Form(None),
+                                photo: UploadFile = File(None)):
+    try:
+
+        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        if not apartment:
+            return "Apartment not found"
+
+        photo.filename = photo.filename.lower()
+        path = f'/FastAPI_Project/static/photo/{photo.filename}'
+
+        with open(path, "wb+") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+
+        apartment.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
+        apartment.apartment_name = apartment_name
+
+        await session.commit()
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
+
+    except Exception as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
@@ -386,7 +416,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                     employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
                     employee_notify = await session.scalar(select(NotificationEmployee)
-                                                        .where(
+                    .where(
                         NotificationEmployee.object_id == employee_info.object_id))
 
                     employee_notify.is_view = True
@@ -396,7 +426,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
                     company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
-                    company_notify = await session.scalar(select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
+                    company_notify = await session.scalar(
+                        select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
 
                     company_notify.is_view = True
                     await session.commit()
