@@ -378,25 +378,25 @@ async def get_news_id(session, uk, news_id):
                 if not news:
                     return "News not found"
 
-                db = firestore.client()
-                query = db.collection('notifications').where('id', '==', f'{news_id}')
-
-                result = query.stream()
-
-                for doc in result:
-
-                    data = doc.to_dict()
-
-                    if data['screen'] == 'news':
-                        db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
-                local_notify = await session.scalar(select(NotificationUK).where(
-                    (NotificationUK.content_id == news_id) & (NotificationUK.type == 'news')))
-
-                if not local_notify:
-                    print("Notification not found")
-
-                local_notify.is_view = True
-                await session.commit()
+                # db = firestore.client()
+                # query = db.collection('notifications').where('id', '==', f'{news_id}')
+                #
+                # result = query.stream()
+                #
+                # for doc in result:
+                #
+                #     data = doc.to_dict()
+                #
+                #     if data['screen'] == 'news':
+                #         db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
+                # local_notify = await session.scalar(select(NotificationUK).where(
+                #     (NotificationUK.content_id == news_id) & (NotificationUK.type == 'news')))
+                #
+                # if not local_notify:
+                #     print("Notification not found")
+                #
+                # local_notify.is_view = True
+                # await session.commit()
 
                 return news.to_dict()
 
