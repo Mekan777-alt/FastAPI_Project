@@ -350,16 +350,26 @@ async def get_all_news(session, uk):
 
         uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
-        if not uk_info:
-            return "company not found"
+        if uk_info:
+            news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
 
-        news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
+            news_list = []
 
-        news_list = []
+            for n in news:
+                news_list.append(n.to_dict())
+            return news_list
 
-        for n in news:
-            news_list.append(n.to_dict())
-        return news_list
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == uk_uid))
+
+        if employee:
+
+            news = await session.scalars(select(News).where(News.uk_id == employee.uk_id))
+
+            news_list = []
+
+            for n in news:
+                news_list.append(n.to_dict())
+            return news_list
     except Exception as e:
         raise e
 
