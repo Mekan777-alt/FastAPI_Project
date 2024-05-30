@@ -24,6 +24,8 @@ async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
         uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
+        if not uk_info:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='UK does not exist')
         objects_info = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
 
         apartment_name = []
