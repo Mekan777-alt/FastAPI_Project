@@ -60,6 +60,9 @@ async def update_profiles(user: Annotated[dict, Depends(get_firebase_user_from_t
             if request.name_of_company:
                 update_data['name'] = request.name_of_company
 
+                uk.name = request.name_of_company
+                await session.commit()
+
             if update_data:
                 db = firestore.client()
                 db.collection('users').document(uk.uuid).set({"name": request.name_of_company}, merge=True)
