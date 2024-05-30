@@ -25,6 +25,7 @@ class UK(Base):
     news = relationship('News', back_populates='uk', cascade="all, delete, delete-orphan")
     executors = relationship('ExecutorsProfile', back_populates='uk', cascade="all, delete, delete-orphan")
     notification_uk = relationship("NotificationUK", back_populates="uk", cascade="all, delete, delete-orphan")
+    contacts = relationship("Contacts", back_populates="uk", cascade="all, delete, delete-orphan")
 
 
 class EmployeeUK(Base):
@@ -80,8 +81,10 @@ class Object(Base):
 
     apartments = relationship('ApartmentProfile', back_populates='object', cascade="all, delete, delete-orphan")
     employees = relationship('EmployeeUK', back_populates='object', cascade="all, delete, delete-orphan")
-    service_list_object = relationship('ServiceObjectList', back_populates='object', cascade="all, delete, delete-orphan")
-    notification_employee = relationship('NotificationEmployee', back_populates='object', cascade="all, delete, delete-orphan")
+    service_list_object = relationship('ServiceObjectList', back_populates='object',
+                                       cascade="all, delete, delete-orphan")
+    notification_employee = relationship('NotificationEmployee', back_populates='object',
+                                         cascade="all, delete, delete-orphan")
 
     def to_dict(self):
         return {
@@ -354,9 +357,11 @@ class Contacts(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(100), nullable=False)
-    description = Column(VARCHAR(100), nullable=False)
     phone = Column(VARCHAR(100), nullable=True)
     email = Column(VARCHAR(100), nullable=True)
+    uk_id = Column(Integer, ForeignKey(UK.id))
+
+    uk = relationship("UK", back_populates="contacts")
 
 
 class News(Base):
