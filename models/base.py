@@ -35,15 +35,15 @@ class EmployeeUK(Base):
     uuid = Column(String, unique=True)
     photo_path = Column(String, default=None)
     is_admin = Column(Boolean, default=False)
-    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
-    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id', ondelete='CASCADE'))
+    object_id = Column(Integer, ForeignKey('object_profiles.id', ondelete='CASCADE'))
     device_token = Column(String)
     is_archive = Column(Boolean, default=False)
     reset_code = Column(String, default=None)
 
-    uk = relationship('UK', back_populates='employees')
-    object = relationship('Object', back_populates='employees')
-    notification_employee = relationship("NotificationEmployee", back_populates="employee")
+    uk = relationship('UK', back_populates='employees', cascade="all, delete, delete-orphan")
+    object = relationship('Object', back_populates='employees', cascade="all, delete, delete-orphan")
+    notification_employee = relationship("NotificationEmployee", back_populates="employee", cascade="all, delete, delete-orphan")
 
     def to_dict(self):
         return {
@@ -75,7 +75,7 @@ class Object(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     object_name = Column(String, nullable=True)
     address = Column(String, nullable=False)
-    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id', ondelete='CASCADE'))
     uk = relationship('UK', back_populates='objects')
     photo_path = Column(String, default=None)
 
@@ -109,7 +109,7 @@ class ApartmentProfile(Base):
     internet_fee = Column(Float)
     key_holder = Column(String)
     photo_path = Column(String, default=None)
-    object_id = Column(Integer, ForeignKey('object_profiles.id'))
+    object_id = Column(Integer, ForeignKey('object_profiles.id', ondelete='CASCADE'))
     object = relationship('Object', back_populates='apartments')
 
     tenant_apartments = relationship('TenantApartments', back_populates='apartment')
@@ -145,9 +145,9 @@ class ExecutorsProfile(Base):
     email = Column(String)
     specialization = Column(String, nullable=False)
     photo_path = Column(String, nullable=True)
-    bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id'))
+    bank_details_id = Column(Integer, ForeignKey('bank_detail_executors.id', ondelete='CASCADE'))
     device_token = Column(String)
-    uk_id = Column(Integer, ForeignKey('uk_profiles.id'))
+    uk_id = Column(Integer, ForeignKey('uk_profiles.id', ondelete='CASCADE'))
 
     bank_details = relationship('BankDetailExecutors', back_populates='executors')
     executor_order = relationship('ExecutorOrders', back_populates='executor')
@@ -179,6 +179,7 @@ class BankDetailExecutors(Base):
     bank_name = Column(String, nullable=False)
     inn = Column(String, nullable=False)
     kpp = Column(String, nullable=False)
+    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id, ondelete='CASCADE'))
 
     executors = relationship('ExecutorsProfile', back_populates='bank_details')
 
@@ -193,10 +194,10 @@ class InvoiceHistory(Base):
     photo_path = Column(String)
     notification_sent = Column(Boolean, default=False)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
     comment = Column(String)
-    service_id = Column(Integer, ForeignKey('services.id'))
-    meter_service_id = Column(Integer, ForeignKey('meter_service.id'))
+    service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'))
+    meter_service_id = Column(Integer, ForeignKey('meter_service.id', ondelete='CASCADE'))
     bill_number = Column(String)
 
     apartment = relationship('ApartmentProfile', back_populates='invoice_history')
@@ -239,8 +240,8 @@ class TenantApartments(Base):
     __tablename__ = 'tenant_apartments'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id, ondelete='CASCADE'))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
 
     tenant = relationship('TenantProfile', back_populates='tenant_apartment')
     apartment = relationship('ApartmentProfile', back_populates='tenant_apartments')
@@ -263,8 +264,8 @@ class ServiceObjectList(Base):
     __tablename__ = 'service_objects_list'
 
     id = Column(Integer, primary_key=True)
-    object_id = Column(Integer, ForeignKey(Object.id))
-    service_id = Column(Integer, ForeignKey(Service.id))
+    object_id = Column(Integer, ForeignKey(Object.id, ondelete='CASCADE'))
+    service_id = Column(Integer, ForeignKey(Service.id, ondelete='CASCADE'))
 
     object = relationship("Object", back_populates="service_list_object")
     service = relationship("Service", back_populates="service_list_service")
@@ -274,9 +275,9 @@ class AdditionalService(Base):
     __tablename__ = 'additional_services'
 
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey('orders.id'), nullable=False)
-    service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
-    additional_service_id = Column(Integer, ForeignKey('additional_services_list.id'))
+    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+    additional_service_id = Column(Integer, ForeignKey('additional_services_list.id', ondelete='CASCADE'))
     quantity = Column(Integer, nullable=True)
 
     # order = relationship("Order", back_populates="additional_services")
@@ -297,14 +298,14 @@ class Document(Base):
 class Order(Base):
     __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
     completion_date = Column(VARCHAR(20), nullable=False)
     completion_time = Column(VARCHAR(20), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
     is_view = Column(Boolean, default=False)
-    selected_service_id = Column(Integer, ForeignKey('services.id'))
+    selected_service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'))
 
     apartments = relationship("ApartmentProfile", back_populates="orders")
     selected_service = relationship("Service", back_populates="orders")
@@ -333,8 +334,8 @@ class OrderFromTenant(Base):
     __tablename__ = 'orders_from_tenant'
 
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey(Order.id))
-    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+    order_id = Column(Integer, ForeignKey(Order.id, ondelete='CASCADE'))
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id, ondelete='CASCADE'))
 
     tenant = relationship("TenantProfile", back_populates="orders_from_tenant")
     order = relationship("Order", back_populates="orders_from_tenant")
@@ -346,7 +347,7 @@ class AdditionalServiceList(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     price = Column(Integer)
-    service_id = Column(Integer, ForeignKey(Service.id))
+    service_id = Column(Integer, ForeignKey(Service.id, ondelete='CASCADE'))
 
     service = relationship("Service", back_populates="additional_services_list")
     additional_services_list = relationship("AdditionalService", back_populates="additional_service")
@@ -359,7 +360,7 @@ class Contacts(Base):
     name = Column(VARCHAR(100), nullable=False)
     phone = Column(VARCHAR(100), nullable=True)
     email = Column(VARCHAR(100), nullable=True)
-    uk_id = Column(Integer, ForeignKey(UK.id))
+    uk_id = Column(Integer, ForeignKey(UK.id, ondelete='CASCADE'))
 
     uk = relationship("UK", back_populates="contacts")
 
@@ -372,7 +373,7 @@ class News(Base):
     description = Column(String)
     photo_path = Column(String, default=None)
     created_at = Column(DATE, default=date.today())
-    uk_id = Column(Integer, ForeignKey(UK.id))
+    uk_id = Column(Integer, ForeignKey(UK.id, ondelete='CASCADE'))
 
     uk = relationship('UK', back_populates="news")
     news_apartments = relationship('NewsApartments', back_populates='news')
@@ -391,8 +392,8 @@ class NewsApartments(Base):
     __tablename__ = 'news_apartments'
 
     id = Column(Integer, primary_key=True)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
-    news_id = Column(Integer, ForeignKey(News.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
+    news_id = Column(Integer, ForeignKey(News.id, ondelete='CASCADE'))
 
     apartments = relationship('ApartmentProfile', back_populates='news_apartments')
     news = relationship('News', back_populates='news_apartments')
@@ -402,8 +403,8 @@ class ExecutorOrders(Base):
     __tablename__ = 'orders_executors'
 
     id = Column(Integer, primary_key=True)
-    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id))
-    order_id = Column(Integer, ForeignKey(Order.id), unique=True)
+    executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id, ondelete='CASCADE'))
+    order_id = Column(Integer, ForeignKey(Order.id, ondelete='CASCADE'), unique=True)
 
     order = relationship("Order", back_populates="executor_order")
     executor = relationship("ExecutorsProfile", back_populates="executor_order")
@@ -414,7 +415,7 @@ class BathroomApartment(Base):
 
     id = Column(Integer, primary_key=True)
     characteristic = Column(String)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
 
     apartments = relationship("ApartmentProfile", back_populates="bathroom_apartments")
 
@@ -442,8 +443,8 @@ class Meters(Base):
     __tablename__ = 'meters'
 
     id = Column(Integer, primary_key=True)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
-    meter_service_id = Column(Integer, ForeignKey(MeterService.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
+    meter_service_id = Column(Integer, ForeignKey(MeterService.id, ondelete='CASCADE'))
     bill_number = Column(String)
     meters_for = Column(String)
     meter_readings = Column(String)
@@ -473,7 +474,7 @@ class GuestPass(Base):
     visit_date = Column(DATE)
     visit_time = Column(TIME)
     full_name = Column(String)
-    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id))
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
     note = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -498,7 +499,7 @@ class GuestPassDocuments(Base):
     file_name = Column(String)
     mime_type = Column(String)
     file_path = Column(String)
-    guest_pass_id = Column(Integer, ForeignKey(GuestPass.id))
+    guest_pass_id = Column(Integer, ForeignKey(GuestPass.id, ondelete='CASCADE'))
 
     guest_pass_doc = relationship("GuestPass", back_populates="guest_pass")
 
@@ -520,7 +521,7 @@ class NotificationTenants(Base):
     title = Column(String)
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
-    tenant_id = Column(Integer, ForeignKey(TenantProfile.id))
+    tenant_id = Column(Integer, ForeignKey(TenantProfile.id, ondelete='CASCADE'))
     type = Column(String)
     is_view = Column(Boolean, default=False)
     content_id = Column(Integer)
@@ -550,7 +551,7 @@ class NotificationUK(Base):
     title = Column(String)
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
-    uk_id = Column(Integer, ForeignKey(UK.id))
+    uk_id = Column(Integer, ForeignKey(UK.id, ondelete='CASCADE'))
     type = Column(String)
     is_view = Column(Boolean, default=False)
     content_id = Column(Integer)
@@ -582,8 +583,8 @@ class NotificationEmployee(Base):
     title = Column(String)
     icon_path = Column(String, default=f"http://217.25.95.113:8000/static/icons/mini/notification.jpg")
     description = Column(String)
-    object_id = Column(Integer, ForeignKey(Object.id))
-    employee_id = Column(Integer, ForeignKey(EmployeeUK.id))
+    object_id = Column(Integer, ForeignKey(Object.id, ondelete='CASCADE'))
+    employee_id = Column(Integer, ForeignKey(EmployeeUK.id, ondelete='CASCADE'))
     type = Column(String)
     is_view = Column(Boolean, default=False)
     content_id = Column(Integer)
