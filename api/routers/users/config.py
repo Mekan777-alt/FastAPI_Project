@@ -72,10 +72,10 @@ async def get_user_profile(session, user_id, new_value=None):
         return HTTPException(status_code=status.HTTP_400_NOT_FOUND, detail=str(e))
 
 
-async def get_contacts_from_db(session):
+async def get_contacts_from_db(session, uk_id):
 
     try:
-        contacts = await session.scalars(select(Contacts))
+        contacts = await session.scalars(select(Contacts).where(Contacts.uk_id == uk_id))
 
         contacts_data = []
         for contact in contacts:

@@ -171,7 +171,7 @@ async def get_profile_uk(session, user):
 
         profile = await get_uk_profile(session, uk_id.id)
 
-        contact = await get_contacts_from_db(session)
+        contact = await get_contacts_from_db(session, uk_id)
 
         profile['contacts'] = contact
 
