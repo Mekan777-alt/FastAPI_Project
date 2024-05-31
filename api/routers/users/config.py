@@ -124,7 +124,7 @@ async def get_profile_tenant(user, session):
 async def get_user_meters(session, user_id):
     try:
 
-        user_info = await session.scalar(select(TenantApartments).where(TenantProfile.uuid == user_id))
+        user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_id))
 
         if not user_info:
             raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
