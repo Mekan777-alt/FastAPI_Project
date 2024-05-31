@@ -26,7 +26,7 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
 
         notifications = await session.scalars(select(NotificationEmployee)
-                                              .where(NotificationEmployee.object_id == employee_info.object_id))
+                                              .where(NotificationEmployee.employee_id == employee_info.id))
 
         if notifications is None:
             return JSONResponse(content=[], status_code=status.HTTP_200_OK)
@@ -34,6 +34,8 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
         notification_list = []
 
         for notification in notifications:
+            if notification is None:
+                return JSONResponse(content=[], status_code=status.HTTP_200_OK)
             notification_list.append(notification.to_dict())
 
         return JSONResponse(content=notification_list, status_code=status.HTTP_200_OK)

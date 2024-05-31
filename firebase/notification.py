@@ -60,24 +60,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                 uk = await session.scalar(select(UK).where(UK.id == object_apart.uk_id))
                 if uk.device_token:
-                    tokens.append(uk.device_token)
-
-                employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
-
-                objects_id = []
-
-                for employee in employee_info:
-                    if employee.object_id not in objects_id:
-                        objects_id.append(employee.object_id)
-                    if employee.device_token:
-                        tokens.append(employee.device_token)
-                notification = await send_notification(tokens, title, body=f"A new order for {body}",
-                                                       content_id=order_id,
-                                                       apartment_id=apartment_id, screen=value, image=image,
-                                                       user_id=user_uid)
-
-                if notification is True:
-
                     new_not_uk = NotificationUK(
                         title=title,
                         description=f"A new order for {body}",
@@ -89,20 +71,31 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     )
                     session.add(new_not_uk)
                     await session.commit()
-                    for object_id in objects_id:
+                    tokens.append(uk.device_token)
+
+                employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
+
+                for employee in employee_info:
+                    if employee.device_token:
                         new_not_employee = NotificationEmployee(
                             title=title,
                             description=f"A new order for {body}",
                             type=value,
-                            object_id=object_id,
+                            employee_id=employee.id,
+                            object_id=employee.object_id,
                             content_id=order_id,
                             apartment_id=apartment_id,
                             image=image,
                         )
                         session.add(new_not_employee)
                         await session.commit()
+                        tokens.append(employee.device_token)
+                await send_notification(tokens, title, body=f"A new order for {body}",
+                                        content_id=order_id,
+                                        apartment_id=apartment_id, screen=value, image=image,
+                                        user_id=user_uid)
 
-                    return
+                return
             elif value == 'guest_pass':
                 pass
                 # notification = await send_notification(tokens, title, f"A new guest request for {body}")

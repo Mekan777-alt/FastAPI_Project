@@ -259,40 +259,47 @@ async def create_apartment_for_object(session, object_id, apartment_data):
 
 async def create_employee(session, employee_data, user):
     try:
-        new_user = auth.create_user(
-            email=employee_data.email,
-            password=employee_data.password
-        )
-        collections_path = "users"
+        try:
+            check_email = auth.get_user_by_email(employee_data.email)
 
-        db = firestore.client()
-        user_doc = db.collection(collections_path).document(new_user.uid)
+            if not check_email:
+                new_user = auth.create_user(
+                    email=employee_data.email,
+                    password=employee_data.password
+                )
+                collections_path = "users"
 
-        first_last_name = employee_data.first_last_name.split()
+                db = firestore.client()
+                user_doc = db.collection(collections_path).document(new_user.uid)
 
-        user_data = {
-            "email": employee_data.email,
-            "phone_number": employee_data.phone_number,
-            "first_name": first_last_name[0],
-            "last_name": first_last_name[1],
-            "role": "Employee"
-        }
-        user_doc.set(user_data)
+                first_last_name = employee_data.first_last_name.split()
 
-        uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+                user_data = {
+                    "email": employee_data.email,
+                    "phone_number": employee_data.phone_number,
+                    "first_name": first_last_name[0],
+                    "last_name": first_last_name[1],
+                    "role": "Employee"
+                }
+                user_doc.set(user_data)
 
-        new_employee = EmployeeUK(
-            uuid=new_user.uid,
-            uk_id=uk_id.id,
-            photo_path='null',
-            object_id=employee_data.object_id,
-            is_admin=False
-        )
+                uk_id = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
-        session.add(new_employee)
-        await session.commit()
+                new_employee = EmployeeUK(
+                    uuid=new_user.uid,
+                    uk_id=uk_id.id,
+                    photo_path='null',
+                    object_id=employee_data.object_id,
+                    is_admin=False
+                )
 
-        return new_employee.to_dict()
+                session.add(new_employee)
+                await session.commit()
+
+                return new_employee.to_dict()
+
+        except Exception as e:
+            return "User exist"
 
     except (ValueError, TypeError, firebase_admin.auth.UserNotFoundError) as e:
 
