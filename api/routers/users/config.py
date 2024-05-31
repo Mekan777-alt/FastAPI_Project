@@ -81,7 +81,6 @@ async def get_contacts_from_db(session, uk_id):
         for contact in contacts:
             contact_data = {
                 "name": contact.name,
-                "description": contact.description,
                 "email": contact.email if contact.email is not None else "null",
                 "phone": contact.phone if contact.phone is not None else "null"
             }
