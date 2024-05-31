@@ -60,8 +60,7 @@ async def delete_staff(staff_id: int, session: AsyncSession = Depends(get_sessio
 
         await get_staff_delete(session, staff_id)
 
-        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={
-            "message": f"Staff {staff_id} deleted successfully"})
+        return JSONResponse(status_code=status.HTTP_200_OK, content="staff deleted")
 
     except Exception as e:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
