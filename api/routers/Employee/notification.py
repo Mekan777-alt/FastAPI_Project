@@ -28,6 +28,9 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
         notifications = await session.scalars(select(NotificationEmployee)
                                               .where(NotificationEmployee.object_id == employee_info.object_id))
 
+        if notifications is None:
+            return JSONResponse(content=[], status_code=status.HTTP_200_OK)
+
         notification_list = []
 
         for notification in notifications:
