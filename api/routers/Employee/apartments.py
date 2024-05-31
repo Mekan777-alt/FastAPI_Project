@@ -411,26 +411,37 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                 user_fb = await get_staff_firebase(user['uid'])
 
                 if user_fb['role'] == "Employee":
-                    db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
+                    check_notification = db.collection("notifications").document(doc.id).get(
+                        {"is_view": {"employee": True}}).to_dict()
+                    if check_notification['is_view']['employee'] is True:
+                        pass
+                    else:
+                        db.collection("notifications").document(doc.id).set({"is_view": {"employee": True}}, merge=True)
 
-                    employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
+                        employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
-                    employee_notify = await session.scalar(select(NotificationEmployee)
-                    .where(
-                        NotificationEmployee.object_id == employee_info.object_id))
+                        employee_notify = await session.scalar(select(NotificationEmployee)
+                                                               .where(
+                            NotificationEmployee.object_id == employee_info.object_id))
 
-                    employee_notify.is_view = True
-                    await session.commit()
+                        employee_notify.is_view = True
+                        await session.commit()
+
                 elif user_fb['role'] == "Company":
-                    db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
+                    check_notification = db.collection("notifications").document(doc.id).get(
+                        {"is_view": {"company": True}}).to_dict()
+                    if check_notification['is_view']['company'] is True:
+                        pass
+                    else:
+                        db.collection("notifications").document(doc.id).set({"is_view": {"company": True}}, merge=True)
 
-                    company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
+                        company_info = await session.scalar(select(UK).where(UK.uuid == user['uid']))
 
-                    company_notify = await session.scalar(
-                        select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
+                        company_notify = await session.scalar(
+                            select(NotificationUK).where(NotificationUK.uk_id == company_info.id))
 
-                    company_notify.is_view = True
-                    await session.commit()
+                        company_notify.is_view = True
+                        await session.commit()
 
         order_dict = {
             "order_id": order.id,
