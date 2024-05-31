@@ -7,6 +7,7 @@ from .meters import router as meter_router
 from .guest_pass import router as guest_pass_router
 from .pay import router as pay_router
 from .notification import router as notification_router
+from .order_complaints import router as order_complaint_router
 
 user_router = APIRouter(
     prefix="/api/v1/client",
@@ -21,3 +22,4 @@ user_router.include_router(meter_router)
 user_router.include_router(guest_pass_router)
 user_router.include_router(pay_router)
 user_router.include_router(notification_router)
+user_router.include_router(order_complaint_router)
