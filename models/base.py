@@ -41,8 +41,8 @@ class EmployeeUK(Base):
     is_archive = Column(Boolean, default=False)
     reset_code = Column(String, default=None)
 
-    uk = relationship('UK', back_populates='employees', cascade="all, delete, delete-orphan")
-    object = relationship('Object', back_populates='employees', cascade="all, delete, delete-orphan")
+    uk = relationship('UK', back_populates='employees', single_parent=True)
+    object = relationship('Object', back_populates='employees', single_parent=True)
     notification_employee = relationship("NotificationEmployee", back_populates="employee", cascade="all, delete, delete-orphan")
 
     def to_dict(self):
@@ -79,12 +79,10 @@ class Object(Base):
     uk = relationship('UK', back_populates='objects')
     photo_path = Column(String, default=None)
 
-    apartments = relationship('ApartmentProfile', back_populates='object', cascade="all, delete, delete-orphan")
-    employees = relationship('EmployeeUK', back_populates='object', cascade="all, delete, delete-orphan")
-    service_list_object = relationship('ServiceObjectList', back_populates='object',
-                                       cascade="all, delete, delete-orphan")
-    notification_employee = relationship('NotificationEmployee', back_populates='object',
-                                         cascade="all, delete, delete-orphan")
+    apartments = relationship('ApartmentProfile', back_populates='object')
+    employees = relationship('EmployeeUK', back_populates='object')
+    service_list_object = relationship('ServiceObjectList', back_populates='object')
+    notification_employee = relationship('NotificationEmployee', back_populates='object')
 
     def to_dict(self):
         return {
