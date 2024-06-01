@@ -594,7 +594,7 @@ async def create_invoice(session, apartment_id, invoice_data, user):
             # await pred_send_notification(user, session, value='invoice', apartment_id=apartment_id,
             #                              image=service.big_icons_path, order_id=service.id)
 
-            return new_invoice.to_dict()
+            return new_invoice
 
         if meter_service.name == service_name:
 
@@ -621,7 +621,7 @@ async def create_invoice(session, apartment_id, invoice_data, user):
             # await pred_send_notification(user, session, value='invoice', apartment_id=apartment_id,
             #                              image=service.big_icons_path, order_id=service.id)
 
-            return new_invoice.to_dict()
+            return new_invoice
 
         else:
 
