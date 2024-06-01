@@ -151,7 +151,7 @@ async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_u
             for profile in tenants_profile:
                 data = await get_staff_firebase(profile.uuid)
 
-                data['photo_path'] = profile.photo_path
+                data['photo_path'] = profile.photo_path if profile.photo_path else None
                 data['balance'] = profile.balance
                 data['id'] = profile.id
                 del data['role']
