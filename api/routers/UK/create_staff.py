@@ -14,7 +14,7 @@ from starlette import status
 router = APIRouter()
 
 
-@router.post('/add_employee_uk/{obj_id}', response_model=CreateEmployee)
+@router.post('/add_employee_uk/{obj_id}')
 async def create_employee_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                              employee_data: CreateEmployee, session: AsyncSession = Depends(get_session)):
     try:
@@ -44,7 +44,6 @@ async def create_employee_uk(user: Annotated[dict, Depends(get_firebase_user_fro
         new_employee = EmployeeUK(
             uuid=new_user.uid,
             uk_id=uk_id.id,
-            photo_path='null',
             object_id=employee_data.object_id,
             is_admin=False
         )
