@@ -43,7 +43,8 @@ class EmployeeUK(Base):
 
     uk = relationship('UK', back_populates='employees', single_parent=True)
     object = relationship('Object', back_populates='employees', single_parent=True)
-    notification_employee = relationship("NotificationEmployee", back_populates="employee", cascade="all, delete, delete-orphan")
+    notification_employee = relationship("NotificationEmployee", back_populates="employee",
+                                         cascade="all, delete, delete-orphan")
 
     def to_dict(self):
         return {
@@ -177,8 +178,6 @@ class BankDetailExecutors(Base):
     inn = Column(String, nullable=False)
     kpp = Column(String, nullable=False)
     executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id, ondelete='CASCADE'))
-
-
 
 
 class InvoiceHistory(Base):
