@@ -191,7 +191,6 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
         documents = query.stream()
 
         for document in documents:
-
             document_ref = document.reference
 
             document_ref.update({"user_id": firestore.firestore.ArrayUnion([new_tenant.uid])})
@@ -362,7 +361,7 @@ async def select_executor(user, session, order_id, executor_id, apartment_id):
             await pred_send_notification(user, session, order_id=order_id, apartment_id=apartment_id,
                                          executor_id=executor_id,
                                          value='send in progress order', image=service.big_icons_path
-                    if service.big_icons_path else service.mini_icons_path)
+                if service.big_icons_path else service.mini_icons_path)
             return {"executor_id": executor.executor_id, "order_id": executor.order_id}
     except HTTPException as e:
 
@@ -995,10 +994,9 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
         invoice.photo_path = "http://217.25.95.113:8000/static/icons/mini/done_invoice.jpg"
 
         apartment_info_tenant = await session.scalars(select(TenantApartments)
-                                              .where(TenantApartments.apartment_id == apartment_id))
+                                                      .where(TenantApartments.apartment_id == apartment_id))
 
         for tenant in apartment_info_tenant:
-
             tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
             tenant_info.balance += invoice.amount
@@ -1050,14 +1048,15 @@ async def unpaid_invoice_id(session, apartment_id, invoice_id):
         invoice.status = 'unpaid'
         invoice.photo_path = "http://217.25.95.113:8000/static/icons/mini/invoice.jpg"
 
-        apartment_info = await session.scalar(select(TenantApartments)
-                                              .where(TenantApartments.apartment_id == apartment_id))
+        apartment_info_tenant = await session.scalars(select(TenantApartments)
+                                                      .where(TenantApartments.apartment_id == apartment_id))
 
-        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == apartment_info.tenant_id))
+        for tenant in apartment_info_tenant:
+            tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
-        tenant_info.balance -= invoice.amount
+            tenant_info.balance -= invoice.amount
 
-        await session.commit()
+            await session.commit()
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
