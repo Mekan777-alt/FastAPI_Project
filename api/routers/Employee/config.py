@@ -994,14 +994,16 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
         invoice.status = 'paid'
         invoice.photo_path = "http://217.25.95.113:8000/static/icons/mini/done_invoice.jpg"
 
-        apartment_info = await session.scalar(select(TenantApartments)
+        apartment_info_tenant = await session.scalars(select(TenantApartments)
                                               .where(TenantApartments.apartment_id == apartment_id))
 
-        tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == apartment_info.tenant_id))
+        for tenant in apartment_info_tenant:
 
-        tenant_info.balance += invoice.amount
+            tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
-        await session.commit()
+            tenant_info.balance += invoice.amount
+
+            await session.commit()
 
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
 
