@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from models.base import (ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile, Order, ExecutorOrders,
                          ExecutorsProfile, Service, AdditionalService, AdditionalServiceList,
-                         NotificationUK, NotificationEmployee, UK)
+                         NotificationUK, NotificationEmployee, UK, Object)
 from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
@@ -364,8 +364,10 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
         executor_data = []
 
+        object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
+
         if order.status == 'new':
-            executor_info = await session.scalars(select(ExecutorsProfile))
+            executor_info = await session.scalars(select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
 
             for executor in executor_info:
                 executor_data.append(executor.to_dict())
@@ -373,7 +375,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         elif order.status == 'in progress' or order.status == 'completed':
             active_executor = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
 
-            executor_info = await session.scalars(select(ExecutorsProfile))
+            executor_info = await session.scalars(select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
 
             for executor in executor_info:
                 if executor.id == active_executor.executor_id:
