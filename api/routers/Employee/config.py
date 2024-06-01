@@ -505,7 +505,6 @@ async def new_meters(session, meter_data, apartment_id, user):
         session.add(readings)
         await session.commit()
 
-        # await pred_send_notification(user=user, apartment_id=apartment_id, )
         return readings.to_dict()
     except HTTPException as e:
         return e

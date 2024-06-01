@@ -1,6 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from models.base import (TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts, Meters,
+from models.base import (TenantProfile, Order, Service, TenantApartments, ApartmentProfile, Object, UK, Contacts,
+                         Meters,
                          MeterService, GuestPass, GuestPassDocuments, InvoiceHistory)
 from firebase.config import get_staff_firebase
 from fastapi import HTTPException
@@ -8,24 +9,22 @@ from starlette import status
 
 
 async def get_user_id(session, user_uuid):
-
     query = await session.scalars(select(TenantProfile).where(TenantProfile.uuid == user_uuid))
 
     if not query:
-
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
 
     orders_data = []
 
     for i in query:
         query = await session.execute(
-                select(Order, Service)
-                .where(Order.tenant_id == i.id)
-                .join(Service, Order.selected_service_id == Service.id)
-                .options(
-                    selectinload(Order.selected_service)
-                )
-                .distinct()
+            select(Order, Service)
+            .where(Order.tenant_id == i.id)
+            .join(Service, Order.selected_service_id == Service.id)
+            .options(
+                selectinload(Order.selected_service)
+            )
+            .distinct()
         )
 
         order_result = query.fetchall()
@@ -36,7 +35,6 @@ async def get_user_id(session, user_uuid):
 
 
 async def get_user_profile(session, user_id, new_value=None):
-
     try:
         data_to_return = {
             "object_address": "",
@@ -49,16 +47,17 @@ async def get_user_profile(session, user_id, new_value=None):
 
         for apartment in apartments:
 
-            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
+            apartment_info = await session.scalar(
+                select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
 
             if not data_to_return['object_address']:
                 object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
 
                 data_to_return['object_address'] = object_info.address
             apartment_data = {
-                    'id': apartment_info.id,
-                    'name': apartment_info.apartment_name
-                }
+                'id': apartment_info.id,
+                'name': apartment_info.apartment_name
+            }
             data_to_return['apartment_name'].append(apartment_data)
 
         tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == user_id))
@@ -73,7 +72,6 @@ async def get_user_profile(session, user_id, new_value=None):
 
 
 async def get_contacts_from_db(session, uk_id):
-
     try:
         contacts = await session.scalars(select(Contacts).where(Contacts.uk_id == uk_id))
 
@@ -94,20 +92,20 @@ async def get_contacts_from_db(session, uk_id):
 
 
 async def get_profile_tenant(user, session):
-
     try:
 
         client = await get_staff_firebase(user['uid'])
         tenant_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
-        apartments = await session.scalars(select(TenantApartments).where(TenantApartments.tenant_id == tenant_profile.id))
+        apartments = await session.scalars(
+            select(TenantApartments).where(TenantApartments.tenant_id == tenant_profile.id))
 
         if client['role'] != 'client':
-
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to client")
 
         client['apartment_info'] = []
         for apartment in apartments:
-            apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
+            apartment_info = await session.scalar(
+                select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
             data = {
                 'id': apartment_info.id,
                 'name': apartment_info.apartment_name,
@@ -130,28 +128,28 @@ async def get_user_meters(session, user_id):
             raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
 
         apartment = await session.scalar(select(TenantApartments).where(TenantApartments.tenant_id == user_info.id))
-        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
+        apartment_info = await session.scalar(
+            select(ApartmentProfile).where(ApartmentProfile.id == apartment.apartment_id))
 
         if not apartment:
-
             raise HTTPException(detail="Apartment not found", status_code=status.HTTP_404_NOT_FOUND)
-
 
         meters = await session.scalars(select(Meters).where(Meters.apartment_id == apartment.apartment_id))
 
         if not meters:
-
             return "No Meters"
 
         data = []
         for meter in meters:
             meter_service_info = await session.scalar(select(MeterService).where(
                 MeterService.id == meter.meter_service_id))
-            amount_info = await session.scalar(select(InvoiceHistory).where(InvoiceHistory.meter_service_id == meter_service_info.id))
+            amount_info = await session.scalar(
+                select(InvoiceHistory).where(InvoiceHistory.meter_service_id == meter_service_info.id))
             if amount_info:
                 service_info = {
                     "id": meter.id,
-                    "icon_path": meter_service_info.big_icons_path,
+                    "icon_path": meter_service_info.big_icons_path if meter_service_info.big_icons_path
+                    else meter_service_info.mini_icons_path,
                     "name": meter_service_info.name,
                     "amount": amount_info.amount,
                     "status": amount_info.status,
@@ -171,19 +169,16 @@ async def get_guest_pass(session, user_id):
         tenant = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_id))
 
         if not tenant:
-
             raise HTTPException(detail="Tenant not found", status_code=status.HTTP_404_NOT_FOUND)
 
         apartment_id = await session.scalars(select(TenantApartments).where(TenantApartments.tenant_id == tenant.id))
 
         if not apartment_id:
-
             raise HTTPException(detail="Apartment not found", status_code=status.HTTP_404_NOT_FOUND)
 
         data = []
 
         for apartment in apartment_id:
-
             apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment.id))
 
             apartment_data = {
@@ -237,13 +232,14 @@ async def get_finance_from_user(session, user):
     try:
 
         user_profile = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user['uid']))
-        tenant_info = await session.scalar(select(TenantApartments).where(TenantApartments.tenant_id == user_profile.id))
-        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == tenant_info.apartment_id))
+        tenant_info = await session.scalar(
+            select(TenantApartments).where(TenantApartments.tenant_id == user_profile.id))
+        apartment_info = await session.scalar(
+            select(ApartmentProfile).where(ApartmentProfile.id == tenant_info.apartment_id))
         object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
         from_firebase = await get_staff_firebase(user['uid'])
 
         if not user:
-
             raise HTTPException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND)
 
         del from_firebase['phone_number']
@@ -259,7 +255,6 @@ async def get_finance_from_user(session, user):
                                                     (InvoiceHistory.status == 'unpaid')))
 
         for invoice in invoice_info:
-
             invoice_history_data = {
                 "id": invoice.id,
                 "name": "Invoice",
@@ -271,4 +266,3 @@ async def get_finance_from_user(session, user):
     except Exception as e:
 
         return e
-
