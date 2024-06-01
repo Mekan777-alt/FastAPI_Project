@@ -96,27 +96,6 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                         user_id=user_uid)
 
                 return
-            elif value == 'guest_pass':
-                pass
-                # notification = await send_notification(tokens, title, f"A new guest request for {body}")
-                #
-                # if notification:
-                #     new_not_uk = NotificationUK(
-                #         title=title,
-                #         description=f"A new guest request for {body}",
-                #         type=value,
-                #         uk_id=uk.id,
-                #     )
-                #     session.add(new_not_uk)
-                #     new_not_employee = NotificationEmployee(
-                #         title=title,
-                #         description=f"A new guest request for {body}",
-                #         type=value,
-                #         object_id=object_apart.id,
-                #     )
-                #     session.add(new_not_employee)
-                #     await session.commit()
-
         elif user_fb['role'] == 'Company':
             if value == "news":
                 tokens = []

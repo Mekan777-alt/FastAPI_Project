@@ -147,7 +147,6 @@ class ExecutorsProfile(Base):
     device_token = Column(String)
     uk_id = Column(Integer, ForeignKey('uk_profiles.id', ondelete='CASCADE'))
 
-    bank_details = relationship('BankDetailExecutors', back_populates='executors')
     executor_order = relationship('ExecutorOrders', back_populates='executor')
     uk = relationship('UK', back_populates='executors')
 
@@ -179,7 +178,7 @@ class BankDetailExecutors(Base):
     kpp = Column(String, nullable=False)
     executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id, ondelete='CASCADE'))
 
-    executors = relationship('ExecutorsProfile', back_populates='bank_details')
+
 
 
 class InvoiceHistory(Base):
