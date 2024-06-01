@@ -197,7 +197,6 @@ async def add_tenant_db(session, apartment_id, tenant_info, employee):
 
         new_tenant_for_db = TenantProfile(
             uuid=new_tenant.uid,
-            photo_path='null',
             active_request=0,
             balance=0
         )

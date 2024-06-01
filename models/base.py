@@ -216,7 +216,7 @@ class TenantProfile(Base):
     photo_path = Column(String, default=None)
     active_request = Column(Integer, default=0)
     balance = Column(Float, default=0.0)
-    device_token = Column(String)
+    device_token = Column(String, default=None)
     reset_code = Column(String, default=None)
 
     tenant_apartment = relationship('TenantApartments', back_populates='tenant', cascade="all, delete, delete-orphan")

@@ -123,23 +123,24 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             tokens.append(employee.device_token)
 
                 if apartment_id:
-                    tenant = await session.scalar(
+                    tenants = await session.scalars(
                         select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
 
-                    tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.id))
+                    for tenant in tenants:
+                        tenant_token = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
-                    if tenant_token.device_token:
-                        new_not_tenant = NotificationTenants(
-                            title=title,
-                            description=f"A new news created {body}",
-                            type=value,
-                            tenant_id=tenant_token.id,
-                            content_id=order_id,
-                            image=image,
-                        )
-                        session.add(new_not_tenant)
-                        await session.commit()
-                        tokens.append(tenant_token.device_token)
+                        if tenant_token.device_token:
+                            new_not_tenant = NotificationTenants(
+                                title=title,
+                                description=f"A new news created {body}",
+                                type=value,
+                                tenant_id=tenant_token.id,
+                                content_id=order_id,
+                                image=image,
+                            )
+                            session.add(new_not_tenant)
+                            await session.commit()
+                            tokens.append(tenant_token.device_token)
                 elif len(apartment_id) > 1:
                     for apart_id in apartment_id:
                         tenants = await session.scalars(select(TenantApartments)
@@ -147,7 +148,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
                         for tenant in tenants:
                             tenant_token = await session.scalar(
-                                select(TenantProfile).where(TenantProfile.id == tenant.id))
+                                select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
                             if tenant_token.device_token:
                                 new_not_tenant = NotificationTenants(
                                     title=title,
