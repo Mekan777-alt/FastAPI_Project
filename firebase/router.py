@@ -116,3 +116,42 @@ async def new_password_enter_code(request: EnterCode, session: AsyncSession = De
     except Exception as e:
 
         return HTTPException(detail={'message': f'{e}'}, status_code=400)
+
+
+@router.post('/logout', status_code=status.HTTP_200_OK)
+async def logout(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                 session: AsyncSession = Depends(get_session)):
+    try:
+
+        user_uuid = user['uid']
+
+        client = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uuid))
+
+        if client:
+
+            client.device_token = None
+            await session.commit()
+
+            return "Done"
+
+        uk = await session.scalar(select(UK).where(UK.uuid == user_uuid))
+
+        if uk:
+
+            uk.device_token = None
+            await session.commit()
+
+            return "Done"
+
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user_uuid))
+
+        if employee:
+
+            employee.device_token = None
+            await session.commit()
+
+            return "Done"
+
+        return JSONResponse(status_code=status.HTTP_404_BAD_REQUEST, content=str('User not found'))
+    except Exception as e:
+        return HTTPException(detail={'message': f'{e}'}, status_code=400)
