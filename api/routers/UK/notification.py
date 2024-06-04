@@ -29,6 +29,9 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
         notification_list = []
 
         for notification in notifications:
+            if notification.apartment_id is None:
+                notification.apartment_id = 0
+                await session.commit()
             notification_list.append(notification.to_dict())
 
         return JSONResponse(content=notification_list, status_code=status.HTTP_200_OK)
