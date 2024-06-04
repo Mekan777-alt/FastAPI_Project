@@ -447,7 +447,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
         order_dict = {
             "order_id": order.id,
-            "icon_path": service.big_icons_path if service else None,
+            "icon_path": service.big_icons_path if service.mini_icons_path else service.big_icons_path,
             "apartment_name": order.apartments.apartment_name,
             "service_name": service.name,
             "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",

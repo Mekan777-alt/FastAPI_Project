@@ -254,7 +254,7 @@ async def get_new_order(session, apartment_id: int):
 
             data = {
                 "order_id": order.id,
-                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "icon_path": icon_path.mini_icons_path if icon_path.mini_icons_path else icon_path.big_icons_path,
                 "service_name": service.name,
                 "apartment_name": order.apartments.apartment_name,
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
@@ -307,7 +307,7 @@ async def get_new_order_id(session, apartment_id, order_id):
 
                 order_dict[order.id] = {
                     "order_id": order.id,
-                    "icon_path": icon_path.big_icons_path if icon_path.big_icons_path else None,
+                    "icon_path": icon_path.big_icons_path if icon_path.mini_icons_path else icon_path.big_icons_path,
                     "apartment_name": order.apartments.apartment_name,
                     "service_name": service.name,
                     "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
@@ -403,7 +403,7 @@ async def get_in_progress_order(session, apartment_id):
 
             data = {
                 "order_id": order.id,
-                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "icon_path": icon_path.mini_icons_path if icon_path.mini_icons_path else icon_path.big_icons_path,
                 "service_name": service.name,
                 "apartment_name": order.apartments.apartment_name,
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
@@ -729,7 +729,7 @@ async def get_in_progress_order_id(session, order_id, apartment_id):
         await session.commit()
         order_dict = {
             "order_id": order.id,
-            "icon_path": icon_path.big_icons_path if icon_path else None,
+            "icon_path": icon_path.big_icons_path if icon_path.mini_icons_path else icon_path.big_icons_path,
             "apartment_name": order.apartments.apartment_name,
             "service_name": service.name,
             "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
@@ -809,7 +809,7 @@ async def get_completed_orders(session, apartment_id):
 
             data = {
                 "order_id": order.id,
-                "icon_path": icon_path.mini_icons_path if icon_path else None,
+                "icon_path": icon_path.mini_icons_path if icon_path.mini_icons_path else icon_path.big_icons_path,
                 "service_name": service.name,
                 "apartment_name": order.apartments.apartment_name,
                 "created_at": f"{order.created_at.strftime('%H:%M')}",
