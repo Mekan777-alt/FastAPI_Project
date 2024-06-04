@@ -12,12 +12,15 @@ from api.routers.update_all_user import router as update_all_user
 
 app = FastAPI()
 
+firebase_admin.initialize_app(cred)
+
 app.include_router(user_router)
 app.include_router(firebase_router)
 app.include_router(admin_router)
 app.include_router(employee_router)
 app.include_router(chat_router)
 app.include_router(update_all_user.router)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +29,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-firebase_admin.initialize_app(cred)
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
