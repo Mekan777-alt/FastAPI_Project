@@ -179,6 +179,19 @@ class BankDetailExecutors(Base):
     kpp = Column(String, nullable=False)
     executor_id = Column(Integer, ForeignKey(ExecutorsProfile.id, ondelete='CASCADE'))
 
+    def to_dict(self):
+        return {
+            "recipient_name": self.recipient_name,
+            "account": self.account,
+            "contact_number": self.contact_number,
+            "purpose_of_payment": self.purpose_of_payment,
+            "bic": self.bic,
+            "correspondent_account": self.correspondent_account,
+            "bank_name": self.bank_name,
+            "inn": self.inn,
+            "kpp": self.kpp
+        }
+
 
 class InvoiceHistory(Base):
     __tablename__ = 'invoice_history'

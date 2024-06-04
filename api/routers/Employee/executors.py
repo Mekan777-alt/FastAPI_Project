@@ -52,7 +52,7 @@ async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_toke
             purpose_of_payment=request.purpose_of_payment,
             bic=request.bic,
             recipient_name=request.recipient_name,
-            account=request.account
+            account=request.account,
         )
         session.add(bank_detail_executors)
         await session.commit()

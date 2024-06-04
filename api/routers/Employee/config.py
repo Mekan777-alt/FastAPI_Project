@@ -4,7 +4,7 @@ from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select
 from fastapi import HTTPException, Depends
 from models.base import (Object, ApartmentProfile, ExecutorsProfile, Order, AdditionalService, AdditionalServiceList,
-                         ExecutorOrders, BathroomApartment, MeterService, Meters, InvoiceHistory)
+                         ExecutorOrders, BathroomApartment, MeterService, Meters, InvoiceHistory, BankDetailExecutors)
 from firebase.config import get_staff_firebase
 from firebase_admin import auth, firestore
 from starlette import status
@@ -154,7 +154,14 @@ async def get_executors_detail(session, staff_id):
         if not executor:
             return "Executor not found"
 
-        return executor.to_dict()
+        bank_detail = await session.scalar(select(BankDetailExecutors).where(BankDetailExecutors.id == executor.bank_details_id))
+
+        data = {
+            "executor": executor.to_dict(),
+            "bank_detail": bank_detail.to_dict()
+        }
+
+        return data
 
     except Exception as e:
 
