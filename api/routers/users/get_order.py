@@ -43,7 +43,8 @@ async def get_orders_tenant(user: Annotated[dict, Depends(get_firebase_user_from
             order_data = {
                 "order_id": order_info.id,
                 "status": order_info.status,
-                "icon_path": selected_service.big_icons_path if order_info.selected_service.big_icons_path else None,
+                "icon_path": selected_service.big_icons_path if order_info.selected_service.big_icons_path
+                else order_info.selected_service.mini_icons_path,
                 "name": f"Service on {order_info.created_at.strftime('%d.%m.%Y')} at "
                         f"{order_info.created_at.strftime('%H:%M')}",
                 "created_at": order_info.created_at.strftime('%d %h %Y'),
