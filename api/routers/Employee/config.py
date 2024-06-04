@@ -129,10 +129,14 @@ async def get_employee_info(session, user):
         return e
 
 
-async def get_executors_list(session):
+async def get_executors_list(session, employee):
     try:
 
-        executors = await session.scalars(select(ExecutorsProfile))
+        employee_uid = employee['uid']
+
+        employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
+
+        executors = await session.scalars(select(ExecutorsProfile).where(ExecutorsProfile.uk_id == employee_info.uk_id))
 
         executors_list = []
 

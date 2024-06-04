@@ -22,7 +22,7 @@ async def get_employee_executors(user: Annotated[dict, Depends(get_firebase_user
                                  session: AsyncSession = Depends(get_session)):
     try:
 
-        data = await get_executors_list(session)
+        data = await get_executors_list(session, user)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
