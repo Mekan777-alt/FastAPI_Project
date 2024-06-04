@@ -103,7 +103,8 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
 
         data = {
             "id": order.id,
-            "icon_path": service.big_icons_path if service.big_icons_path else None,
+            "icon_path": service.big_icons_path if service.big_icons_path
+            else service.mini_icons_path,
             "service_name": service.name,
             "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
             "completion_date": order.completion_date,
