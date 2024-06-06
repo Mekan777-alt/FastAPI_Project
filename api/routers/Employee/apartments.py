@@ -119,13 +119,14 @@ async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_
         if not apartment:
             return "Apartment not found"
 
-        photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
+        if photo:
+            photo.filename = photo.filename.lower()
+            path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
-        with open(path, "wb+") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
+            with open(path, "wb+") as buffer:
+                shutil.copyfileobj(photo.file, buffer)
 
-        apartment.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
+            apartment.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
         apartment.apartment_name = apartment_name
 
         await session.commit()
