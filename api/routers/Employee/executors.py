@@ -5,15 +5,25 @@ from starlette.responses import JSONResponse
 from starlette import status
 from models.base import ExecutorsProfile, EmployeeUK, BankDetailExecutors
 from sqlalchemy import select
-from firebase.config import get_firebase_user_from_token, delete_staff_firebase
+from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.Employee.config import get_executors_list, get_executors_detail
-from firebase_admin import auth, firestore
 from schemas.employee.add_executor import AddExecutor
-import shutil
+from api.routers.S3.main import S3Client
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter(
     prefix='/api/v1'
+)
+
+s3_client = S3Client(
+    access_key=os.getenv("ACCESS_KEY_AWS"),
+    secret_key=os.getenv("SECRET_KEY_AWS"),
+    bucket_name=os.getenv("BUCKET_NAME"),
+    endpoint_url=os.getenv("ENDPOINT_URL")
 )
 
 
@@ -96,14 +106,11 @@ async def add_photo_for_executor(user: Annotated[dict, Depends(get_firebase_user
                                  session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
-
-        with open(path, "wb+") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
 
         executor = await session.scalar(select(ExecutorsProfile).where(ExecutorsProfile.id == executor_id))
 
-        executor.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
+        file_key = await s3_client.upload_file(photo, executor.id, "executors")
+        executor.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": executor.photo_path})

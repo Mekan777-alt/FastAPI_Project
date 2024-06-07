@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from firebase.config import get_firebase_user_from_token
 from starlette import status
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 from config import get_session
@@ -9,10 +8,21 @@ from typing import Annotated
 from sqlalchemy import select
 from models.base import UK, ApartmentProfile, Object, News, NewsApartments
 from .config import get_all_news, get_news_id
-import shutil
 from firebase.notification import pred_send_notification
+from api.routers.S3.main import S3Client
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter()
+
+s3_client = S3Client(
+    access_key=os.getenv("ACCESS_KEY_AWS"),
+    secret_key=os.getenv("SECRET_KEY_AWS"),
+    bucket_name=os.getenv("BUCKET_NAME"),
+    endpoint_url=os.getenv("ENDPOINT_URL")
+)
 
 
 @router.get('/add-news')
@@ -67,22 +77,21 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
         if not company_info:
             return "Company not found"
 
-        if photo:
-
-            photo.filename = photo.filename.lower()
-            path = f'/FastAPI_Project/static/photo/{photo.filename}'
-
-            with open(path, "wb+") as buffer:
-                shutil.copyfileobj(photo.file, buffer)
-
         new_news = News(
             name=name,
             description=description,
-            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}" if photo else None,
             uk_id=company_info.id
         )
         session.add(new_news)
         await session.commit()
+
+        if photo:
+
+            photo.filename = photo.filename.lower()
+            file_key = await s3_client.upload_file(photo, new_news.id, "news")
+
+            new_news.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+            await session.commit()
 
         if apartment == 'all':
 

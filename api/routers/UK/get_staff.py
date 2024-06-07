@@ -8,7 +8,7 @@ from firebase.config import get_firebase_user_from_token
 from config import get_session
 from sqlalchemy import select
 from models.base import EmployeeUK
-from schemas.uk.get_staff import StaffList, StaffInfo, StaffDeleteList
+from schemas.uk.get_staff import StaffInfo, StaffDeleteList
 
 router = APIRouter()
 

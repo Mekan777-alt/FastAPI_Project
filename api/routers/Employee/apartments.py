@@ -12,7 +12,6 @@ from schemas.employee.enter_meters import EnterMeters
 from schemas.employee.additionally import Additionally
 from schemas.employee.invoice import Invoice
 from starlette import status
-import shutil
 from api.routers.Employee.config import (get_apartment_list, get_apartments_info, add_tenant_db,
                                          get_new_order, get_new_order_id, select_executor, get_in_progress_order,
                                          create_bathroom, create_additionally, enter_meters, new_meters,
@@ -24,11 +23,22 @@ from api.routers.Employee.config import (get_apartment_list, get_apartments_info
 from starlette.responses import JSONResponse
 from schemas.employee.bathroom import CreateBathroom
 from schemas.uk.add_tenant import AddTenant
+from api.routers.S3.main import S3Client
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter(
     prefix="/api/v1/employee"
 )
 
+s3_client = S3Client(
+    access_key=os.getenv("ACCESS_KEY_AWS"),
+    secret_key=os.getenv("SECRET_KEY_AWS"),
+    bucket_name=os.getenv("BUCKET_NAME"),
+    endpoint_url=os.getenv("ENDPOINT_URL")
+)
 
 @router.get("/apartments")
 async def get_apartments_employee(user: Annotated[dict, Depends(get_firebase_user_from_token)],
@@ -56,10 +66,6 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
                                     session: AsyncSession = Depends(get_session)):
     try:
         photo.filename = photo.filename.lower()
-        path = f'/FastAPI_Project/static/photo/{photo.filename}'
-
-        with open(path, "wb+") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
 
         employee = user['uid']
 
@@ -74,12 +80,15 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
             key_holder=key_holder,
             internet_speed=internet_speed,
             internet_fee=internet_fee,
-            photo_path=f"http://217.25.95.113:8000/static/photo/{photo.filename}",
             internet_operator=internet_operator,
             object_id=object_id.object_id
         )
 
         session.add(new_apartment)
+        await session.commit()
+
+        file_key = await s3_client.upload_file(photo, new_apartment.id, "apartments")
+        new_apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_apartment.to_dict())
@@ -121,12 +130,10 @@ async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_
 
         if photo:
             photo.filename = photo.filename.lower()
-            path = f'/FastAPI_Project/static/photo/{photo.filename}'
 
-            with open(path, "wb+") as buffer:
-                shutil.copyfileobj(photo.file, buffer)
+            file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
+            apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
 
-            apartment.photo_path = f"http://217.25.95.113:8000/static/photo/{photo.filename}"
         apartment.apartment_name = apartment_name
 
         await session.commit()

@@ -9,9 +9,20 @@ from starlette import status
 from sqlalchemy import select
 from models.base import UK
 from schemas.uk.get_profile_uk import UKProfile
-import shutil
+from api.routers.S3.main import S3Client
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter()
+
+s3_client = S3Client(
+    access_key=os.getenv("ACCESS_KEY_AWS"),
+    secret_key=os.getenv("SECRET_KEY_AWS"),
+    bucket_name=os.getenv("BUCKET_NAME"),
+    endpoint_url=os.getenv("ENDPOINT_URL")
+)
 
 
 @router.get('/get_profile_uk', response_model=UKProfile)
@@ -35,16 +46,13 @@ async def added_photo_to_profile_uk(user: Annotated[dict, Depends(get_firebase_u
     try:
 
         photo.filename = photo.filename.lower()
-        path = f'static/photo/{photo.filename}'
-
-        with open(path, "wb+") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
 
         uk_id = user["uid"]
 
         uk = await session.scalar(select(UK).where(UK.uuid == uk_id))
 
-        uk.photo_path = f"http://217.25.95.113:8000/{path}"
+        file_key = await s3_client.upload_file(photo, uk.id, "uk")
+        uk.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
         await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"photo_path": uk.photo_path})
