@@ -9,15 +9,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.future import select
 from models.base import ApartmentProfile, TenantApartments
 
-
 load_dotenv()
-
 
 DB_NAME = os.getenv("DBNAME")
 DB_USER = os.getenv("DBUSER")
 DB_PASSWORD = os.getenv("DBPASSWORD")
 DB_HOST = os.getenv("DBHOST")
 DB_PORT = os.getenv("DBPORT")
+
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
@@ -52,4 +51,3 @@ async def check_user(tenant_id: str, session, apartment_id: int):
         raise e
     except HTTPException as e:
         raise e
-
