@@ -46,15 +46,14 @@ try:
                        ('122-Floor-2nd floor, Smart, 120', 913.0, True, True, 'mts', 2500, 300.0, 'not', 1))
 
         conn.commit()
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Unified Contact Center', 'Unified Contact Center', '+7 (495) 150-08-02', 'smart17@sminex.com'))
+        cursor.execute("INSERT INTO contacts (name, phone, email) VALUES (%s, %s, %s, %s)",
+                       ('Unified Contact Center', '+7 (495) 150-08-02', 'smart17@sminex.com'))
 
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Offers and Feedback', 'If you have any comments or suggestions regarding the quality of '
-                                               'our services, please write to us', 'null', 'maintenance@sminex.com'))
+        cursor.execute("INSERT INTO contacts (name, phone, email) VALUES (%s, %s, %s, %s)",
+                       ('Offers and Feedback', 'null', 'maintenance@sminex.com'))
 
-        cursor.execute("INSERT INTO contacts (name, description, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Mobile Application Technical Support', 'Mobile Application Technical Support',
+        cursor.execute("INSERT INTO contacts (name, phone, email) VALUES (%s, %s, %s, %s)",
+                       ('Mobile Application Technical Support',
                         '+7 (495) 726-67-91', 'support@livenice.com'))
 
         conn.commit()
