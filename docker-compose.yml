@@ -1,17 +1,19 @@
 version: "3"
 services:
-  db:
-    image: bitnami/postgresql
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${DBUSER}
-      - POSTGRES_PASSWORD=${DBPASSWORD}
-      - POSTGRES_DB=${DBNAME}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mynetwork
+#  db:
+#    image: bitnami/postgresql
+#    env_file:
+#      - .env
+#    environment:
+#      - POSTGRES_USER=${DBUSER}
+#      - POSTGRES_PASSWORD=${DBPASSWORD}
+#      - POSTGRES_DB=${DBNAME}
+#      - POSTGRES_HOST=${DBHOST}
+#      - POSTGRES_PORT=${DBPORT}
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    networks:
+#      - mynetwork
 
 
   app:
