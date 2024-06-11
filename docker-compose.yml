@@ -24,12 +24,10 @@ services:
       - /root/FastAPI_Project/static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"
-    networks:
-      - mynetwork
 
-networks:
-  mynetwork:
-    driver: bridge
-
-volumes:
-  postgres_data:
+#networks:
+#  mynetwork:
+#    driver: bridge
+#
+#volumes:
+#  postgres_data:
