@@ -24,8 +24,6 @@ services:
       - /root/FastAPI_Project/static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     networks:
       - mynetwork
 
