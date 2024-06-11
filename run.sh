@@ -4,7 +4,7 @@ source .env
 
 sleep 3
  Wait for PostgreSQL to start
-until PGPASSWORD="${DBPASSWORD}" psql -h "db" -p "5432" -U "postgres" -c '\q'; do
+until PGPASSWORD="${DBPASSWORD}" psql -h "default_db" -p "5432" -U "gen_user" -c '\q'; do
   >&2 echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
