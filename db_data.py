@@ -50,7 +50,7 @@ try:
                        ('Unified Contact Center', '+7 (495) 150-08-02', 'smart17@sminex.com'))
 
         cursor.execute("INSERT INTO contacts (name, phone, email) VALUES (%s, %s, %s, %s)",
-                       ('Offers and Feedback', 'null', 'maintenance@sminex.com'))
+                       ('Offers and Feedback', None, 'maintenance@sminex.com'))
 
         cursor.execute("INSERT INTO contacts (name, phone, email) VALUES (%s, %s, %s, %s)",
                        ('Mobile Application Technical Support',

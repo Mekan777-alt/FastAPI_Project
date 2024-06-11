@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token
 from .config import get_user_profile
-from config import get_session, check_user
+from config import get_session
 from firebase.notification import pred_send_notification
 from schemas.user.new_order import OrderCreateSchema
 from models.base import Order, AdditionalService, Document, Service, TenantProfile, OrderFromTenant, ApartmentProfile
