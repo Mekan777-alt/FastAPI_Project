@@ -23,7 +23,7 @@ async def get_notifications(user: Annotated[dict, Depends(get_firebase_user_from
         employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
 
         if not employee_info:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Employee not found')
 
         notifications = await session.scalars(select(NotificationEmployee)
                                               .where(NotificationEmployee.employee_id == employee_info.id))
