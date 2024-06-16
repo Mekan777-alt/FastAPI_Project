@@ -121,7 +121,7 @@ async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_
                                 session: AsyncSession = Depends(get_session),
                                 apartment_name: str = Form(None),
                                 photo: UploadFile = File(None),
-                                area: str = Form(None)):
+                                area: float = Form(None)):
     try:
 
         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
