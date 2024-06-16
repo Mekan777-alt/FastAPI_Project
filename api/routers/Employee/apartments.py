@@ -120,7 +120,8 @@ async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_
                                 apartment_id: int,
                                 session: AsyncSession = Depends(get_session),
                                 apartment_name: str = Form(None),
-                                photo: UploadFile = File(None)):
+                                photo: UploadFile = File(None),
+                                area: str = Form(None)):
     try:
 
         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
@@ -134,9 +135,17 @@ async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_
             file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
             apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
 
-        apartment.apartment_name = apartment_name
+            await session.commit()
 
-        await session.commit()
+        if apartment_name:
+            apartment.apartment_name = apartment_name
+
+            await session.commit()
+
+        if area:
+            apartment.area = area
+
+            await session.commit()
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
 
