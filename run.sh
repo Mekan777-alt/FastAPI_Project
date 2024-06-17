@@ -16,4 +16,4 @@ echo "Alembic migrations done"
 python3 db_data.py
 echo "Data added to Database!!!"
 #Start the application
-uvicorn app:app --host 0.0.0.0 --port 8000
+uvicorn app:app --host 0.0.0.0 --port 8000 --ssl-keyfile /certs/server.key --ssl-certfile /certs/server.crt
