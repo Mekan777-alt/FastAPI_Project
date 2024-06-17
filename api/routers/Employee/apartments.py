@@ -115,42 +115,42 @@ async def apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_to
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
-@router.put("/apartments/apartment_info/{apartment_id}/update-info")
-async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                                apartment_id: int,
-                                session: AsyncSession = Depends(get_session),
-                                apartment_name: str = Form(None),
-                                photo: UploadFile = File(None),
-                                area: float = Form(None)):
-    try:
-
-        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
-
-        if not apartment:
-            return "Apartment not found"
-
-        if photo:
-            photo.filename = photo.filename.lower()
-
-            file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
-            apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
-
-            await session.commit()
-
-        if apartment_name:
-            apartment.apartment_name = apartment_name
-
-            await session.commit()
-
-        if area:
-            apartment.area = area
-
-            await session.commit()
-
-        return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
-
-    except Exception as e:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+# @router.put("/apartments/apartment_info/{apartment_id}/update-info")
+# async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+#                                 apartment_id: int,
+#                                 session: AsyncSession = Depends(get_session),
+#                                 apartment_name: str = Form(None),
+#                                 photo: UploadFile = File(None),
+#                                 area: float = Form(None)):
+#     try:
+#
+#         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+#
+#         if not apartment:
+#             return "Apartment not found"
+#
+#         if photo:
+#             photo.filename = photo.filename.lower()
+#
+#             file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
+#             apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+#
+#             await session.commit()
+#
+#         if apartment_name:
+#             apartment.apartment_name = apartment_name
+#
+#             await session.commit()
+#
+#         if area:
+#             apartment.area = area
+#
+#             await session.commit()
+#
+#         return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
+#
+#     except Exception as e:
+#         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/list_tenant")
