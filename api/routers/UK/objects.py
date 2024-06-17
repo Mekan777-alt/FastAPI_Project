@@ -89,40 +89,40 @@ async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_s
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-@router.put("/get_objects_uk/{object_id}/update-info")
-async def update_object_info(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
-                             session: AsyncSession = Depends(get_session),
-                             object_name: str = Form(None),
-                             object_address: str = Form(None),
-                             photo: UploadFile = File(None)):
-    try:
-
-        object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
-
-        if not object_info:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Object not found")
-
-        if object_name:
-
-            object_info.object_name = object_name
-            await session.commit()
-
-        if object_address:
-            object_info.address = object_address
-            await session.commit()
-
-        if photo:
-            photo.filename = photo.filename.lower()
-
-            file_key = await s3_client.upload_file(photo, object_info.id, "objects")
-            object_info.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
-
-            await session.commit()
-
-        return JSONResponse(content=object_info.to_dict(), status_code=status.HTTP_200_OK)
-
-    except Exception as e:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+# @router.put("/get_objects_uk/{object_id}/update-info")
+# async def update_object_info(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+#                              session: AsyncSession = Depends(get_session),
+#                              object_name: str = Form(None),
+#                              object_address: str = Form(None),
+#                              photo: UploadFile = File(None)):
+#     try:
+#
+#         object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
+#
+#         if not object_info:
+#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Object not found")
+#
+#         if object_name:
+#
+#             object_info.object_name = object_name
+#             await session.commit()
+#
+#         if object_address:
+#             object_info.address = object_address
+#             await session.commit()
+#
+#         if photo:
+#             photo.filename = photo.filename.lower()
+#
+#             file_key = await s3_client.upload_file(photo, object_info.id, "objects")
+#             object_info.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+#
+#             await session.commit()
+#
+#         return JSONResponse(content=object_info.to_dict(), status_code=status.HTTP_200_OK)
+#
+#     except Exception as e:
+#         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/get_objects_uk/{object_id}/list-service")
