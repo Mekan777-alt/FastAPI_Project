@@ -18,18 +18,30 @@ async def send_notification(tokens, title, body, image=None, content_id=None, ap
                     "click_action": "FLUTTER_NOTIFICATION_CLICK", "imageUrl": image}
         elif screen == 'invoice':
             data = {"id": content_id, "screen": screen, "image": image, "click_action": "FLUTTER_NOTIFICATION_CLICK"}
-        message = messaging.MulticastMessage(
-            tokens=tokens,
-            data={key: str(value) for key, value in data.items()},
-            notification=messaging.Notification(
-                title=title,
-                body=body,
+        # message = messaging.MulticastMessage(
+        #     tokens=tokens,
+        #     data={key: str(value) for key, value in data.items()},
+        #     notification=messaging.Notification(
+        #         title=title,
+        #         body=body,
+        #     )
+        # )
+        #
+        # send = messaging.send_multicast(message)
+        # print(f"Send notification - {send.success_count}")
+        # print(f"Not send notify count - {send.failure_count}")
+        # print(f"Responses {send.responses}")
+        for token in tokens:
+            message = messaging.Message(
+                token=token,
+                data={key: str(value) for key, value in data.items()},
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                )
             )
-        )
-        send = messaging.send_multicast(message)
-        print(f"Send notification - {send.success_count}")
-        print(f"Not send notify count - {send.failure_count}")
-        print(f"Responses {send.responses}")
+            response = messaging.send(message)
+            print('Successfully sent message:', response)
         return True
 
     except Exception as e:
