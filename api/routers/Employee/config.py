@@ -1009,7 +1009,7 @@ async def paid_invoice_id(session, apartment_id, invoice_id):
         for tenant in apartment_info_tenant:
             tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
-            tenant_info.balance += invoice.amount
+            tenant_info.balance -= invoice.amount
 
             await session.commit()
 
@@ -1064,7 +1064,7 @@ async def unpaid_invoice_id(session, apartment_id, invoice_id):
         for tenant in apartment_info_tenant:
             tenant_info = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant.tenant_id))
 
-            tenant_info.balance -= invoice.amount
+            tenant_info.balance += invoice.amount
 
             await session.commit()
 
