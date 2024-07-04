@@ -590,14 +590,14 @@ async def create_invoice(session, apartment_id, invoice_data, user):
             session.add(new_invoice)
             await session.commit()
 
-            # tenant_info = await session.scalar(
-            #     select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
-            #
-            # if tenant_info:
-            #     tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_info.tenant_id))
-            #
-            #     tenant.balance += invoice_data.amount
-            #     await session.commit()
+            tenant_info = await session.scalar(
+                select(TenantApartments).where(TenantApartments.apartment_id == apartment_id))
+
+            if tenant_info:
+                tenant = await session.scalar(select(TenantProfile).where(TenantProfile.id == tenant_info.tenant_id))
+
+                tenant.balance += invoice_data.amount
+                await session.commit()
             #
             # await pred_send_notification(user, session, value='invoice', apartment_id=apartment_id,
             #                              image=service.big_icons_path, order_id=service.id)
