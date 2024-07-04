@@ -47,11 +47,9 @@ async def get_objects(user: Annotated[dict, Depends(get_firebase_user_from_token
 async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                         object_name: str = Form(...),
                         object_address: str = Form(...),
-                        photo: UploadFile = File(...),
+                        photo: UploadFile = File(None),
                         session: AsyncSession = Depends(get_session)):
     try:
-        photo.filename = photo.filename.lower()
-
         staff_id = user['uid']
 
         uk_id = await session.scalar(select(UK).where(UK.uuid == staff_id))
@@ -64,8 +62,14 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
         session.add(create_obj)
         await session.commit()
 
-        file_key = await s3_client.upload_file(photo, create_obj.id, "objects")
-        create_obj.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+        if photo:
+
+            file_key = await s3_client.upload_file(photo, create_obj.id, "objects")
+            create_obj.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+
+        else:
+
+            create_obj.photo_path = "http://217.25.95.113:8000/static/icons/big/object_main.jpg"
 
         await session.commit()
 
