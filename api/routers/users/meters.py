@@ -52,7 +52,7 @@ async def get_meter_id(meter_id: int, user: Annotated[dict, Depends(get_firebase
             else meter_service.mini_icons_path,
             "comment": meter.comment if meter.comment else None,
             "status": meter.status,
-            "amount": None,
+            "amount": 0,
             "meter_readings": meter.meter_readings
         }
 
