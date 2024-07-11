@@ -3,7 +3,7 @@ from config import get_session
 from typing import Annotated
 from starlette.responses import JSONResponse
 from starlette import status
-from models.base import ExecutorsProfile, EmployeeUK, BankDetailExecutors
+from models.base import ExecutorsProfile, EmployeeUK, BankDetailExecutors, UK
 from sqlalchemy import select
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,12 +46,21 @@ async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_toke
                        session: AsyncSession = Depends(get_session)):
     try:
 
-        employee_uid = user["uid"]
+        uk_id = 0
 
-        employee_data = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == employee_uid))
+        uid = user["uid"]
 
-        if not employee_data:
-            return "Employee not found"
+        employee_data = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == uid))
+
+        uk_data = await session.scalar(select(UK).where(UK.uuid == uid))
+
+        if employee_data:
+
+            uk_id = employee_data.uk_id
+
+        elif uk_data:
+
+            uk_id = uk_data.id
 
         bank_detail_executors = BankDetailExecutors(
             bank_name=request.bank_name,
@@ -73,7 +82,7 @@ async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_toke
             email=request.email,
             phone_number=request.phone_number,
             specialization=request.specialization,
-            uk_id=employee_data.uk_id,
+            uk_id=uk_id,
             bank_details_id=bank_detail_executors.id
         )
         session.add(new_employee_db)
