@@ -39,11 +39,22 @@ async def get_uk_profile(session, uk_id):
 async def get_objects_from_uk(session, staff):
     try:
 
-        uk_uid = staff['uid']
+        uk_id = 0
 
-        uk_id = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+        staff_uid = staff['uid']
 
-        objects = await session.scalars(select(Object).where(Object.uk_id == int(uk_id.id)))
+        uk = await session.scalar(select(UK).where(UK.uuid == staff_uid))
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_uid))
+
+        if uk:
+
+            uk_id = uk.id
+
+        elif employee:
+
+            uk_id = employee.uk_id
+
+        objects = await session.scalars(select(Object).where(Object.uk_id == uk_id))
 
         objects_list = []
         for obj in objects:
@@ -397,9 +408,9 @@ async def get_news_id(session, uk, news_id):
                                                            (NotificationEmployee.employee_id == employee_info.id)))
                 if not local_notify:
                     print("Notification not found")
-
-                local_notify.is_view = True
-                await session.commit()
+                else:
+                    local_notify.is_view = True
+                    await session.commit()
 
                 return news.to_dict()
     except Exception as e:

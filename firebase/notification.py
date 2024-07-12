@@ -47,7 +47,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
 
         if user_fb['role'] == 'client':
             if value == 'order':
-                tokens = []
+                tokens_client = []
                 user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
 
                 user_apart = await session.scalar(select(TenantApartments)
@@ -71,7 +71,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                     )
                     session.add(new_not_uk)
                     await session.commit()
-                    tokens.append(uk.device_token)
+                    tokens_client.append(uk.device_token)
 
                 employee_info = await session.scalars(select(EmployeeUK).where(EmployeeUK.object_id == object_apart.id))
 
@@ -89,8 +89,8 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         )
                         session.add(new_not_employee)
                         await session.commit()
-                        tokens.append(employee.device_token)
-                await send_notification(tokens, title, body=f"A new order for {body}",
+                        tokens_client.append(employee.device_token)
+                await send_notification(tokens_client, title, body=f"A new order for {body}",
                                         content_id=order_id,
                                         apartment_id=apartment_id, screen=value, image=image,
                                         user_id=user_uid)
@@ -98,7 +98,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                 return
         elif user_fb['role'] == 'Company':
             if value == "news":
-                tokens = []
+                tokens_company = []
                 uk_info = await session.scalar(select(UK).where(UK.uuid == user_uid))
 
                 objects_uk = await session.scalars(select(Object).where(Object.uk_id == uk_info.id))
@@ -120,7 +120,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             )
                             session.add(new_not_employee)
                             await session.commit()
-                            tokens.append(employee.device_token)
+                            tokens_company.append(employee.device_token)
 
                 if apartment_id:
                     tenants = await session.scalars(
@@ -140,7 +140,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             )
                             session.add(new_not_tenant)
                             await session.commit()
-                            tokens.append(tenant_token.device_token)
+                            tokens_company.append(tenant_token.device_token)
                 elif len(apartment_id) > 1:
                     for apart_id in apartment_id:
                         tenants = await session.scalars(select(TenantApartments)
@@ -160,9 +160,9 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                 )
                                 session.add(new_not_tenant)
                                 await session.commit()
-                                tokens.append(tenant_token.device_token)
+                                tokens_company.append(tenant_token.device_token)
 
-                await send_notification(tokens, title, body=f"A new news created {body}",
+                await send_notification(tokens_company, title, body=f"A new news created {body}",
                                         image=image, content_id=order_id, screen=value)
 
                 return
