@@ -45,7 +45,8 @@ async def get_history_invoice(user: Annotated[dict, Depends(get_firebase_user_fr
                 "name": "Invoice",
                 "amount": invoice.amount,
                 "icon_path": invoice.photo_path,
-                "comment": invoice.comment if invoice.comment else None
+                "comment": invoice.comment if invoice.comment else None,
+                "total_pay": user_profile.pay_balance
             }
             data_list.append(invoice_history_data)
         return data_list
