@@ -38,6 +38,10 @@ async def get_history_invoice(user: Annotated[dict, Depends(get_firebase_user_fr
                                              .where((InvoiceHistory.apartment_id == apartment_info.id) &
                                                     (InvoiceHistory.status == 'paid')))
         data_list = []
+        data = {
+            "total_pay": user_profile.pay_balance,
+            "invoice_history_pay": data_list
+        }
         for invoice in invoice_info:
 
             invoice_history_data = {
@@ -49,6 +53,6 @@ async def get_history_invoice(user: Annotated[dict, Depends(get_firebase_user_fr
                 "total_pay": user_profile.pay_balance
             }
             data_list.append(invoice_history_data)
-        return data_list
+        return data
     except HTTPException as e:
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
