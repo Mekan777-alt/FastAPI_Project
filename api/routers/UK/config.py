@@ -314,30 +314,26 @@ async def get_staff_id_object(session, object_id, staff_id):
 
 async def get_all_news(session, uk):
     try:
-
         uk_uid = uk['uid']
 
         uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
         if uk_info:
-            news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
+            news = await session.scalars(select(News).
+                                         where(News.uk_id == uk_info.id).
+                                         order_by(News.created_at.desc()))
 
-            news_list = []
-
-            for n in news:
-                news_list.append(n.to_dict())
+            news_list = [n.to_dict() for n in news]
             return news_list
 
         employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == uk_uid))
 
         if employee:
+            news = await session.scalars(select(News).
+                                         where(News.uk_id == employee.uk_id).
+                                         order_by(News.created_at.desc()))
 
-            news = await session.scalars(select(News).where(News.uk_id == employee.uk_id))
-
-            news_list = []
-
-            for n in news:
-                news_list.append(n.to_dict())
+            news_list = [n.to_dict() for n in news]
             return news_list
     except Exception as e:
         raise e
