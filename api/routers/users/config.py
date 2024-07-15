@@ -143,19 +143,19 @@ async def get_user_meters(session, user_id):
         for meter in meters:
             meter_service_info = await session.scalar(select(MeterService).where(
                 MeterService.id == meter.meter_service_id))
-            amount_info = await session.scalar(
-                select(InvoiceHistory).where(InvoiceHistory.meter_service_id == meter_service_info.id))
-            if amount_info:
-                service_info = {
-                    "id": meter.id,
-                    "icon_path": meter_service_info.big_icons_path if meter_service_info.big_icons_path
-                    else meter_service_info.mini_icons_path,
-                    "name": meter_service_info.name,
-                    "amount": amount_info.amount,
-                    "status": amount_info.status,
-                    "apartment_name": apartment_info.apartment_name,
-                }
-                data.append(service_info)
+            # amount_info = await session.scalar(
+            #     select(InvoiceHistory).where(InvoiceHistory.meter_service_id == meter_service_info.id))
+            # if amount_info:
+            service_info = {
+                "id": meter.id,
+                "icon_path": meter_service_info.big_icons_path if meter_service_info.big_icons_path
+                else meter_service_info.mini_icons_path,
+                "name": meter_service_info.name,
+                    # "amount": amount_info.amount,
+                    # "status": amount_info.status,
+                "apartment_name": apartment_info.apartment_name,
+            }
+            data.append(service_info)
         return data
 
     except Exception as e:

@@ -15,7 +15,6 @@ router = APIRouter()
 async def get_news(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                    session: AsyncSession = Depends(get_session)):
     try:
-
         user_uid = user['uid']
 
         user_info = await session.scalar(select(TenantProfile).where(TenantProfile.uuid == user_uid))
@@ -29,19 +28,16 @@ async def get_news(user: Annotated[dict, Depends(get_firebase_user_from_token)],
         apartment_info = await session.scalar(select(ApartmentProfile)
                                               .where(ApartmentProfile.id == apartment_tenant.apartment_id))
 
-        news_apartment = await session.scalars(select(NewsApartments)
-                                               .where(NewsApartments.apartment_id == apartment_info.id))
+        news_apartment = await session.scalars(select(News).
+                                               join(NewsApartments).
+                                               where(NewsApartments.apartment_id == apartment_info.id).
+                                               order_by(News.created_at.desc()))
 
-        news_list = []
-        for n in news_apartment:
-            news = await session.scalar(select(News).where(News.id == n.news_id))
-
-            news_list.append(news.to_dict())
+        news_list = [news.to_dict() for news in news_apartment]
 
         return JSONResponse(content=news_list, status_code=status.HTTP_200_OK)
 
     except Exception as e:
-
         raise HTTPException(detail={'detail': str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
 
 

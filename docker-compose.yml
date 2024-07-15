@@ -21,7 +21,6 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - ./certs:/certs
       - /root/FastAPI_Project/static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"

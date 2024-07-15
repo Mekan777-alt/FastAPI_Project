@@ -39,11 +39,22 @@ async def get_uk_profile(session, uk_id):
 async def get_objects_from_uk(session, staff):
     try:
 
-        uk_uid = staff['uid']
+        uk_id = 0
 
-        uk_id = await session.scalar(select(UK).where(UK.uuid == uk_uid))
+        staff_uid = staff['uid']
 
-        objects = await session.scalars(select(Object).where(Object.uk_id == int(uk_id.id)))
+        uk = await session.scalar(select(UK).where(UK.uuid == staff_uid))
+        employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == staff_uid))
+
+        if uk:
+
+            uk_id = uk.id
+
+        elif employee:
+
+            uk_id = employee.uk_id
+
+        objects = await session.scalars(select(Object).where(Object.uk_id == uk_id))
 
         objects_list = []
         for obj in objects:
@@ -303,30 +314,26 @@ async def get_staff_id_object(session, object_id, staff_id):
 
 async def get_all_news(session, uk):
     try:
-
         uk_uid = uk['uid']
 
         uk_info = await session.scalar(select(UK).where(UK.uuid == uk_uid))
 
         if uk_info:
-            news = await session.scalars(select(News).where(News.uk_id == uk_info.id))
+            news = await session.scalars(select(News).
+                                         where(News.uk_id == uk_info.id).
+                                         order_by(News.created_at.desc()))
 
-            news_list = []
-
-            for n in news:
-                news_list.append(n.to_dict())
+            news_list = [n.to_dict() for n in news]
             return news_list
 
         employee = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == uk_uid))
 
         if employee:
+            news = await session.scalars(select(News).
+                                         where(News.uk_id == employee.uk_id).
+                                         order_by(News.created_at.desc()))
 
-            news = await session.scalars(select(News).where(News.uk_id == employee.uk_id))
-
-            news_list = []
-
-            for n in news:
-                news_list.append(n.to_dict())
+            news_list = [n.to_dict() for n in news]
             return news_list
     except Exception as e:
         raise e
@@ -397,9 +404,9 @@ async def get_news_id(session, uk, news_id):
                                                            (NotificationEmployee.employee_id == employee_info.id)))
                 if not local_notify:
                     print("Notification not found")
-
-                local_notify.is_view = True
-                await session.commit()
+                else:
+                    local_notify.is_view = True
+                    await session.commit()
 
                 return news.to_dict()
     except Exception as e:

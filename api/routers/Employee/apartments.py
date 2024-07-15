@@ -65,7 +65,6 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
                                     photo: UploadFile = File(None),
                                     session: AsyncSession = Depends(get_session)):
     try:
-        photo.filename = photo.filename.lower()
 
         employee = user['uid']
 
@@ -87,9 +86,10 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
         session.add(new_apartment)
         await session.commit()
 
-        file_key = await s3_client.upload_file(photo, new_apartment.id, "apartments")
-        new_apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
-        await session.commit()
+        if photo:
+            file_key = await s3_client.upload_file(photo, new_apartment.id, "apartments")
+            new_apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+            await session.commit()
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=new_apartment.to_dict())
 
