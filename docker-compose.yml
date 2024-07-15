@@ -34,7 +34,7 @@ services:
     container_name: redis-cache_order
     restart: on-failure
     ports:
-      - '6380:6380'
+      - '6379:6379'
     command: redis-server
     volumes:
       - cache:/data
