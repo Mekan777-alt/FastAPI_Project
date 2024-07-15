@@ -1,21 +1,5 @@
 version: "3"
 services:
-  db:
-    image: bitnami/postgresql
-    env_file:
-      - .env
-    ports:
-      - "5431:5432"
-    environment:
-      - POSTGRES_USER=${DBUSER}
-      - POSTGRES_PASSWORD=${DBPASSWORD}
-      - POSTGRES_DB=${DBNAME}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mynetwork
-
-
   app:
     build:
       context: .
@@ -24,8 +8,6 @@ services:
       - /root/FastAPI_Project/static/photo:/FastAPI_Project/static/photo/
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     networks:
       - mynetwork
 
