@@ -1,5 +1,8 @@
 from typing import Annotated
-from config import get_session
+
+from fastapi_cache.decorator import cache
+
+from models.config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_firebase_user_from_token
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -26,6 +29,7 @@ s3_client = S3Client(
 
 
 @router.get('/get_profile_uk', response_model=UKProfile)
+@cache(expire=60)
 async def get_profile_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                             session: AsyncSession = Depends(get_session)):
 

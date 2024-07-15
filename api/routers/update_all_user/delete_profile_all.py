@@ -4,7 +4,7 @@ from firebase.config import get_firebase_user_from_token, delete_staff_firebase
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from starlette import status
-from config import get_session
+from models.config import get_session
 from starlette.responses import JSONResponse
 from models.base import TenantProfile, UK, EmployeeUK
 

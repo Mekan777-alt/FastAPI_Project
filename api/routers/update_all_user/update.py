@@ -3,10 +3,10 @@ from starlette import status
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token
 from typing import Annotated
-from config import get_session
+from models.config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models.base import TenantProfile, UK, EmployeeUK, PaymentDetails, ExecutorsProfile
+from models.base import TenantProfile, UK, EmployeeUK, PaymentDetails
 from schemas.updateProfiles.schemas import UpdateProfiles
 from firebase_admin import firestore, auth
 

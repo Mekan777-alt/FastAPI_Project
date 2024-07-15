@@ -29,6 +29,18 @@ services:
     networks:
       - mynetwork
 
+  redis-cache:
+    image: redis:alpine
+    container_name: redis-cache_order
+    restart: on-failure
+    ports:
+      - '6380:6380'
+    command: redis-server
+    volumes:
+      - cache:/data
+    networks:
+      - mynetwork
+
 networks:
   mynetwork:
     driver: bridge

@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 from starlette import status
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token, register_user
 from typing import Annotated
-from config import get_session
+from models.config import get_session
 from api.routers.users.add_photo import router
 from api.routers.users.config import get_profile_tenant
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @router.get("/profile")
+@cache(expire=60)
 async def get_profile(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                       session: AsyncSession = Depends(get_session)):
 

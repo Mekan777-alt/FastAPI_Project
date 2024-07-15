@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, Form, File, UploadFile
 from typing import Annotated, List
+
+from fastapi_cache.decorator import cache
 from sqlalchemy import select
 from starlette.responses import JSONResponse
-from config import get_session
+from models.config import get_session
 from starlette import status
-import shutil
 from models.base import Object as ObjectModels, UK, ApartmentProfile, Service, ServiceObjectList
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.routers.UK.config import (get_objects_from_uk, get_object_id, get_apartments_from_object,
-                                   create_apartment_for_object, get_staff_object, get_staff_id_object)
+                                   get_staff_object, get_staff_id_object)
 from schemas.uk.object import ObjectSchemas, Object
 from schemas.uk.apartments import ApartmentsList
 from schemas.uk.add_additional import Additionaly
@@ -30,6 +31,7 @@ s3_client = S3Client(
 
 
 @router.get("/get_objects_uk", response_model=ObjectSchemas)
+@cache(expire=60)
 async def get_objects(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                       session: AsyncSession = Depends(get_session)):
     try:
@@ -81,6 +83,7 @@ async def create_object(user: Annotated[dict, Depends(get_firebase_user_from_tok
 
 
 @router.get("/get_objects_uk/{object_id}", response_model=Object)
+@cache(expire=60)
 async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
@@ -93,43 +96,44 @@ async def get_object_id_uk(object_id: int, session: AsyncSession = Depends(get_s
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
-# @router.put("/get_objects_uk/{object_id}/update-info")
-# async def update_object_info(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
-#                              session: AsyncSession = Depends(get_session),
-#                              object_name: str = Form(None),
-#                              object_address: str = Form(None),
-#                              photo: UploadFile = File(None)):
-#     try:
-#
-#         object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
-#
-#         if not object_info:
-#             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Object not found")
-#
-#         if object_name:
-#
-#             object_info.object_name = object_name
-#             await session.commit()
-#
-#         if object_address:
-#             object_info.address = object_address
-#             await session.commit()
-#
-#         if photo:
-#             photo.filename = photo.filename.lower()
-#
-#             file_key = await s3_client.upload_file(photo, object_info.id, "objects")
-#             object_info.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
-#
-#             await session.commit()
-#
-#         return JSONResponse(content=object_info.to_dict(), status_code=status.HTTP_200_OK)
-#
-#     except Exception as e:
-#         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+@router.put("/get_objects_uk/{object_id}/update-info")
+async def update_object_info(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                             session: AsyncSession = Depends(get_session),
+                             object_name: str = Form(None),
+                             object_address: str = Form(None),
+                             photo: UploadFile = File(None)):
+    try:
+
+        object_info = await session.scalar(select(ObjectModels).where(ObjectModels.id == object_id))
+
+        if not object_info:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Object not found")
+
+        if object_name:
+
+            object_info.object_name = object_name
+            await session.commit()
+
+        if object_address:
+            object_info.address = object_address
+            await session.commit()
+
+        if photo:
+            photo.filename = photo.filename.lower()
+
+            file_key = await s3_client.upload_file(photo, object_info.id, "objects")
+            object_info.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+
+            await session.commit()
+
+        return JSONResponse(content=object_info.to_dict(), status_code=status.HTTP_200_OK)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/get_objects_uk/{object_id}/list-service")
+@cache(expire=60)
 async def get_list_service_to_object(object_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
@@ -202,6 +206,7 @@ async def delete_list_service_to_object(object_id: int, service_id: int,
 
 
 @router.get("/get_objects_uk/{object_id}/apartment_list", response_model=ApartmentsList)
+@cache(expire=60)
 async def get_apartment_list(object_id: int, session: AsyncSession = Depends(get_session)):
     try:
 
@@ -257,6 +262,7 @@ async def create_apartment_uk(user: Annotated[dict, Depends(get_firebase_user_fr
 
 
 @router.get("/get_objects_uk/{object_id}/get_staff_object")
+@cache(expire=60)
 async def get_object_id_uk(object_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                            session: AsyncSession = Depends(get_session)):
     try:
@@ -271,6 +277,7 @@ async def get_object_id_uk(object_id: int, user: Annotated[dict, Depends(get_fir
 
 
 @router.get("/get_objects_uk/{object_id}/get_staff_object/{staff_id}")
+@cache(expire=60)
 async def get_object_id_uk(object_id: int, staff_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                            session: AsyncSession = Depends(get_session)):
     try:

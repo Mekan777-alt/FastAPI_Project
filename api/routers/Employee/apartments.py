@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from firebase_admin import firestore
 from sqlalchemy import select
 from firebase.config import get_firebase_user_from_token, get_staff_firebase, delete_staff_firebase
-from config import get_session
+from models.config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from models.base import (ApartmentProfile, EmployeeUK, TenantApartments, TenantProfile, Order, ExecutorOrders,
@@ -24,6 +24,7 @@ from starlette.responses import JSONResponse
 from schemas.employee.bathroom import CreateBathroom
 from schemas.uk.add_tenant import AddTenant
 from api.routers.S3.main import S3Client
+from fastapi_cache.decorator import cache
 from dotenv import load_dotenv
 import os
 
@@ -40,7 +41,9 @@ s3_client = S3Client(
     endpoint_url=os.getenv("ENDPOINT_URL")
 )
 
+
 @router.get("/apartments")
+@cache(expire=60)
 async def get_apartments_employee(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                   session: AsyncSession = Depends(get_session)):
     try:
@@ -99,6 +102,7 @@ async def create_apartment_employee(user: Annotated[dict, Depends(get_firebase_u
 
 
 @router.get("/apartments/apartment_info/{apartment_id}")
+@cache(expire=60)
 async def apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                          apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -115,45 +119,46 @@ async def apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_to
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
-# @router.put("/apartments/apartment_info/{apartment_id}/update-info")
-# async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
-#                                 apartment_id: int,
-#                                 session: AsyncSession = Depends(get_session),
-#                                 apartment_name: str = Form(None),
-#                                 photo: UploadFile = File(None),
-#                                 area: float = Form(None)):
-#     try:
-#
-#         apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
-#
-#         if not apartment:
-#             return "Apartment not found"
-#
-#         if photo:
-#             photo.filename = photo.filename.lower()
-#
-#             file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
-#             apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
-#
-#             await session.commit()
-#
-#         if apartment_name:
-#             apartment.apartment_name = apartment_name
-#
-#             await session.commit()
-#
-#         if area:
-#             apartment.area = area
-#
-#             await session.commit()
-#
-#         return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
-#
-#     except Exception as e:
-#         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+@router.put("/apartments/apartment_info/{apartment_id}/update-info")
+async def update_apartment_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
+                                apartment_id: int,
+                                session: AsyncSession = Depends(get_session),
+                                apartment_name: str = Form(None),
+                                photo: UploadFile = File(None),
+                                area: float = Form(None)):
+    try:
+
+        apartment = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == apartment_id))
+
+        if not apartment:
+            return "Apartment not found"
+
+        if photo:
+            photo.filename = photo.filename.lower()
+
+            file_key = await s3_client.upload_file(photo, apartment.id, "apartments")
+            apartment.photo_path = f"https://{s3_client.bucket_name}.s3.timeweb.cloud/{file_key}"
+
+            await session.commit()
+
+        if apartment_name:
+            apartment.apartment_name = apartment_name
+
+            await session.commit()
+
+        if area:
+            apartment.area = area
+
+            await session.commit()
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=apartment.to_dict())
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/list_tenant")
+@cache(expire=60)
 async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
                                     session: AsyncSession = Depends(get_session)):
     try:
@@ -182,6 +187,7 @@ async def get_tenant_from_apartment(user: Annotated[dict, Depends(get_firebase_u
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/list_tenant/{tenant_id}")
+@cache(expire=60)
 async def get_tenant_id(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                         apartment_id: int, tenant_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -233,6 +239,7 @@ async def delete_tenant_from_apartment(user: Annotated[dict, Depends(get_firebas
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/unpaid")
+@cache(expire=60)
 async def get_payment_history(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
                               session: AsyncSession = Depends(get_session)):
     try:
@@ -246,6 +253,7 @@ async def get_payment_history(user: Annotated[dict, Depends(get_firebase_user_fr
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/paid")
+@cache(expire=60)
 async def get_paid_history_payment(user: Annotated[dict, Depends(get_firebase_user_from_token)], apartment_id: int,
                                    session: AsyncSession = Depends(get_session)):
     try:
@@ -259,6 +267,7 @@ async def get_paid_history_payment(user: Annotated[dict, Depends(get_firebase_us
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/payment-history/{invoice_id}")
+@cache(expire=60)
 async def get_invoice_id_from_history(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                       apartment_id: int, invoice_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -315,6 +324,7 @@ async def add_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/new")
+@cache(expire=60)
 async def get_service_order_new(
         apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -328,6 +338,7 @@ async def get_service_order_new(
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/progress")
+@cache(expire=60)
 async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -342,6 +353,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/progress/{order_id}")
+@cache(expire=60)
 async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -356,6 +368,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/completed")
+@cache(expire=60)
 async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                       apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -370,6 +383,7 @@ async def get_service_order_completed(user: Annotated[dict, Depends(get_firebase
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/{order_id}")
+@cache(expire=60)
 async def get_service_order_in_progress(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                         apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -384,7 +398,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         object_info = await session.scalar(select(Object).where(Object.id == apartment_info.object_id))
 
         if order.status == 'new':
-            executor_info = await session.scalars(select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
+            executor_info = await session.scalars(
+                select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
 
             for executor in executor_info:
                 executor_data.append(executor.to_dict())
@@ -392,7 +407,8 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
         elif order.status == 'in progress' or order.status == 'completed':
             active_executor = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
 
-            executor_info = await session.scalars(select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
+            executor_info = await session.scalars(
+                select(ExecutorsProfile).where(ExecutorsProfile.uk_id == object_info.uk_id))
 
             for executor in executor_info:
                 if executor.id == active_executor.executor_id:
@@ -440,7 +456,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
                         employee_info = await session.scalar(select(EmployeeUK).where(EmployeeUK.uuid == user['uid']))
 
                         employee_notify = await session.scalar(select(NotificationEmployee)
-                                                               .where(
+                        .where(
                             NotificationEmployee.object_id == employee_info.object_id))
 
                         employee_notify.is_view = True
@@ -500,6 +516,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/service_order/new/{order_id}")
+@cache(expire=60)
 async def get_service_order_new_id(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                    apartment_id: int, order_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -587,6 +604,7 @@ async def add_additionally_to_apartments(apartment_id: int,
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/enter_meters")
+@cache(expire=60)
 async def apartment_info_enter_meters(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                       apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -616,6 +634,7 @@ async def apartment_info_enter_meters_pose(user: Annotated[dict, Depends(get_fir
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/invoice")
+@cache(expire=60)
 async def apartment_info_invoice_get(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                      apartment_id: int, session: AsyncSession = Depends(get_session)):
     try:
@@ -643,6 +662,7 @@ async def apartment_info_invoice_post(user: Annotated[dict, Depends(get_firebase
 
 
 @router.get("/apartments/apartment_info/{apartment_id}/meter_readings")
+@cache(expire=60)
 async def get_apartment_info_meter_readings(apartment_id: int,
                                             user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                             session: AsyncSession = Depends(get_session)):

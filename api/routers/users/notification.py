@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from config import get_session
+from fastapi_cache.decorator import cache
+
+from models.config import get_session
 from typing import Annotated
 from starlette import status
 from starlette.responses import JSONResponse
@@ -12,6 +14,7 @@ router = APIRouter()
 
 
 @router.get("/notifications")
+@cache(expire=60)
 async def get_notifications_from_user(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                       session: AsyncSession = Depends(get_session)):
     try:

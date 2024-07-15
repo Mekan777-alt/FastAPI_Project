@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi_cache.decorator import cache
+
 from firebase.config import get_firebase_user_from_token
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
-from config import get_session
+from models.config import get_session
 from typing import Annotated
 from sqlalchemy import select
 from models.base import UK, ApartmentProfile, Object, News, NewsApartments
@@ -26,6 +28,7 @@ s3_client = S3Client(
 
 
 @router.get('/add-news')
+@cache(expire=60)
 async def get_news_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                         session: AsyncSession = Depends(get_session)):
     try:
@@ -133,6 +136,7 @@ async def add_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_
 
 
 @router.get('/all-news')
+@cache(expire=60)
 async def get_all_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                session: AsyncSession = Depends(get_session)):
     try:
@@ -146,6 +150,7 @@ async def get_all_news_from_uk(user: Annotated[dict, Depends(get_firebase_user_f
 
 
 @router.get('/all-news/{news_id}')
+@cache(expire=60)
 async def get_news_id_from_uk(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                               news_id: int, session: AsyncSession = Depends(get_session)):
     try:

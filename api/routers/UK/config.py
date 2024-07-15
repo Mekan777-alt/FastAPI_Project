@@ -2,16 +2,15 @@ import firebase_admin.auth
 from sqlalchemy.future import select
 from sqlalchemy import delete
 from models.base import (UK, EmployeeUK, Object, ServiceObjectList, ApartmentProfile, PaymentDetails, Service, News,
-                         NotificationEmployee, NotificationUK)
+                         NotificationEmployee)
 from firebase.config import get_staff_firebase, delete_staff_firebase
 from api.routers.users.config import get_contacts_from_db
-from firebase_admin import auth, firestore
+from firebase_admin import firestore
 
 
 async def get_uk_profile(session, uk_id):
     uk = await session.scalar(select(UK).where(UK.id == uk_id))
     payment_details = await session.scalar(select(PaymentDetails).where(PaymentDetails.uk_id == uk_id))
-    news = await session.scalars(select(News).where(News.uk_id == uk_id))
     if not payment_details:
         requisites = {}
     else:
@@ -29,10 +28,7 @@ async def get_uk_profile(session, uk_id):
         "uk_name": uk.name,
         "photo_path": uk.photo_path,
         "requisites": requisites,
-        # "news": []
     }
-    # for n in news:
-    #     data['news'].append(n.to_dict())
     return data
 
 

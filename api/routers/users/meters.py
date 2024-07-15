@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse
 from starlette import status
 from typing import Annotated
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.ext.asyncio import AsyncSession
-from config import get_session
+from models.config import get_session
 from sqlalchemy import select
 from models.base import Meters, MeterService, TenantProfile, TenantApartments, ApartmentProfile
 from api.routers.users.config import get_user_meters
@@ -13,6 +14,7 @@ router = APIRouter()
 
 
 @router.get("/meters")
+@cache(expire=60)
 async def get_meters(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                      session: AsyncSession = Depends(get_session)):
     try:
@@ -27,6 +29,7 @@ async def get_meters(user: Annotated[dict, Depends(get_firebase_user_from_token)
 
 
 @router.get("/meters/{meter_id}")
+@cache(expire=60)
 async def get_meter_id(meter_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        session: AsyncSession = Depends(get_session)):
 

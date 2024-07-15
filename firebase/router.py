@@ -8,7 +8,8 @@ from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token, register_user, send_mail, save_code_for_db, search_user
 from api.routers.UK.config import get_uk_profile
 from api.routers.users.config import get_user_profile
-from config import pb, get_session
+from models.config import get_session
+from config import pb
 from api.routers.Employee.config import get_employee_profile
 from schemas.forgot_password.schemas import ForgotPassword, EnterCode
 from firebase_admin import auth

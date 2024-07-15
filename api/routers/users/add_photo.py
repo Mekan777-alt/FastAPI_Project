@@ -1,4 +1,3 @@
-import shutil
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_firebase_user_from_token
@@ -7,7 +6,7 @@ from typing import Annotated
 from fastapi import Depends, UploadFile, File, APIRouter
 from sqlalchemy.future import select
 from models.base import TenantProfile
-from config import get_session
+from models.config import get_session
 from api.routers.S3.main import S3Client
 from dotenv import load_dotenv
 import os

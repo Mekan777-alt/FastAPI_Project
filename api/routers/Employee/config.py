@@ -1,4 +1,3 @@
-from sqlalchemy.orm import joinedload
 from sqlalchemy import not_
 from models.base import EmployeeUK, TenantApartments, TenantProfile, Service
 from sqlalchemy.future import select

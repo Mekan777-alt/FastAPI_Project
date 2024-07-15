@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
-from config import get_session
+from models.config import get_session
 from starlette.responses import JSONResponse
 from api.routers.users.config import get_contacts_from_db
 
@@ -9,6 +10,7 @@ router = APIRouter()
 
 
 @router.get('/contacts')
+@cache(expire=60)
 async def get_contacts(session: AsyncSession = Depends(get_session)):
 
     try:

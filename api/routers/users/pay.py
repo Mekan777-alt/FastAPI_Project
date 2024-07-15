@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
+
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_firebase_user_from_token, get_staff_firebase
-from config import get_session
+from models.config import get_session
 from sqlalchemy import select
 from models.base import TenantProfile, TenantApartments, Object, ApartmentProfile, InvoiceHistory
 from starlette import status
@@ -13,6 +15,7 @@ router = APIRouter()
 
 
 @router.get('/pay')
+@cache(expire=60)
 async def get_pay(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                   session: AsyncSession = Depends(get_session)):
     try:
@@ -27,6 +30,7 @@ async def get_pay(user: Annotated[dict, Depends(get_firebase_user_from_token)],
 
 
 @router.get('/pay/history')
+@cache(expire=60)
 async def get_history_invoice(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                               session: AsyncSession = Depends(get_session)):
     try:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing import Annotated
-from config import get_session
+from models.config import get_session
 from firebase_admin import auth
 from sqlalchemy import select
 from firebase_admin import firestore

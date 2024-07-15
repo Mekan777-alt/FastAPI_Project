@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token
-from config import get_session
+from models.config import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from api.routers.users.config import get_guest_pass, post_guest_pass

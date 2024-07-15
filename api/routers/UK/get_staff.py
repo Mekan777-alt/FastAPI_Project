@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends
 from typing import Annotated
+
+from fastapi_cache.decorator import cache
 from starlette import status
 from starlette.responses import JSONResponse
 from api.routers.UK.config import get_staff_uk, get_staff_uk_id, get_staff_delete_list, get_staff_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_firebase_user_from_token
-from config import get_session
+from models.config import get_session
 from sqlalchemy import select
 from models.base import EmployeeUK
 from schemas.uk.get_staff import StaffInfo, StaffDeleteList
@@ -14,6 +16,7 @@ router = APIRouter()
 
 
 @router.get("/get_staff_uk", status_code=status.HTTP_200_OK)
+@cache(expire=60)
 async def get_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                     session: AsyncSession = Depends(get_session)):
     try:
@@ -28,6 +31,7 @@ async def get_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)]
 
 
 @router.get("/get_staff_uk/staff_info/{staff_id}", response_model=StaffInfo)
+@cache(expire=60)
 async def get_staff(staff_id: int, session: AsyncSession = Depends(get_session)):
 
     try:
@@ -42,6 +46,7 @@ async def get_staff(staff_id: int, session: AsyncSession = Depends(get_session))
 
 
 @router.get("/get_staff_uk/delete", response_model=StaffDeleteList)
+@cache(expire=60)
 async def delete_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        session: AsyncSession = Depends(get_session)):
     try:
@@ -67,6 +72,7 @@ async def delete_staff(staff_id: int, session: AsyncSession = Depends(get_sessio
 
 
 @router.put("/get_staff_uk/delete/{staff_id}/archive")
+@cache(expire=60)
 async def add_archive_staff(user: Annotated[dict, Depends(get_firebase_user_from_token)], staff_id: int,
                             session: AsyncSession = Depends(get_session)):
     try:

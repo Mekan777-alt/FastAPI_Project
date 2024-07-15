@@ -1,16 +1,14 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 from starlette import status
 from starlette.responses import JSONResponse
-from api.routers.users.config import get_user_id
 from schemas.user.get_order_list import Apartment
-from config import get_session
+from models.config import get_session
 from firebase.config import get_firebase_user_from_token
 from sqlalchemy.future import select
-from firebase.config import get_staff_firebase
-from models.base import (AdditionalService, Service, Document, TenantProfile, ApartmentProfile,
+from models.base import (AdditionalService, Service, TenantProfile, ApartmentProfile,
                          AdditionalServiceList, TenantApartments, Order, ExecutorOrders, ExecutorsProfile,
                          OrderFromTenant)
 
@@ -18,6 +16,7 @@ router = APIRouter()
 
 
 @router.get("/get_orders")
+@cache(expire=60)
 async def get_orders_tenant(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                             session: AsyncSession = Depends(get_session)):
     try:
@@ -73,6 +72,7 @@ async def get_orders_tenant(user: Annotated[dict, Depends(get_firebase_user_from
 
 
 @router.get('/get_orders/{order_id}')
+@cache(expire=60)
 async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        session: AsyncSession = Depends(get_session)):
     try:
@@ -124,6 +124,7 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
 
 
 @router.get("/get_order_list", response_model=Apartment)
+@cache(expire=60)
 async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                          session: AsyncSession = Depends(get_session)):
     try:

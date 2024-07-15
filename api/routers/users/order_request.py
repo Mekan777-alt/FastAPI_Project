@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from starlette.responses import JSONResponse
 from firebase.config import get_firebase_user_from_token
 from .config import get_user_profile
-from config import get_session
+from models.config import get_session
 from firebase.notification import pred_send_notification
 from schemas.user.new_order import OrderCreateSchema
 from models.base import Order, AdditionalService, Document, Service, TenantProfile, OrderFromTenant, ApartmentProfile
@@ -18,13 +18,6 @@ models_map = {
     "AdditionalService": AdditionalService,
     "Document": Document,
 }
-
-
-# schemas_map = {
-#     "Address": Address,
-#     "AdditionalService": AdditionalService,
-#     "Document": DocumentSchema,
-# }
 
 
 async def get_model_id(session: AsyncSession, model_name: str, model_data: str) -> int:
@@ -46,7 +39,6 @@ async def get_model_id(session: AsyncSession, model_name: str, model_data: str) 
 @router.post("/create_order")
 async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                        order_data: OrderCreateSchema, session: AsyncSession = Depends(get_session)):
-
     try:
 
         tenant_uid = user['uid']
@@ -87,7 +79,6 @@ async def create_order(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
             await session.commit()
 
-        # file_path = "uploads/document/" + file.filename
         if order_data.documents:
             for document_data in order_data.documents:
                 document = Document(

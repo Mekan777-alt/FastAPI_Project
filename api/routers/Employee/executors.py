@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Form, UploadFile, File
-from config import get_session
+from fastapi_cache.decorator import cache
+
+from models.config import get_session
 from typing import Annotated
 from starlette.responses import JSONResponse
 from starlette import status
@@ -28,6 +30,7 @@ s3_client = S3Client(
 
 
 @router.get("/employee/executors")
+@cache(expire=60)
 async def get_employee_executors(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                  session: AsyncSession = Depends(get_session)):
     try:
@@ -95,6 +98,7 @@ async def add_executor(user: Annotated[dict, Depends(get_firebase_user_from_toke
 
 
 @router.get("/employee/executors/{executor_id}")
+@cache(expire=60)
 async def get_executor_id(executor_id: int, user: Annotated[dict, Depends(get_firebase_user_from_token)],
                           session: AsyncSession = Depends(get_session)):
     try:

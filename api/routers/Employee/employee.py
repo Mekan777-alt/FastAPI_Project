@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, File, UploadFile
-from config import get_session
+from fastapi_cache.decorator import cache
+
+from models.config import get_session
 from typing import Annotated
 from starlette.responses import JSONResponse
 from starlette import status
@@ -27,6 +29,7 @@ s3_client = S3Client(
 
 
 @router.get("/employee_info")
+@cache(expire=60)
 async def employee_info(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                         session: AsyncSession = Depends(get_session)):
 

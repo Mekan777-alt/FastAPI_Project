@@ -1,9 +1,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from firebase.config import get_firebase_user_from_token
-from config import get_session
+from models.config import get_session
 from starlette.responses import JSONResponse
 from starlette import status
 from models.base import TenantProfile, Order, OrderFromTenant, Service, AdditionalService, \
@@ -15,6 +16,7 @@ router = APIRouter(
 
 
 @router.get("/complaints")
+@cache(expire=60)
 async def get_orders_complaints(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                 session: AsyncSession = Depends(get_session)):
     try:
@@ -78,6 +80,7 @@ async def get_orders_complaints(user: Annotated[dict, Depends(get_firebase_user_
 
 
 @router.get("/complaints/{order_id}")
+@cache(expire=60)
 async def get_complaint_order_id(user: Annotated[dict, Depends(get_firebase_user_from_token)], order_id: int,
                                  session: AsyncSession = Depends(get_session)):
     try:
@@ -127,6 +130,7 @@ async def get_complaint_order_id(user: Annotated[dict, Depends(get_firebase_user
 
 
 @router.get("/appreciations")
+@cache(expire=60)
 async def get_appreciations_orders(user: Annotated[dict, Depends(get_firebase_user_from_token)],
                                    session: AsyncSession = Depends(get_session)):
     try:
@@ -190,6 +194,7 @@ async def get_appreciations_orders(user: Annotated[dict, Depends(get_firebase_us
 
 
 @router.get("/appreciations/{order_id}")
+@cache(expire=60)
 async def get_appreciations_order_id(user: Annotated[dict, Depends(get_firebase_user_from_token)], order_id: int,
                                      session: AsyncSession = Depends(get_session)):
     try:
