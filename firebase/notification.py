@@ -149,6 +149,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                 tenant_id=tenant_token.id,
                                 content_id=order_id,
                                 image=image,
+                                apartment_id=apartment_id
                             )
                             session.add(new_not_tenant)
                             await session.commit()
@@ -169,6 +170,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                                     type=value,
                                     content_id=order_id,
                                     image=image,
+                                    apartment_id=apart_id
                                 )
                                 session.add(new_not_tenant)
                                 await session.commit()
@@ -201,6 +203,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                             tenant_id=tenant.id,
                             content_id=order_id,
                             image=image,
+                            apartment_id=apartment_id
                         )
                         session.add(new_not_tenant)
                         await session.commit()
@@ -230,6 +233,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         type='order',
                         content_id=order_id,
                         image=image,
+                        apartment_id=apartment_id
                     )
                     session.add(new_not_tenant)
                     await session.commit()
@@ -247,6 +251,7 @@ async def pred_send_notification(user, session, value=None, title=None, body=Non
                         type='order',
                         content_id=order_id,
                         image=image,
+                        apartment_id=apartment_id
                     )
                     session.add(new_not_tenant)
                     await session.commit()

@@ -118,6 +118,7 @@ class ApartmentProfile(Base):
     invoice_history = relationship("InvoiceHistory", back_populates="apartment")
     guest_pass = relationship("GuestPass", back_populates="apartment")
     news_apartments = relationship('NewsApartments', back_populates='apartments')
+    notification_tenants = relationship("NotificationTenants", back_populates="apartment")
 
     def to_dict(self):
         return {
@@ -536,8 +537,10 @@ class NotificationTenants(Base):
     is_view = Column(Boolean, default=False)
     content_id = Column(Integer)
     image = Column(String)
+    apartment_id = Column(Integer, ForeignKey(ApartmentProfile.id, ondelete='CASCADE'))
 
     tenant = relationship("TenantProfile", back_populates="notification_tenants")
+    apartment = relationship("ApartmentProfile", back_populates="notification_tenants")
 
     def to_dict(self):
         return {
@@ -550,6 +553,7 @@ class NotificationTenants(Base):
             "is_view": self.is_view,
             "content_id": self.content_id,
             "image": self.image,
+            "apartment_id": self.apartment_id,
         }
 
 
