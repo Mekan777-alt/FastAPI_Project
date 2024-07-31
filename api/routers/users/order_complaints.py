@@ -37,7 +37,7 @@ async def get_orders_complaints(user: Annotated[dict, Depends(get_firebase_user_
         for order in orders_info:
 
             order_info = await session.scalar(select(Order).where((Order.id == order.order_id)
-                                                                  & (Order.status == 'completed')))
+                                                                  & (Order.grade == 'deprecate')))
 
             if order_info is None:
 
@@ -51,6 +51,7 @@ async def get_orders_complaints(user: Annotated[dict, Depends(get_firebase_user_
                 order_data = {
                     "order_id": order_info.id,
                     "status": order_info.status,
+                    "grade": order_info.grade,
                     "icon_path": selected_service.big_icons_path if order_info.selected_service.big_icons_path else None,
                     "name": f"Service on {order_info.created_at.strftime('%d.%m.%Y')} at "
                             f"{order_info.created_at.strftime('%H:%M')}",
@@ -117,6 +118,7 @@ async def get_complaint_order_id(user: Annotated[dict, Depends(get_firebase_user
             "apartment_name": apartment_info.apartment_name,
             "completed_at": order.completion_time,
             "status": order.status,
+            "grade": order.grade,
             "additional_info": {
                 "additional_service_list": service_data
             },
@@ -151,7 +153,7 @@ async def get_appreciations_orders(user: Annotated[dict, Depends(get_firebase_us
         for order in orders_info:
 
             order_info = await session.scalar(select(Order).where((Order.id == order.order_id)
-                                                                  & (Order.status == 'completed')))
+                                                                  & (Order.grade == 'appreciate')))
 
             if order_info is None:
 
@@ -165,6 +167,7 @@ async def get_appreciations_orders(user: Annotated[dict, Depends(get_firebase_us
                 order_data = {
                     "order_id": order_info.id,
                     "status": order_info.status,
+                    "grade": order_info.grade,
                     "icon_path": selected_service.big_icons_path if order_info.selected_service.big_icons_path else None,
                     "name": f"Service on {order_info.created_at.strftime('%d.%m.%Y')} at "
                             f"{order_info.created_at.strftime('%H:%M')}",
@@ -232,6 +235,7 @@ async def get_appreciations_order_id(user: Annotated[dict, Depends(get_firebase_
             "apartment_name": apartment_info.apartment_name,
             "completed_at": order.completion_time,
             "status": order.status,
+            "grade": order.grade,
             "additional_info": {
                 "additional_service_list": service_data
             },

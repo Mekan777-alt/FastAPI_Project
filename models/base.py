@@ -316,6 +316,7 @@ class Order(Base):
     notes = Column(String, nullable=True)
     status = Column(String, nullable=False)
     is_view = Column(Boolean, default=False)
+    grade = Column(String, default=None)
     selected_service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'))
 
     apartments = relationship("ApartmentProfile", back_populates="orders")
@@ -333,7 +334,8 @@ class Order(Base):
             "completed_time": self.completion_time,
             "notes": self.notes,
             "status": self.status,
-            "selected_service_id": self.selected_service_id
+            "selected_service_id": self.selected_service_id,
+            "grade": self.grade if self.grade else None,
         }
 
 

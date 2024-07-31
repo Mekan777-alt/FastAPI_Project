@@ -123,6 +123,122 @@ async def get_order_id(order_id: int, user: Annotated[dict, Depends(get_firebase
         return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
+@router.post('/get_orders/{order_id}/appreciate')
+async def order_appreciate(user: Annotated[dict, Depends(get_firebase_user_from_token)], order_id: int,
+                           session: AsyncSession = Depends(get_session)):
+    try:
+        order = await session.scalar(select(Order).where(Order.id == order_id))
+
+        if order is None:
+            return JSONResponse(content="Order not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        order.grade = "appreciate"
+        await session.commit()
+
+        service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == order.apartment_id))
+
+        service_data = []
+        additional_services = await session.scalars(select(AdditionalService)
+                                                    .where(AdditionalService.order_id == order.id))
+
+        for additional_service in additional_services:
+            service_name = await session.scalar(select(AdditionalServiceList)
+            .where(
+                AdditionalServiceList.id == additional_service.additional_service_id))
+            service_data.append(service_name.name)
+
+        executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+
+        executor_data = []
+
+        if executor_info:
+            executor = await session.scalar(select(ExecutorsProfile)
+                                            .where(ExecutorsProfile.id == executor_info.executor_id))
+
+            executor_data.append(executor.to_dict())
+
+        data = {
+            "id": order.id,
+            "icon_path": service.big_icons_path if service.big_icons_path
+            else service.mini_icons_path,
+            "service_name": service.name,
+            "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
+            "completion_date": order.completion_date,
+            "apartment_name": apartment_info.apartment_name,
+            "completed_at": order.completion_time,
+            "status": order.status,
+            "grade": order.grade,
+            "additional_info": {
+                "additional_service_list": service_data
+            },
+            "executor": executor_data[0] if len(executor_data) > 0 else None
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
+@router.post('/get_orders/{order_id}/deprecate')
+async def order_deprecate(user: Annotated[dict, Depends(get_firebase_user_from_token)], order_id: int,
+                          session: AsyncSession = Depends(get_session)):
+    try:
+        order = await session.scalar(select(Order).where(Order.id == order_id))
+
+        if order is None:
+            return JSONResponse(content="Order not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        order.grade = "deprecate"
+        await session.commit()
+
+        service = await session.scalar(select(Service).where(Service.id == order.selected_service_id))
+        apartment_info = await session.scalar(select(ApartmentProfile).where(ApartmentProfile.id == order.apartment_id))
+
+        service_data = []
+        additional_services = await session.scalars(select(AdditionalService)
+                                                    .where(AdditionalService.order_id == order.id))
+
+        for additional_service in additional_services:
+            service_name = await session.scalar(select(AdditionalServiceList)
+            .where(
+                AdditionalServiceList.id == additional_service.additional_service_id))
+            service_data.append(service_name.name)
+
+        executor_info = await session.scalar(select(ExecutorOrders).where(ExecutorOrders.order_id == order_id))
+
+        executor_data = []
+
+        if executor_info:
+            executor = await session.scalar(select(ExecutorsProfile)
+                                            .where(ExecutorsProfile.id == executor_info.executor_id))
+
+            executor_data.append(executor.to_dict())
+
+        data = {
+            "id": order.id,
+            "icon_path": service.big_icons_path if service.big_icons_path
+            else service.mini_icons_path,
+            "service_name": service.name,
+            "created_at": f"{order.created_at.strftime('%d %h %H:%M')}",
+            "completion_date": order.completion_date,
+            "apartment_name": apartment_info.apartment_name,
+            "completed_at": order.completion_time,
+            "status": order.status,
+            "grade": order.grade,
+            "additional_info": {
+                "additional_service_list": service_data
+            },
+            "executor": executor_data[0] if len(executor_data) > 0 else None
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=str(e))
+
+
 @router.get("/get_order_list", response_model=Apartment)
 @cache(expire=60)
 async def get_order_list(user: Annotated[dict, Depends(get_firebase_user_from_token)],
