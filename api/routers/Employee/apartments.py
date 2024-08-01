@@ -488,6 +488,7 @@ async def get_service_order_in_progress(user: Annotated[dict, Depends(get_fireba
             "completed_at": order.completion_time,
             "is_view": order.is_view,
             "status": order.status,
+            "grade": order.grade,
             "additional_info": {
                 "additional_service_list": service_data
             },
